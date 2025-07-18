@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.cico.exception.BadRequestException;
 import com.cico.util.OtpType;
 import com.cico.util.TokenType;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -27,16 +27,11 @@ public class JwtUtil {
 	@Autowired
 	private HttpServletRequest httpServletRequest;
 
-	//======================= For APP ===================================
+	// ======================= For APP ===================================
 	private String generateToken(Map<String, Object> claims, String subject) {
-		return Jwts.builder()
-				.setClaims(claims)
-				.setSubject(subject)
-				.setIssuedAt(new Date(System.currentTimeMillis()))
+		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))) // 1 days
-				.setIssuer("CICO")
-				.signWith(SignatureAlgorithm.HS256, secret)
-				.compact();
+				.setIssuer("CICO").signWith(SignatureAlgorithm.HS256, secret).compact();
 	}
 
 	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role) {
@@ -52,11 +47,11 @@ public class JwtUtil {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", "ADMIN");
 		claims.put("adminId", adminId);
-		claims.put("platform", "mobile"); //  platform claim for app
+		claims.put("platform", "mobile"); // platform claim for app
 		return generateToken(claims, adminId);
 	}
 
-	//======================= For WEB ===================================
+	// ======================= For WEB ===================================
 	private String generateToken(Map<String, Object> claims, String subject, TokenType tokenType) {
 		long expirationMillis;
 
@@ -66,17 +61,13 @@ public class JwtUtil {
 			expirationMillis = TimeUnit.DAYS.toMillis(1); // 1 day
 		}
 
-		return Jwts.builder()
-				.setClaims(claims)
-				.setSubject(subject)
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
-				.setIssuer("CICO")
-				.signWith(SignatureAlgorithm.HS256, secret)
-				.compact();
+		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + expirationMillis)).setIssuer("CICO")
+				.signWith(SignatureAlgorithm.HS256, secret).compact();
 	}
 
-	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role, TokenType tokenType, OtpType otpType,Boolean isOtpVerified) {
+	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role,
+			TokenType tokenType, OtpType otpType, Boolean isOtpVerified) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", role);
 		claims.put("StudentId", studentId);
@@ -88,7 +79,7 @@ public class JwtUtil {
 		return generateToken(claims, subject, tokenType);
 	}
 
-	public String generateTokenForAdmin(String adminId, TokenType tokenType, OtpType otpType,Boolean isOtpVerified) {
+	public String generateTokenForAdmin(String adminId, TokenType tokenType, OtpType otpType, Boolean isOtpVerified) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", "ADMIN");
 		claims.put("adminId", adminId);
@@ -109,7 +100,7 @@ public class JwtUtil {
 	}
 
 	public Claims getClaims(String token) {
-		
+
 		try {
 			if (token.startsWith("Bearer "))
 				token = token.substring(7);
@@ -118,7 +109,7 @@ public class JwtUtil {
 			// TODO: handle exception
 			throw new BadRequestException("Invalid Token");
 		}
-		
+
 	}
 
 	public String getUsername(String token) {
