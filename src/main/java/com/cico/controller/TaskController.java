@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cico.model.AttachmentStatus;
 import com.cico.payload.AddQuestionInTaskRequest;
 import com.cico.payload.AddTaskQuestionAttachmentRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.StudentTaskFilterRequest;
 import com.cico.payload.TaskRequest;
 import com.cico.payload.TaskSubmissionRequest;
@@ -212,8 +214,6 @@ public class TaskController {
 		return taskService.getAllTaskQuestionWithSubmissionCount(taskId);
 	}
 
-	
-	
 	// .................. NEW API'S ...........................
 
 	@GetMapping("/v2/getSubmittedTaskQuestionForStudent")
@@ -225,9 +225,14 @@ public class TaskController {
 		return taskService.getSubmittedTaskQuestionForStudent(studentId, pageNumber, pageSise, status);
 	}
 
-	@PostMapping("/v2/getAllTaskOfStudent")
-	public ResponseEntity<?> getAllTaskOfStudentNew(
-			@RequestBody @Valid StudentTaskFilterRequest studentTaskFilterRequest) {
+	@PostMapping("/v2/getAllTaskOfStudent/{studentId}")
+	public ResponseEntity<?> getAllTaskOfStudentNew(@PathVariable(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status) {
+		StudentTaskFilterRequest studentTaskFilterRequest = StudentTaskFilterRequest.builder().studentId(studentId)
+				.pageRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build())
+				.status(status).build();
 		return taskService.getAllTaskOfStudent(studentTaskFilterRequest);
 
 	}
