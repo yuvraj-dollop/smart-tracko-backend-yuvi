@@ -25,10 +25,13 @@ import com.cico.exception.ResourceNotFoundException;
 import com.cico.kafkaServices.KafkaProducerService;
 import com.cico.model.AttachmentStatus;
 import com.cico.model.Course;
+import com.cico.model.Student;
 import com.cico.model.Subject;
 import com.cico.model.Task;
 import com.cico.model.TaskQuestion;
 import com.cico.model.TaskSubmission;
+import com.cico.payload.AddQuestionInTaskRequest;
+import com.cico.payload.AddTaskQuestionAttachmentRequest;
 import com.cico.payload.AssignmentAndTaskSubmission;
 import com.cico.payload.AssignmentSubmissionResponse;
 import com.cico.payload.CourseResponse;
@@ -40,7 +43,10 @@ import com.cico.payload.TaskQuestionSubmissionResponse;
 import com.cico.payload.TaskRequest;
 import com.cico.payload.TaskResponse;
 import com.cico.payload.TaskStatusSummary;
+import com.cico.payload.TaskSubmissionRequest;
 import com.cico.payload.TaskSubmissionResponse;
+import com.cico.payload.UpdateTaskQuestionRequest;
+import com.cico.payload.UpdateTaskSubmissionStatusRequest;
 import com.cico.repository.CourseRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
@@ -761,6 +767,250 @@ public class TaskServiceImpl implements ITaskService {
 		response.put("taskQuestions", questions);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
+	}
+
+	// ........................ NEW METHOD'S ...........................
+
+	@Override
+	public ResponseEntity<?> studentTaskSubmittion(TaskSubmissionRequest submissionRequest) {
+
+		Long taskId = submissionRequest.getTaskId();
+		Long questionId = submissionRequest.getQuestionId();
+		Integer studentId = submissionRequest.getStudentId();
+		MultipartFile file = submissionRequest.getSubmittionFileName();
+		String taskDescription = submissionRequest.getTaskDescription();
+		String codeSubmission = submissionRequest.getCodeSubmission();
+
+		// Validate Task
+		Task task = taskRepo.findByTaskIdAndIsDeleted(taskId, false)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.TASK_NOT_FOUND));
+
+		// Validate Question
+		TaskQuestion taskQuestion = taskQuestionRepository.findById(questionId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
+
+		// Validate Student
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		// Check if already submitted
+		if (taskSubmissionRepository.findByQuestionIdAndStudentId(questionId, studentId).isPresent()) {
+			throw new ResourceAlreadyExistException(AppConstants.TASK_ALREADY_SUBMITTED);
+		}
+
+		// Prepare Submission
+		TaskSubmission submission = new TaskSubmission();
+		submission.setStudent(student);
+		submission.setTask(task);
+		submission.setQuestion(taskQuestion);
+		submission.setSubmissionDate(LocalDateTime.now());
+		submission.setTaskDescription(taskDescription);
+		submission.setStatus(SubmissionStatus.Unreviewed);
+
+		// Handle File
+		if (AttachmentStatus.REQUIRED.equals(taskQuestion.getAttachmentStatus())) {
+			if (file == null || file.isEmpty()) {
+				throw new ResourceNotFoundException(AppConstants.FILE_REQUIRED);
+			}
+			submission.setSubmittionFileName(fileService.uploadFileInFolder(file, "zip"));
+		} else if (AttachmentStatus.OPTIONAL.equals(taskQuestion.getAttachmentStatus()) && file != null
+				&& !file.isEmpty()) {
+			submission.setSubmittionFileName(fileService.uploadFileInFolder(file, "zip"));
+		} else {
+			submission.setSubmittionFileName(null);
+		}
+
+		// Handle Code
+		if (Boolean.TRUE.equals(taskQuestion.getCodeSubmisionStatus())) {
+			if (codeSubmission == null || codeSubmission.isEmpty()) {
+				throw new ResourceNotFoundException(AppConstants.CODE_REQUIRED);
+			}
+		} else {
+			if (codeSubmission != null && !codeSubmission.isEmpty()) {
+				throw new ResourceAlreadyExistException(AppConstants.CODE_NOT_ALLOWED);
+			}
+		}
+
+		submission.setCodeSubmission(codeSubmission);
+		taskSubmissionRepository.save(submission);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put(AppConstants.MESSAGE, AppConstants.TASK_SUBMITTED_SUCCESSFULLY);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> addQuestionInTask(AddQuestionInTaskRequest taskRequest) {
+		Task task = taskRepo.findByTaskIdAndIsDeleted(taskRequest.getTaskId(), false)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.TASK_NOT_FOUND));
+
+		TaskQuestion taskQuestion = new TaskQuestion();
+		taskQuestion.setQuestion(taskRequest.getQuestion());
+		taskQuestion.setVideoUrl(taskRequest.getVideoUrl());
+		taskQuestion.setTitle(taskRequest.getTitle().trim());
+		taskQuestion.setIsDeleted(false);
+		taskQuestion.setCodeSubmisionStatus(taskRequest.getCodeSubmisionStatus());
+
+		// Handle attachment
+		if (Objects.nonNull(taskRequest.getAttachment()) && !taskRequest.getAttachment().isEmpty()) {
+			String fileName = fileService.uploadFileInFolder(taskRequest.getAttachment(),
+					AppConstants.TASK_ASSIGNMENT_FILES);
+			taskQuestion.setTaskAttachment(fileName);
+		}
+
+		// Handle question images
+		if (Objects.nonNull(taskRequest.getQuestionImages()) && !taskRequest.getQuestionImages().isEmpty()) {
+			List<String> imageNames = taskRequest.getQuestionImages().stream().filter(file -> !file.isEmpty())
+					.map(file -> fileService.uploadFileInFolder(file, "question")).collect(Collectors.toList());
+
+			taskQuestion.getQuestionImages().addAll(imageNames);
+		}
+
+		// Handle attachment status
+		taskQuestion.setAttachmentStatus(
+				Objects.nonNull(taskRequest.getStatus()) ? taskRequest.getStatus() : AttachmentStatus.REQUIRED);
+
+		// Set task number
+		int nextTaskNumber = task.getTaskQuestion() != null ? task.getTaskQuestion().size() + 1 : 1;
+		taskQuestion.setTaskNumber(nextTaskNumber);
+
+		// Set task reference
+		taskQuestion.setTask(task);
+
+		// Save
+		TaskQuestion saved = taskQuestionRepository.save(taskQuestion);
+		task.getTaskQuestion().add(saved);
+		taskRepo.save(task);
+
+		return ResponseEntity.ok(taskquestionResponseFilter(saved));
+	}
+
+	@Override
+	public ResponseEntity<?> addTaskQuestionAttachment(AddTaskQuestionAttachmentRequest attachmentRequest) {
+		Long taskId = attachmentRequest.getTaskId();
+		Long questionId = attachmentRequest.getQuestionId();
+		MultipartFile attachment = attachmentRequest.getAttachment();
+		AttachmentStatus status = attachmentRequest.getStatus();
+
+		// Fetch the task question by taskId and questionId
+		TaskQuestion taskQuestion = taskQuestionRepository.findByQuestionIdAndTaskId(questionId, taskId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.TASK_QUESTION_NOT_FOUND));
+
+		// Validate attachment
+		if (Objects.isNull(attachment) || attachment.isEmpty()) {
+			throw new ResourceNotFoundException(AppConstants.ATTACHMENT_NOT_FOUND);
+		}
+
+		// Upload and set attachment
+		String fileName = fileService.uploadFileInFolder(attachment, AppConstants.TASK_ASSIGNMENT_FILES);
+		taskQuestion.setTaskAttachment(fileName);
+		taskQuestion.setAttachmentStatus(status);
+		taskQuestionRepository.save(taskQuestion);
+
+		// Prepare response
+		Map<String, Object> response = new HashMap<>();
+		response.put(AppConstants.MESSAGE, AppConstants.ATTACHMENT_ADDED_SUCCESSFULLY);
+		response.put("question", taskquestionResponseFilter(taskQuestion));
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> updateSubmitedTaskStatus(UpdateTaskSubmissionStatusRequest statusRequest) {
+
+		Long submissionId = statusRequest.getSubmissionId();
+		String status = statusRequest.getStatus();
+		String review = statusRequest.getReview();
+
+		Optional<TaskSubmission> res = taskSubmissionRepository.findBySubmissionId(submissionId);
+		if (res.isEmpty()) {
+			throw new ResourceNotFoundException(AppConstants.TASK_SUBMISSION_NOT_FOUND);
+		}
+
+		TaskSubmission submission = res.get();
+
+		Optional<String> taskName = taskSubmissionRepository.fetchTaskNameByTaskSubmissionId(submissionId);
+
+		String message = "";
+
+		if (status.equalsIgnoreCase(SubmissionStatus.Reviewing.name())) {
+			taskSubmissionRepository.updateSubmitTaskStatus(submissionId, SubmissionStatus.Reviewing, review);
+			message = String.format("Your %s task is under review.", taskName.orElse("assignment"));
+		} else if (status.equalsIgnoreCase(SubmissionStatus.Accepted.name())) {
+			taskSubmissionRepository.updateSubmitTaskStatus(submissionId, SubmissionStatus.Accepted, review);
+			message = String.format("Your %s task has been accepted. Thank you for your submission.",
+					taskName.orElse("assignment"));
+		} else if (status.equalsIgnoreCase(SubmissionStatus.Rejected.name())) {
+			taskSubmissionRepository.updateSubmitTaskStatus(submissionId, SubmissionStatus.Rejected, review);
+			message = String.format("Your %s task has been rejected.", taskName.orElse("assignment"));
+		} else {
+			throw new IllegalArgumentException(AppConstants.INVALID_SUBMISSION_STATUS);
+		}
+
+		TaskSubmissionResponse response = TaskSubmissionResponse.builder().id(submission.getId())
+				.fullName(submission.getStudent().getFullName()).profilePic(submission.getStudent().getProfilePic())
+				.review(review).status(status).submissionDate(submission.getSubmissionDate())
+				.submittionFileName(submission.getSubmittionFileName()).build();
+
+		// firebase notification
+
+//	    if (taskName.isPresent()) {
+//	        // fetching all the fcmId
+//	        // sending message via kafka to firebase
+//	        NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(submission.getStudent().getStudentId());
+//	        fcmIds.setMessage(message);
+//	        fcmIds.setTitle("Submission updates!");
+//	        kafkaProducerService.sendNotification(NotificationConstant.TASK_STATUS_TOPIC, fcmIds.toString());
+//	    }
+
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
+	@Override
+	public ResponseEntity<?> updateTaskQuestion(UpdateTaskQuestionRequest request) {
+		Map<String, Object> response = new HashMap<>();
+
+		// Fetch TaskQuestion
+		TaskQuestion taskQuestion = taskQuestionRepository.findByQuestionId(request.getQuestionId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
+
+		// Fetch Task
+		Task task = taskRepo.findByTaskIdAndIsDeleted(request.getTaskId(), false)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.TASK_NOT_FOUND));
+
+		// Update question details
+		taskQuestion.setQuestion(request.getQuestion());
+		taskQuestion.setVideoUrl(request.getVideoUrl());
+
+		// Existing image URLs
+		if (Objects.isNull(request.getQuestionImages())) {
+			taskQuestion.setQuestionImages(new ArrayList<>());
+		} else {
+			taskQuestion.setQuestionImages(new ArrayList<>(request.getQuestionImages()));
+		}
+
+		// New image uploads
+		if (Objects.nonNull(request.getNewImages()) && !request.getNewImages().isEmpty()) {
+			List<String> fileNames = request.getNewImages().stream()
+					.map(file -> fileService.uploadFileInFolder(file, AppConstants.TASK_ASSIGNMENT_FILES))
+					.collect(Collectors.toList());
+			taskQuestion.getQuestionImages().addAll(fileNames);
+		}
+
+		task.setUpdatedDate(LocalDateTime.now());
+
+		// Check for existing submissions for this question
+		boolean hasSubmissions = taskSubmissionRepository.submissionExistsByQuestionId(request.getQuestionId());
+
+		if (hasSubmissions) {
+			throw new ResourceAlreadyExistException(AppConstants.TASK_ALREADY_SUBMITTED_CANNOT_UPDATE_QUESTION);
+		}
+
+		TaskQuestion updatedQuestion = taskQuestionRepository.save(taskQuestion);
+		response.put(AppConstants.MESSAGE, AppConstants.UPDATE_SUCCESSFULLY);
+		response.put("question", taskquestionResponseFilter(updatedQuestion));
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

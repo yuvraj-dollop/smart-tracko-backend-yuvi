@@ -7,11 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import com.cico.model.FirebaseNotificationMessage;
-import com.cico.payload.EmailRequest;
 import com.cico.payload.NotificationInfo;
-import com.cico.util.EmailService;
 import com.cico.util.NotificationConstant;
-import com.cico.util.TemplateType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +17,6 @@ public class KafkaConsumerService {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-
-	@Autowired
-	private EmailService emailService;
 
 	@Autowired
 	private FirebaseNotificationService notificationService;

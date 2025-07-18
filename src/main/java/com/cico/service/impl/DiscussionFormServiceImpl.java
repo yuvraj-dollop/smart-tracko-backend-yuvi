@@ -935,9 +935,13 @@ import com.cico.model.DiscussionFormComment;
 import com.cico.model.DiscusssionForm;
 import com.cico.model.Likes;
 import com.cico.model.Student;
+import com.cico.payload.CommentReplyRequest;
 import com.cico.payload.CommentReplyResponse;
 import com.cico.payload.CommentResponse;
+import com.cico.payload.CreateCommentRequest;
+import com.cico.payload.CreateDiscussionFormRequest;
 import com.cico.payload.DiscussionFormResponse;
+import com.cico.payload.LikeRequest;
 import com.cico.payload.LikeResponse;
 import com.cico.repository.CommentReplyRepo;
 import com.cico.repository.DiscussionFormCommentRepo;
@@ -959,7 +963,6 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 	@Autowired
 	private StudentRepository studentRepository;;
-
 
 	@Autowired
 	private DiscussionFormCommentRepo discussionFormCommentRepo;
@@ -1006,7 +1009,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 			response.setIsCommented(
 					save.getComments().stream().anyMatch(obj -> obj.getStudent().getStudentId() == studentId));
 			response.setId(save.getId());
-		//	response.setType("createDiscussionForm");
+			// response.setType("createDiscussionForm");
 			response.setStudentProfilePic(save.getStudent().getProfilePic());
 			response.setStudentName(save.getStudent().getFullName());
 			response.setAudioFile(save.getAudioFile());
@@ -1050,17 +1053,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 			}
 
 			// sending response to the socket
-			CommentResponseConfig res = new CommentResponseConfig();
-			res.setCreatedDate(savedComment.getCreatedDate());
-			res.setContent(savedComment.getContent());
-			res.setDiscussionFormId(discussionFormId);
-			res.setFile(savedComment.getFile());
-			res.setType("commentResponse");
-			res.setStudentProfilePic(savedComment.getStudent().getProfilePic());
-			res.setStudentId(savedComment.getStudent().getStudentId());
-			res.setId(savedComment.getId());
-			res.setStudentName(savedComment.getStudent().getFullName());
-			sendMessageManually(res.toString());
+			sendMessageManually(mapToCommentResponseConfig(savedComment, discussionFormId).toString());
 			return new ResponseEntity<>(getCommentFilter(savedComment), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -1244,14 +1237,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 			obj.getComments().forEach(obj2 -> {
 				List<CommentReplyResponse> commentReplyResponses = new ArrayList<>();
-				CommentResponse commentResponse = new CommentResponse();
-				commentResponse.setCreatedDate(obj2.getCreatedDate());
-				commentResponse.setStudentName(obj2.getStudent().getFullName());
-				commentResponse.setStudentProfilePic(obj2.getStudent().getProfilePic());
-				commentResponse.setId(obj2.getId());
-				commentResponse.setContent(obj2.getContent());
-				commentResponse.setStudentId(obj2.getStudent().getStudentId());
-				commentResponse.setFile(obj2.getFile());
+				CommentResponse commentResponse = getCommentFilter(obj2);
 				obj2.getCommentReply().forEach(reply -> {
 					commentReplyResponses.add(getCommentReplyFilter(reply));
 				});
@@ -1322,16 +1308,10 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 	}
 
 	public CommentResponse getCommentFilter(DiscussionFormComment obj2) {
-		CommentResponse commentResponse = new CommentResponse();
-		commentResponse.setCreatedDate(obj2.getCreatedDate());
-		commentResponse.setStudentName(obj2.getStudent().getFullName());
-		commentResponse.setStudentProfilePic(obj2.getStudent().getProfilePic());
-		commentResponse.setId(obj2.getId());
-		commentResponse.setContent(obj2.getContent());
-		commentResponse.setStudentId(obj2.getStudent().getStudentId());
-		commentResponse.setFile(obj2.getFile());
-		return commentResponse;
-
+		return CommentResponse.builder().id(obj2.getId()).content(obj2.getContent()).file(obj2.getFile())
+				.createdDate(obj2.getCreatedDate()).studentId(obj2.getStudent().getStudentId())
+				.studentName(obj2.getStudent().getFullName()).studentProfilePic(obj2.getStudent().getProfilePic())
+				.build();
 	}
 
 	@Override
@@ -1370,16 +1350,11 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 	}
 
 	public CommentReplyResponse getCommentReplyFilter(CommentReply commentReply) {
-
-		CommentReplyResponse obj = new CommentReplyResponse();
-		obj.setCreatedDate(commentReply.getCreatedDate());
-		obj.setStudentName(commentReply.getStudent().getFullName());
-		obj.setStudentProfilePic(commentReply.getStudent().getProfilePic());
-		obj.setId(commentReply.getId());
-		obj.setContent(commentReply.getContent());
-		obj.setStudentId(commentReply.getStudent().getStudentId());
-		obj.setFile(commentReply.getFile());
-		return obj;
+		return CommentReplyResponse.builder().id(commentReply.getId()).content(commentReply.getContent())
+				.file(commentReply.getFile()).createdDate(commentReply.getCreatedDate())
+				.studentId(commentReply.getStudent().getStudentId())
+				.studentName(commentReply.getStudent().getFullName())
+				.studentProfilePic(commentReply.getStudent().getProfilePic()).build();
 	}
 
 	public void sendMessageManually(String message) {
@@ -1394,5 +1369,177 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 				.collect(Collectors.toList());
 		return new ResponseEntity<>(collect, HttpStatus.OK);
 	}
-}
 
+	// .................. NEW METHOD'S .............................
+
+	@Override
+	public ResponseEntity<?> createDiscussionForm(CreateDiscussionFormRequest discussionFormRequest) {
+		if (Objects.isNull(discussionFormRequest.getContent())) {
+			return new ResponseEntity<>("Message can not be empty!! ", HttpStatus.BAD_REQUEST);
+		}
+		Student student = studentRepository.findById(discussionFormRequest.getStudentId()).get();
+		if (Objects.nonNull(student)) {
+			DiscusssionForm discusssionForm = new DiscusssionForm();
+			discusssionForm.setCreatedDate(LocalDateTime.now());
+			discusssionForm.setContent(discussionFormRequest.getContent());
+			discusssionForm.setStudent(student);
+
+			MultipartFile file = discussionFormRequest.getFile();
+			if (Objects.nonNull(file) && !file.isEmpty()) {
+				String savedFile = fileService.uploadFileInFolder(file, AppConstants.DISCUSSION_FORUM_IMAGES);
+				discusssionForm.setFile(savedFile);
+			}
+			MultipartFile audioFile = discussionFormRequest.getAudioFile();
+			if (Objects.nonNull(audioFile) && !audioFile.isEmpty()) {
+				String savedFile = fileService.uploadFileInFolder(audioFile, AppConstants.DISCUSSION_FORUM_IMAGES);
+				discusssionForm.setAudioFile(savedFile);
+			}
+
+			/// sending response to socket /////////////////////////////////
+			DiscusssionForm save = discussionFormRepo.save(discusssionForm);
+
+			sendMessageManually(mapToDiscussionFormResponse(save, discussionFormRequest.getStudentId()).toString());
+
+			// sending back to requested //////////////
+			DiscussionFormResponse discussionFormFilter = discussionFormFilter(save);
+
+			return new ResponseEntity<>(discussionFormFilter, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+
+	private DiscussionFormResponse mapToDiscussionFormResponse(DiscusssionForm form, Integer requesterStudentId) {
+		return DiscussionFormResponse.builder().id(form.getId()).content(form.getContent())
+				.createdDate(form.getCreatedDate()).file(form.getFile()).audioFile(form.getAudioFile())
+				.studentName(form.getStudent().getFullName()).studentProfilePic(form.getStudent().getProfilePic())
+				.likes(new ArrayList<>()) // can update this later if needed
+				.isCommented(form.getComments().stream()
+						.anyMatch(comment -> comment.getStudent().getStudentId().equals(requesterStudentId)))
+				.comments(form.getComments() != null
+						? form.getComments().stream().map(this::getCommentFilter).collect(Collectors.toList())
+						: new ArrayList<>())
+				.build();
+	}
+
+	@Override
+	public ResponseEntity<?> createComment(CreateCommentRequest commentRequest) {
+		Student student = studentRepository.findById(commentRequest.getStudentId()).get();
+		Optional<DiscusssionForm> discussionForm = discussionFormRepo.findById(commentRequest.getDiscussionFormId());
+		if (Objects.nonNull(student) && !commentRequest.getContent().equals("")) {
+			if (discussionForm.get().getComments().stream()
+					.anyMatch(obj -> obj.getStudent().getStudentId() == commentRequest.getStudentId())) {
+				return new ResponseEntity<>("ALREADY_COMMENTED", HttpStatus.OK);
+			}
+			DiscussionFormComment comment = new DiscussionFormComment();
+			comment.setCreatedDate(LocalDateTime.now());
+			comment.setContent(commentRequest.getContent());
+			comment.setStudent(student);
+			MultipartFile file = commentRequest.getFile();
+			if (Objects.nonNull(file) && !file.isEmpty()) {
+				String savedFile = fileService.uploadFileInFolder(file, AppConstants.DISCUSSION_FORUM_IMAGES);
+				comment.setFile(savedFile);
+			}
+			DiscussionFormComment savedComment = discussionFormCommentRepo.save(comment);
+			if (Objects.nonNull(discussionForm)) {
+				List<DiscussionFormComment> comments = discussionForm.get().getComments();
+				comments.add(savedComment);
+				discussionForm.get().setComments(comments);
+				discussionFormRepo.save(discussionForm.get());
+			}
+
+			// sending response to the socket
+			sendMessageManually(
+					mapToCommentResponseConfig(savedComment, commentRequest.getDiscussionFormId()).toString());
+
+			return new ResponseEntity<>(getCommentFilter(savedComment), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+
+	private CommentResponseConfig mapToCommentResponseConfig(DiscussionFormComment comment, Integer discussionFormId) {
+		return CommentResponseConfig.builder().id(comment.getId()).content(comment.getContent()).file(comment.getFile())
+				.createdDate(comment.getCreatedDate()).discussionFormId(discussionFormId)
+				.studentId(comment.getStudent().getStudentId()).studentName(comment.getStudent().getFullName())
+				.studentProfilePic(comment.getStudent().getProfilePic()).type("commentResponse").build();
+	}
+
+	@Override
+	public ResponseEntity<?> addOrRemoveLike(LikeRequest likeRequest) {
+		Integer studentId = likeRequest.getStudentId();
+		Integer discussionFormId = likeRequest.getDiscussionFormId();
+		Optional<Student> student1 = studentRepository.findById(studentId);
+		Optional<DiscusssionForm> discusssionForm = discussionFormRepo.findById(discussionFormId);
+		if (student1.isPresent() && discusssionForm.isPresent()) {
+			DiscusssionForm form = discusssionForm.get();
+			Student student = student1.get();
+			List<Likes> likes = form.getLikes();
+			Likes like = likes.stream().filter(obj -> obj.getStudent().getStudentId() == studentId).findFirst()
+					.orElse(null);
+			if (Objects.isNull(like)) {
+				Likes obj = new Likes();
+				obj.setCreatedDate(LocalDateTime.now());
+				obj.setStudent(student);
+				Likes like1 = likeRepo.save(obj);
+				likes.add(like1);
+				form.setLikes(likes);
+				DiscusssionForm save = discussionFormRepo.save(form);
+				DiscussionFormResponse obj1 = discussionFormFilter(save);
+				obj1.setIsLike(true);
+
+				// sending to socket response //
+				LikeResponseForum res = mapToLikeResponseForum(like, true, studentId, discussionFormId);
+				sendMessageManually(res.toString());
+				//////////////// end //////
+
+				return new ResponseEntity<>(obj1, HttpStatus.OK);
+			} else {
+				form.setLikes(likes.parallelStream().filter(obj -> obj.getStudent().getStudentId() != studentId)
+						.collect(Collectors.toList()));
+				DiscusssionForm form2 = discussionFormRepo.save(form);
+				likeRepo.delete(like);
+				DiscussionFormResponse obj1 = discussionFormFilter(form2);
+				obj1.setIsLike(false);
+
+				// sending to socket response ///
+				LikeResponseForum res = mapToLikeResponseForum(like, false, studentId, discussionFormId);
+				sendMessageManually(res.toString());
+				//////////////// end //////
+				return new ResponseEntity<>(obj1, HttpStatus.OK);
+			}
+		}
+		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	}
+
+	private LikeResponseForum mapToLikeResponseForum(Likes like, boolean isLike, Integer studentId,
+			Integer discussionFormId) {
+		return LikeResponseForum.builder().likeId(like.getId()).studentId(studentId).discussionFormId(discussionFormId)
+				.createdDate(LocalDateTime.now()) // or like.getCreatedDate() if stored
+				.isLike(isLike).type(isLike ? DiscussionFormEnum.likeResponse : DiscussionFormEnum.removeLike).build();
+	}
+
+	@Override
+	public ResponseEntity<?> addCommentReply(CommentReplyRequest replyRequest) {
+		Optional<Student> student = studentRepository.findById(replyRequest.getStudentId());
+		Optional<DiscussionFormComment> commentsForm = discussionFormCommentRepo.findById(replyRequest.getCommentsId());
+		if (Objects.nonNull(commentsForm) && Objects.nonNull(student)) {
+			CommentReply obj = new CommentReply();
+			obj.setContent(replyRequest.getContent());
+			obj.setCreatedDate(LocalDateTime.now());
+			obj.setStudent(student.get());
+			MultipartFile file = replyRequest.getFile();
+			if (Objects.nonNull(file) && !file.isEmpty()) {
+				String savedFile = fileService.uploadFileInFolder(file, AppConstants.DISCUSSION_FORUM_IMAGES);
+				obj.setFile(savedFile);
+			}
+			CommentReply save2 = commentReplyRepo.save(obj);
+			commentsForm.get().getCommentReply().add(save2);
+			DiscussionFormComment save = discussionFormCommentRepo.save(commentsForm.get());
+			return new ResponseEntity<>(getCommentReplyFilter(save2), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
+	}
+
+}

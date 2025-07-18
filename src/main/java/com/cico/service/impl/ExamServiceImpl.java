@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +45,12 @@ import com.cico.payload.CourseExamResultResponse;
 import com.cico.payload.ExamRequest;
 import com.cico.payload.ExamResultResponse;
 import com.cico.payload.NotificationInfo;
+import com.cico.payload.PageResponse;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.QuestionResponse;
 import com.cico.payload.SubjectExamResponse;
 import com.cico.payload.TestFilterRequest;
+import com.cico.payload.UpcomingExamResponse;
 import com.cico.repository.ChapterCompletedRepository;
 import com.cico.repository.ChapterExamResultRepo;
 import com.cico.repository.ChapterRepository;
@@ -114,7 +119,8 @@ public class ExamServiceImpl implements IExamService {
 
 	@Override
 	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
-		Student student = studentRepository.findById(chapterExamResult.getStudentId()).get();
+		Student student = studentRepository.findById(chapterExamResult.getStudentId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
 		Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
 
 		Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
@@ -1103,7 +1109,7 @@ public class ExamServiceImpl implements IExamService {
 		response.put("createdDate", exam.getCreatedDate());
 		response.put("courseId", exam.getCourse().getCourseId());
 		response.put("isActive", exam.getIsActive());
-		response.put("examImage",exam.getExamImage() );
+		response.put("examImage", exam.getExamImage());
 		return response;
 	}
 
@@ -1358,7 +1364,7 @@ public class ExamServiceImpl implements IExamService {
 		if (subjectId != null) {
 			processSubjectExams(studentId, pageRequest, response, examType, request.getStatus());
 		} else {
-			processCourseExams(studentId,courseId, pageRequest, response, examType, request.getStatus());
+			processCourseExams(studentId, courseId, pageRequest, response, examType, request.getStatus());
 		}
 
 		return ResponseEntity.ok(response);
@@ -1392,9 +1398,10 @@ public class ExamServiceImpl implements IExamService {
 		response.put(AppConstants.EXAM, exams);
 	}
 
-	private void processCourseExams( Integer studentId,Integer courseId, PageRequest pageRequest, Map<String, Object> response,
-			ExamType examType, String status) {
-		Page<CourseExamResponse> exams = courseExamRepo.findCourseExams(examType, courseId,studentId,status, pageRequest);
+	private void processCourseExams(Integer studentId, Integer courseId, PageRequest pageRequest,
+			Map<String, Object> response, ExamType examType, String status) {
+		Page<CourseExamResponse> exams = courseExamRepo.findCourseExams(examType, courseId, studentId, status,
+				pageRequest);
 
 		if (examType.equals(ExamType.SCHEDULEEXAM)) {
 			exams = exams.map(this::processScheduleExam);
@@ -1423,4 +1430,88 @@ public class ExamServiceImpl implements IExamService {
 		}
 		return exam;
 	}
+
+	// ....................... NEW METHOD'S .........................
+
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, PaginationRequest request) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		// Fetch data
+		List<SubjectExamResponse> subjectExams = subjectRepository.findUpcomingSubjectExams(ExamType.SCHEDULEEXAM,
+				studentId);
+		List<CourseExamResponse> courseExams = courseExamRepo.findUpcomingCourseExams(ExamType.SCHEDULEEXAM,
+				student.getCourse().getCourseId(), studentId);
+
+		// Convert both to UpcomingExamResponse
+		List<UpcomingExamResponse> allExams = new ArrayList<>();
+
+		for (SubjectExamResponse s : subjectExams) {
+			UpcomingExamResponse response = new UpcomingExamResponse();
+			response.setExamId(s.getExamId());
+			response.setExamName(s.getExamName());
+			response.setExamImage(s.getExamImage());
+			response.setExamTimer(s.getExamTimer());
+			response.setTotalQuestionForTest(s.getTotalQuestionForTest());
+			response.setPassingMarks(s.getPassingMarks());
+			response.setScoreGet(s.getScoreGet());
+			response.setScheduleTestDate(s.getScheduleTestDate());
+			response.setExamStartTime(s.getExamStartTime());
+			response.setIsStart(s.getIsStart());
+			response.setExamType(s.getExamType());
+			response.setResultId(s.getResultId());
+			response.setStatus(s.getStatus());
+			response.setSubjectId(s.getSubjectId());
+			response.setExamFrom("SUBJECT");
+			allExams.add(response);
+		}
+
+		for (CourseExamResponse c : courseExams) {
+			UpcomingExamResponse response = new UpcomingExamResponse();
+			response.setExamId(c.getExamId());
+			response.setExamName(c.getExamName());
+			response.setExamImage(c.getExamImage());
+			response.setExamTimer(c.getExamTimer());
+			response.setTotalQuestionForTest(c.getTotalQuestionForTest());
+			response.setPassingMarks(c.getPassingMarks());
+			response.setScoreGet(c.getScoreGet());
+			response.setScheduleTestDate(c.getScheduleTestDate());
+			response.setExamStartTime(c.getExamStartTime());
+			response.setIsStart(c.getIsStart());
+			response.setExamType(c.getExamType());
+			response.setResultId(c.getResultId());
+			response.setStatus(c.getStatus());
+			response.setCourseId(c.getCourseId());
+			response.setExamFrom("COURSE");
+			allExams.add(response);
+		}
+
+		// Sort by schedule date and time
+		allExams.sort(Comparator
+				.comparing(UpcomingExamResponse::getScheduleTestDate, Comparator.nullsLast(Comparator.naturalOrder()))
+				.thenComparing(UpcomingExamResponse::getExamStartTime,
+						Comparator.nullsLast(Comparator.naturalOrder())));
+
+		// Manual Pagination
+		int page = request.getPageNumber();
+		int size = request.getPageSize();
+		int totalElements = allExams.size();
+		int totalPages = (int) Math.ceil((double) totalElements / size);
+		int startIndex = page * size;
+		int endIndex = Math.min(startIndex + size, totalElements);
+
+		List<UpcomingExamResponse> paginatedList = startIndex >= totalElements ? Collections.emptyList()
+				: allExams.subList(startIndex, endIndex);
+
+		PageResponse<UpcomingExamResponse> pageResponse = new PageResponse<>();
+		pageResponse.setResponse(paginatedList);
+		pageResponse.setPage(page);
+		pageResponse.setSize(size);
+		pageResponse.setTotalElements(totalElements);
+		pageResponse.setTotalPages(totalPages);
+		pageResponse.setLast(page >= totalPages - 1);
+
+		return ResponseEntity.ok(pageResponse);
+	}
+
 }

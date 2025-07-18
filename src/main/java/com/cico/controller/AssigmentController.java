@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.payload.AssignmentFilter;
+import com.cico.payload.AssignmentQuestionRequest;
 import com.cico.payload.AssignmentRequest;
 import com.cico.payload.AssignmentSubmissionRequest;
+import com.cico.payload.UpdateAssignmentQuestionRequest;
 import com.cico.service.IAssignmentService;
 import com.cico.util.AppConstants;
 import com.cico.util.SubmissionStatus;
@@ -43,13 +45,13 @@ public class AssigmentController {
 	}
 
 	@PostMapping("/addAssignment")
-	public ResponseEntity<?> addAssignment(@RequestParam("assignmentId") Long assignmentId,
-			@RequestParam(value = "attachment", required = false) MultipartFile attachment) {
+	public ResponseEntity<?> addAssignment(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId,
+			@RequestParam(value = AppConstants.ATTACHMENET, required = false) MultipartFile attachment) {
 		return this.service.addAssignment(assignmentId, attachment);
 	}
 
 	@GetMapping("/getAssignment")
-	public ResponseEntity<?> getAssigment(@RequestParam("assignmentId") Long id) {
+	public ResponseEntity<?> getAssigment(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long id) {
 		return service.getAssignment(id);
 	}
 
@@ -59,26 +61,25 @@ public class AssigmentController {
 	}
 
 	@PutMapping("/activateAssignment")
-	public ResponseEntity<?> activateTask(@RequestParam("id") Long id) {
+	public ResponseEntity<?> activateTask(@RequestParam(name = AppConstants.ID) Long id) {
 		return service.activateAssignment(id);
 	}
 
 	// acitvate task by id
 	@PutMapping("/changeAssignmentTaskStatus")
-	public ResponseEntity<?> changeAssignmentTaskStatus(@RequestParam("id") Long id) {
+	public ResponseEntity<?> changeAssignmentTaskStatus(@RequestParam(name = AppConstants.ID) Long id) {
 		return service.changeAssignmentTaskStatus(id);
 	}
 
 	// getAllAssignments_new
 	@PostMapping("/getAllAssignments_new")
-	public ResponseEntity<?> getAllAssignments_new(@RequestBody AssignmentFilter assignmentFilter) {
+	public ResponseEntity<?> getAllAssignments_new(@Valid @RequestBody AssignmentFilter assignmentFilter) {
 		return service.getAllAssignments_new(assignmentFilter);
 	}
 
 //	activateAssigment
-
 	@PutMapping("/activateAssigment")
-	public ResponseEntity<?> activateAssigment(@RequestParam("assignmentId") Long assignmentId) {
+	public ResponseEntity<?> activateAssigment(@RequestParam(name = AppConstants.ID) Long assignmentId) {
 		return service.activateAssigment(assignmentId);
 	}
 
@@ -91,12 +92,12 @@ public class AssigmentController {
 	}
 
 	@GetMapping("/getAssignmentQuesById")
-	public ResponseEntity<?> getAssignmentQuestion(@RequestParam("questionId") Long questionId) {
+	public ResponseEntity<?> getAssignmentQuestion(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
 		return service.getAssignmentQuesById(questionId);
 	}
 
 	@DeleteMapping("/deleteTaskQuestion")
-	public ResponseEntity<?> deleteTaskQuestions(@RequestParam("questionId") Long questionId) {
+	public ResponseEntity<?> deleteTaskQuestions(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
 		return service.deleteTaskQuestion(questionId);
 	}
 
@@ -110,7 +111,7 @@ public class AssigmentController {
 
 	// =============== SUBMISSION MANAGEMENT ===============
 	@PostMapping("/submitAssignment")
-	public ResponseEntity<?> submitAssignmentByStudent(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<?> submitAssignmentByStudent(@RequestParam(name = AppConstants.FILE) MultipartFile file,
 			@RequestParam("assignmentSubmissionRequest") String assignmentSubmissionRequest) throws Exception {
 		AssignmentSubmissionRequest readValue = objectMapper.readValue(assignmentSubmissionRequest,
 				AssignmentSubmissionRequest.class);
@@ -118,32 +119,37 @@ public class AssigmentController {
 	}
 
 	@PutMapping("/updateSubmitedAssignmentStatus")
-	public ResponseEntity<?> updateSubmitedAssignmentStatus(@RequestParam("submissionId") Long submissionId,
-			@RequestParam("status") String status, @RequestParam("review") String review) {
+	public ResponseEntity<?> updateSubmitedAssignmentStatus(
+			@RequestParam(name = AppConstants.SUBMISSION_ID) Long submissionId, @RequestParam("status") String status,
+			@RequestParam("review") String review) {
 		return service.updateSubmitedAssignmentStatus(submissionId, status, review);
 	}
 
 	// =============== STUDENT-SPECIFIC ENDPOINTS ===============
 	@GetMapping("/getSubmitedAssignmetByStudentId")
-	public ResponseEntity<?> getSubmitedAssignmetByStudentId(@RequestParam("studentId") Integer studentId,
+	public ResponseEntity<?> getSubmitedAssignmetByStudentId(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
 			@RequestParam(value = "pageSize") Integer pageSise, @RequestParam(value = "pageNumber") Integer pageNumber,
-			@RequestParam(value = "status", defaultValue = "NOT_CHECKED_WITH_IT") SubmissionStatus status) {
+			@RequestParam(value = AppConstants.STATUS, defaultValue = "NOT_CHECKED_WITH_IT") SubmissionStatus status) {
 		return service.getSubmitedAssignmetByStudentId(studentId, pageSise, pageNumber, status);
 	}
 
 	@GetMapping("/getAllLockedAndUnlockedAssignment")
-	public ResponseEntity<?> getAllLockedAndUnlockedAssignment(@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> getAllLockedAndUnlockedAssignment(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return service.getAllLockedAndUnlockedAssignment(studentId);
 	}
 
 	@GetMapping("/getAssignmentQuesSubmissionStatus")
-	public ResponseEntity<?> getAssignmentQuesSubmissionStatus(@RequestParam("questionId") Long questionId,
-			@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> getAssignmentQuesSubmissionStatus(
+			@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return service.getAssignmentQuesSubmissionStatus(questionId, studentId);
 	}
 
 	@GetMapping("/isAssignmentTaskSubmittedByStudent")
-	public ResponseEntity<?> isAssignmentTaskSubmittedByStudent(@RequestParam("assignmentId") Long assignmentId) {
+	public ResponseEntity<?> isAssignmentTaskSubmittedByStudent(
+			@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId) {
 		return service.isAssignmentTaskSubmittedByStudent(assignmentId);
 	}
 
@@ -152,14 +158,14 @@ public class AssigmentController {
 	public ResponseEntity<?> getAllSubmitedAssginments(
 			@RequestParam(value = "courseId", required = false) Integer courseId,
 			@RequestParam(value = "subjectId", required = false) Integer subjectId,
-			@RequestParam(value = "status", required = false) SubmissionStatus status,
+			@RequestParam(value = AppConstants.STATUS, required = false) SubmissionStatus status,
 			@RequestParam("pageSize") Integer pageSise, @RequestParam("pageNumber") Integer pageNumber) {
 		return service.getAllSubmitedAssginments(courseId, subjectId, status, pageSise, pageNumber);
 	}
 
 	@PostMapping("/getAllSubmissionAssignmentTaskStatusByAssignmentId")
 	public ResponseEntity<?> getAllSubmissionAssignmentTaskStatusByCourseId(
-			@RequestBody AssignmentFilter assignmentFilter) {
+			@Valid @RequestBody AssignmentFilter assignmentFilter) {
 		return service.getAllSubmissionAssignmentTaskStatusByCourseIdAndSubjectId(assignmentFilter);
 	}
 
@@ -175,12 +181,14 @@ public class AssigmentController {
 	}
 
 	@GetMapping("/getSubmittedAssignmentBySubmissionId")
-	public ResponseEntity<?> getSubmittedAssignmentBySubmissionId(@RequestParam("submissionId") Long submissionId) {
+	public ResponseEntity<?> getSubmittedAssignmentBySubmissionId(
+			@RequestParam(name = AppConstants.SUBMISSION_ID) Long submissionId) {
 		return service.getSubmittedAssignmentBySubmissionId(submissionId);
 	}
 
 	@GetMapping("/getAllSubmittedAssignmentTask")
-	public ResponseEntity<?> getAllSubmittedAssignmentTask(@RequestParam("assignmentId") Long assignmentId) {
+	public ResponseEntity<?> getAllSubmittedAssignmentTask(
+			@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId) {
 		return service.getAllSubmittedAssignmentTask(assignmentId);
 	}
 
@@ -192,32 +200,44 @@ public class AssigmentController {
 
 	// =============== ATTACHMENT MANAGEMENT ===============
 	@PostMapping("/addAttachment")
-	public ResponseEntity<?> addAttachment(@RequestParam("assignmentId") Long assignmentId,
-			@RequestParam(value = "file", required = false) MultipartFile file) {
+	public ResponseEntity<?> addAttachment(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId,
+			@RequestParam(value = AppConstants.FILE, required = false) MultipartFile file) {
 		return service.addAttachment(assignmentId, file);
 	}
 
 	@DeleteMapping("/deleteAttachment")
-	public ResponseEntity<?> deleteAttachment(@RequestParam("assignmentId") Long assignmentId) {
+	public ResponseEntity<?> deleteAttachment(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId) {
 		return service.deleteAttachment(assignmentId);
 	}
-	
+
 	// ........................... NEW API's ........................
 
-		@GetMapping("/v2/getSubmitedAssignmetByStudentId")
-		public ResponseEntity<?> getSubmitedAssignmetByStudentIdNew(
-				@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
-				@RequestParam(value = AppConstants.PAGE_SIZE) Integer pageSize,
-				@RequestParam(value = AppConstants.PAGE_NUMBER) Integer pageNumber,
-				@RequestParam(value = AppConstants.STATUS, defaultValue = "NOT_CHECKED_WITH_IT") SubmissionStatus status) {
-			return service.getSubmitedAssignmetByStudentId(studentId, pageSize, pageNumber, status);
-		}
+	@GetMapping("/v2/getSubmitedAssignmetByStudentId")
+	public ResponseEntity<?> getSubmitedAssignmetByStudentIdNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(value = AppConstants.PAGE_SIZE) Integer pageSize,
+			@RequestParam(value = AppConstants.PAGE_NUMBER) Integer pageNumber,
+			@RequestParam(value = AppConstants.STATUS, defaultValue = "NOT_CHECKED_WITH_IT") SubmissionStatus status) {
+		return service.getSubmitedAssignmetByStudentId(studentId, pageSize, pageNumber, status);
+	}
 
-		@GetMapping("/v2/getAllLockedAndUnlockedAssignment")
-		public ResponseEntity<?> getAllLockedAndUnlockedAssignmentNew(
-				@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
-				@RequestParam(value = AppConstants.PAGE_SIZE) Integer pageSize,
-				@RequestParam(value = AppConstants.PAGE_NUMBER) Integer pageNumber) {
-			return service.getAllLockedAndUnlockedAssignment(studentId, pageSize, pageNumber);
-		}
+	@GetMapping("/v2/getAllLockedAndUnlockedAssignment")
+	public ResponseEntity<?> getAllLockedAndUnlockedAssignmentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(value = AppConstants.PAGE_SIZE) Integer pageSize,
+			@RequestParam(value = AppConstants.PAGE_NUMBER) Integer pageNumber) {
+		return service.getAllLockedAndUnlockedAssignment(studentId, pageSize, pageNumber);
+	}
+
+	@PostMapping("/v2/addQuestionInAssignment")
+	public ResponseEntity<?> addQuestionInAssignment(
+			@Valid @RequestBody AssignmentQuestionRequest assignmentQuestionRequest) {
+		return service.addQuestionInAssignment(assignmentQuestionRequest);
+	}
+
+	@PutMapping("/v2/updateAssignmentQuestion")
+	public ResponseEntity<?> updateAssignmentQuestion(
+			@Valid @RequestBody UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest) {
+		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
+	}
 }

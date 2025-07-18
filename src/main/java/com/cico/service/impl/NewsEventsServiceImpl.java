@@ -31,7 +31,7 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 	public NewsEvents createNewsEvents(String shortDescription, String briefDescription, String title,
 			MultipartFile file) {
 		NewsEvents newsEvents = new NewsEvents();
-
+		
 		if (file != null && !file.isEmpty()) {
 			newsEvents.setImage(fileService.uploadFileInFolder(file, AppConstants.NEWS_AND_EVENT_IMAGES));
 		}

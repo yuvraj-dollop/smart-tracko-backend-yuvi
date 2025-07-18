@@ -2,21 +2,27 @@ package com.cico.payload;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.AllArgsConstructor;
+import com.cico.util.AppConstants;
+
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class AssignmentQuestionRequest {
-	
+
+	@NotNull(message = AppConstants.ASSIGNMENT_ID_REQUIRED)
 	private Long assignmentId;
 
-	private MultipartFile taskAttachment;
+	@NotBlank(message = AppConstants.QUESTION_REQUIRED)
+	private String question;
 
-	private List<TaskQuestionRequest> assignmentQuestion;
-	
+	@NotBlank(message = AppConstants.VIDEO_URL_REQUIRED)
+	private String videoUrl;
+
+	private List<MultipartFile> questionImages;
+
 }

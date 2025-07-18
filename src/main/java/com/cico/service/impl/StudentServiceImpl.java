@@ -50,6 +50,7 @@ import com.cico.model.QrManage;
 import com.cico.model.Student;
 import com.cico.model.StudentSeatingAlloatment;
 import com.cico.model.StudentWorkReport;
+import com.cico.model.TokenManagement;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.AttendanceLogResponse;
 import com.cico.payload.AttendenceOfMonth;
@@ -68,6 +69,7 @@ import com.cico.payload.StudentCalenderResponse;
 import com.cico.payload.StudentLoginResponse;
 import com.cico.payload.StudentPresentAndEarlyCheckOut;
 import com.cico.payload.StudentReponseForWeb;
+import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 import com.cico.payload.StudentTvResponse;
 import com.cico.payload.TodayLeavesRequestResponse;
@@ -86,10 +88,12 @@ import com.cico.repository.StudentWorkReportRepository;
 import com.cico.security.JwtUtil;
 import com.cico.service.IFileService;
 import com.cico.service.IStudentService;
+import com.cico.service.ITokenManagementService;
 import com.cico.util.AppConstants;
 import com.cico.util.HelperService;
 import com.cico.util.NotificationConstant;
 import com.cico.util.Roles;
+import com.cico.util.TokenType;
 import com.cloudinary.api.exceptions.BadRequest;
 
 @Service
@@ -148,6 +152,9 @@ public class StudentServiceImpl implements IStudentService {
 
 	@Autowired
 	private FeesRepository feesRepository;
+
+	@Autowired
+	private ITokenManagementService tokenManagementService;
 
 	public Student getStudentByUserId(String userId) {
 		return studRepo.findByUserId(userId);
@@ -267,30 +274,74 @@ public class StudentServiceImpl implements IStudentService {
 //		
 //	}
 
+//	@Override
+//	public ResponseEntity<?> registerStudent(Student student) {
+//
+//		Optional<Student> findByEmailAndMobile = studRepo.findByEmailAndMobile(student.getEmail().trim(),
+//				student.getMobile().trim());
+//		if (!findByEmailAndMobile.isPresent()) {
+//			Optional<Course> course = courseRepository.findByCourseId(student.getCourse().getCourseId());
+//			student.setCourse(course.get());
+//			student.setApplyForCourse(course.get().getCourseName());
+//			Student student1 = studRepo.save(student);
+//			student1.setPassword(passwordEncoder.encode("123456"));
+//			student1.setContactFather(student.getContactFather());
+//			student1.setRole(Roles.STUDENT.toString());
+//			student1.setUserId(student1.getFullName().split(" ")[0] + "@" + student1.getStudentId());
+//			student1.setProfilePic(AppConstants.DEFAULT_USER_IMAGE);
+//			student1.setDeviceId("");
+//			student1.setInUseDeviceId("");
+//			student1.setCreatedDate(LocalDateTime.now());
+//			Student save = studRepo.save(student1);
+//			StudentReponseForWeb studentFilter = studentFilter(save);
+//			return new ResponseEntity<>(studentFilter, HttpStatus.OK);
+//
+//		}
+//		throw new ResourceAlreadyExistException("Student is Already Exist");
+//	}
+
 	@Override
-	public ResponseEntity<?> registerStudent(Student student) {
+	public ResponseEntity<?> registerStudent(StudentRequest studentRequest) {
+		Optional<Student> existingStudent = studRepo.findByEmailAndMobile(studentRequest.getEmail().trim(),
+				studentRequest.getMobile().trim());
 
-		Optional<Student> findByEmailAndMobile = studRepo.findByEmailAndMobile(student.getEmail().trim(),
-				student.getMobile().trim());
-		if (!findByEmailAndMobile.isPresent()) {
-			Optional<Course> course = courseRepository.findByCourseId(student.getCourse().getCourseId());
-			student.setCourse(course.get());
-			student.setApplyForCourse(course.get().getCourseName());
-			Student student1 = studRepo.save(student);
-			student1.setPassword(passwordEncoder.encode("123456"));
-			student1.setContactFather(student.getContactFather());
-			student1.setRole(Roles.STUDENT.toString());
-			student1.setUserId(student1.getFullName().split(" ")[0] + "@" + student1.getStudentId());
-			student1.setProfilePic(AppConstants.DEFAULT_USER_IMAGE);
-			student1.setDeviceId("");
-			student1.setInUseDeviceId("");
-			student1.setCreatedDate(LocalDateTime.now());
-			Student save = studRepo.save(student1);
-			StudentReponseForWeb studentFilter = studentFilter(save);
-			return new ResponseEntity<>(studentFilter, HttpStatus.OK);
-
+		if (existingStudent.isPresent()) {
+			throw new ResourceAlreadyExistException(AppConstants.STUDENT_ALREDY_EXISTS_MESSAGE);
 		}
-		throw new ResourceAlreadyExistException("Student is Already Exist");
+
+		// Get course and validate
+		Course course = courseRepository.findByCourseId(studentRequest.getCourse().getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND));
+
+		// Map StudentRequest to Student entity
+		Student student = Student.builder()
+
+				// Personal Info Related fields
+				.fullName(studentRequest.getFullName().trim()).email(studentRequest.getEmail().trim())
+				.mobile(studentRequest.getMobile().trim()).dob(studentRequest.getDob())
+				.fathersName(studentRequest.getFathersName()).fathersOccupation(studentRequest.getFathersOccupation())
+				.contactFather(studentRequest.getContactFather()).mothersName(studentRequest.getMothersName())
+				.contactMother(studentRequest.getContactMother()).languageKnown(studentRequest.getLanguageKnown())
+				.parmanentAddress(studentRequest.getParmanentAddress()).localAddress(studentRequest.getLocalAddress())
+
+				// Set Course & College Related fields
+				.applyForCourse(course.getCourseName()).course(course).joinDate(studentRequest.getJoinDate())
+				.college(studentRequest.getCollege()).currentCourse(studentRequest.getCurrentCourse())
+				.currentSem(studentRequest.getCurrentSem())
+
+				// Set default fields
+				.password(passwordEncoder.encode("123456")).role(Roles.STUDENT.toString())
+				.profilePic(AppConstants.DEFAULT_USER_IMAGE).createdDate(LocalDateTime.now()).build();
+
+		// Save and set userId after ID is generated
+		Student savedStudent = studRepo.save(student);
+		savedStudent.setUserId(savedStudent.getFullName().split(" ")[0] + "@" + savedStudent.getStudentId());
+
+		// Final save with userId
+		savedStudent = studRepo.save(savedStudent);
+
+		// Filter and return response
+		return new ResponseEntity<>(studentFilter(savedStudent), HttpStatus.OK);
 	}
 
 	@Override
@@ -1164,7 +1215,11 @@ public class StudentServiceImpl implements IStudentService {
 
 	public Map<String, Object> getCalenderData(Integer id, Integer month, Integer year) { // working code
 		Map<String, Object> response = new HashMap<>();
-		LocalDate joinDate = studRepo.findById(id).get().getJoinDate();
+		Student student = studRepo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + id));
+
+		LocalDate joinDate = student.getJoinDate();
+
 		if (year >= joinDate.getYear() && year <= LocalDate.now().getYear()) {
 
 			List<Integer> present = new ArrayList<>();
@@ -1175,13 +1230,21 @@ public class StudentServiceImpl implements IStudentService {
 
 			// Get the first day of the month
 			LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
-
 			YearMonth yearMonth = YearMonth.of(year, month);
 			int lastDay = yearMonth.lengthOfMonth();
 			LocalDate lastDayOfMonth = LocalDate.of(year, month, lastDay);
 			LocalDate currentDay = firstDayOfMonth;
 			StudentCalenderResponse data = new StudentCalenderResponse();
 			LocalDate currentDate = LocalDate.now();
+
+			int sundayCount = 0;
+			LocalDate tempDate = firstDayOfMonth;
+			while (!tempDate.isAfter(lastDayOfMonth)) {
+				if (tempDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+					sundayCount++;
+				}
+				tempDate = tempDate.plusDays(1);
+			}
 
 			if (LocalDate.now().getYear() != year || month <= LocalDate.now().getMonthValue()) {
 				// counting total leaves
@@ -1254,7 +1317,7 @@ public class StudentServiceImpl implements IStudentService {
 			data.setLeaves(leaves);
 			data.setMispunch(mispunch);
 			data.setEarlyCheckOut(earlycheckout);
-
+			data.setSundayCount(sundayCount);
 			response.put("StudentCalenderData", data);
 			response.put("status", true);
 		} else {
@@ -2062,7 +2125,6 @@ public class StudentServiceImpl implements IStudentService {
 //		response.put("totalRejected", totalRejected);
 //		response.put("categories", categories);
 //		return new ResponseEntity<>(response, HttpStatus.OK);
-		
 		return null;
 	}
 
@@ -2084,7 +2146,6 @@ public class StudentServiceImpl implements IStudentService {
 
 		optionalStudent = optionalStudent.isPresent() ? optionalStudent : studRepo.findByUserIdAndIsActive(email, true);
 
-
 		if (optionalStudent.isEmpty()) {
 			ApiResponse response = new ApiResponse(false, "Invalid email or password", HttpStatus.UNAUTHORIZED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
@@ -2098,9 +2159,12 @@ public class StudentServiceImpl implements IStudentService {
 
 		String token = util.generateTokenForStudent(student.getStudentId().toString(), student.getUserId(),
 				student.getDeviceId(), student.getRole());
+		String refreshToken = util.generateRefreshToken(student.getUserId(), student.getRole(),
+				TokenType.REFRESH_TOKEN);
 
 		Map<String, Object> res = new HashMap<>();
 		res.put("AccessToken", token);
+		res.put("RefreshToken", refreshToken);
 
 		ApiResponse response = new ApiResponse(true, "Student login successfully.", HttpStatus.OK);
 		response.setData(res);

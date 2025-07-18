@@ -1,8 +1,15 @@
 package com.cico.service;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.cico.payload.CommentReplyRequest;
+import com.cico.payload.CreateCommentRequest;
+import com.cico.payload.CreateDiscussionFormRequest;
+import com.cico.payload.LikeRequest;
 
 @Component
 public interface IdiscussionForm {
@@ -26,5 +33,18 @@ ResponseEntity<?> createDiscussionForm(Integer studentId, MultipartFile file, St
 	ResponseEntity<?> removeCommentReply(Integer commentReplyId, Integer commentsId);
 
 	ResponseEntity<?> searchingDiscussionForm(String search);
+	
+	
+	
+	
+	// ......................... NEW METHOD'S ............................
+
+	ResponseEntity<?> createDiscussionForm(CreateDiscussionFormRequest discussionFormRequest);
+
+	ResponseEntity<?> createComment(CreateCommentRequest commentRequest);
+
+	ResponseEntity<?> addOrRemoveLike(LikeRequest likeRequest);
+
+	ResponseEntity<?> addCommentReply(CommentReplyRequest replyRequest);
 }
 

@@ -25,14 +25,14 @@ public class TokenManagementServiceImpl implements ITokenManagementService {
 	}
 
 	@Override
-	public TokenManagement getTokenByToken(String token) {
+	public TokenManagement getTokenByToken(String token){
 		return tokenManagementRepository.findByToken(token)
 				.orElseThrow(() -> new ResourceNotFoundException("Token Not Found"));
 	}
 
 	@Override
-	public void deleteToken(TokenManagement tokenManagement) {
-		tokenManagementRepository.delete(tokenManagement);
+	public void deleteToken(String token) {
+		tokenManagementRepository.deleteByToken(token);;
 	}
 
 }

@@ -24,6 +24,7 @@ import com.cico.exception.UnauthorizeException;
 import com.cico.model.Student;
 import com.cico.payload.PageResponse;
 import com.cico.payload.StudentReponseForWeb;
+import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 import com.cico.service.IStudentService;
 import com.cico.util.AppConstants;
@@ -56,7 +57,7 @@ public class StudentController {
 	}
 
 	@PostMapping("/registerStudent")
-	public ResponseEntity<?> registerStudent(@RequestBody Student student) {
+	public ResponseEntity<?> registerStudent(@RequestBody StudentRequest student) {
 		return studentService.registerStudent(student);
 
 	}
@@ -358,5 +359,4 @@ public class StudentController {
 		Map<String, Object> todayAttendance = studentService.getTodayAttendance(studentId);
 		return ResponseEntity.ok(todayAttendance);
 	}
-
 }

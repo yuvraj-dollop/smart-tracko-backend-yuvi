@@ -8,6 +8,7 @@ import lombok.Data;
 
 @Data
 public class StudentTaskFilterRequest {
+	
 	@NotNull(message = AppConstants.STUDENT_ID_REQUIRED)
 	private Integer studentId; // Use Long for nullability
 	

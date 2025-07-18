@@ -37,19 +37,19 @@ public class CourseController {
     }
 
     @GetMapping("/findCourseByIdApi")
-    public ResponseEntity<CourseResponse> getCourseById(@RequestParam("courseId") Integer courseId) {
+    public ResponseEntity<CourseResponse> getCourseById(@RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
         CourseResponse courseResponse = courseService.findCourseById(courseId);
         return ResponseEntity.ok(courseResponse);
     }
 
     @PutMapping("/updateCourseApi")
-    public ResponseEntity<?> updateCourse(@RequestBody CourseRequest course) {
+    public ResponseEntity<?> updateCourse(@Valid @RequestBody CourseRequest course) {
         ApiResponse updateCourse = courseService.updateCourse(course);
         return ResponseEntity.status(HttpStatus.CREATED).body(updateCourse);
     }
 
     @PutMapping("/deleteCourseByIdApi")
-    public ResponseEntity<ApiResponse> deleteCourseById(@RequestParam("courseId") Integer courseId) {
+    public ResponseEntity<ApiResponse> deleteCourseById(@RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
         Boolean deleteCourseById = courseService.deleteCourseById(courseId);
         if (deleteCourseById != null) {
             return ResponseEntity.ok(new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK));
@@ -79,25 +79,25 @@ public class CourseController {
     // =============== STUDENT-SPECIFIC OPERATIONS ===============
     @PutMapping("/studentUpgradeCourse")
     public ResponseEntity<?> studentUpgradeCourse(
-            @RequestParam("studentId") Integer studnetId,
-            @RequestParam("courseId") Integer courseId) {
+            @RequestParam(name=AppConstants.STUDENT_ID) Integer studnetId,
+            @RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
         Map<String, Object> response = courseService.studentUpgradeCourse(studnetId, courseId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/getCourseProgress")
-    public ResponseEntity<?> getCourseProgress(@RequestParam("studentId") Integer studentId) {
+    public ResponseEntity<?> getCourseProgress(@RequestParam(name=AppConstants.STUDENT_ID) Integer studentId) {
         return courseService.getCourseProgress(studentId);
     }
 
     @GetMapping("/getAllCourseForStudent")
-    public ResponseEntity<?> getAllCourseForStudent(@RequestParam Integer studentId) {
+    public ResponseEntity<?> getAllCourseForStudent(@RequestParam(name=AppConstants.STUDENT_ID) Integer studentId) {
         return courseService.getAllCourseForStudent(studentId);
     }
 
     // =============== COURSE DETAILS ===============
     @GetMapping("/getCoureWithBatchesAndSubjects")
-    public ResponseEntity<?> getCoureWithBatchesAndSubjects(@RequestParam("courseId") Integer courseId) {
+    public ResponseEntity<?> getCoureWithBatchesAndSubjects(@RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
         return courseService.getCoureWithBatchesAndSubjects(courseId);
     }
 }

@@ -23,6 +23,7 @@ import com.cico.model.Fees;
 import com.cico.model.Student;
 import com.cico.payload.FeesResponse;
 import com.cico.payload.PageResponse;
+import com.cico.payload.StudentFeesRequest;
 import com.cico.repository.FeesRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.service.IFeesService;
@@ -36,101 +37,102 @@ public class FeesServiceImpl implements IFeesService {
 
 	@Autowired
 	private StudentRepository studentRepository;
-	
+
 	@Override
 	public FeesResponse createStudentFees(Integer studentId, Integer courseId, Double finalFees, String date) {
-		// TODO Auto-generated method stub
-		
-		Fees fees=new Fees(null, null, finalFees, LocalDate.parse(date));
+		Fees fees = new Fees(null, null, finalFees, LocalDate.parse(date));
 		Fees findByStudent = feesRepository.findByStudent(studentRepository.findByStudentId(studentId));
-		if(Objects.isNull(findByStudent)) {
-		Student student = studentRepository.findById(studentId).get();
-		fees.setStudent(student);
-		fees.setCourse(student.getCourse());
-		fees.setRemainingFees(finalFees);
-		fees.setFeesPaid(0.0);
-		fees.setCreatedDate(LocalDate.now());
-		fees.setUpdatedDate(LocalDate.now());
-		  Fees feesData = feesRepository.save(fees);
-		 return  setFeesResponse(feesData);
+		if (Objects.isNull(findByStudent)) {
+			Student student = studentRepository.findById(studentId).get();
+			fees.setStudent(student);
+			fees.setCourse(student.getCourse());
+			fees.setRemainingFees(finalFees);
+			fees.setFeesPaid(0.0);
+			fees.setCreatedDate(LocalDate.now());
+			fees.setUpdatedDate(LocalDate.now());
+			Fees feesData = feesRepository.save(fees);
+			return setFeesResponse(feesData);
 		}
 		throw new ResourceNotFoundException(AppConstants.DATA_ALREADY_EXIST);
 	}
 
 	@Override
 	public PageResponse<FeesResponse> feesList(Integer page, Integer size) {
-	    Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "feesId");
-	    Page<Fees> fees = feesRepository.findAllByIsCompleted(false, pageable);
+		Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "feesId");
+		Page<Fees> fees = feesRepository.findAllByIsCompleted(false, pageable);
 
-	    if (fees.getNumberOfElements() == 0) {
-	        return new PageResponse<>(Collections.emptyList(), fees.getNumber(), fees.getSize(), fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
-	    }
+		if (fees.getNumberOfElements() == 0) {
+			return new PageResponse<>(Collections.emptyList(), fees.getNumber(), fees.getSize(),
+					fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
+		}
 
-	    List<FeesResponse> feesResponseList = new ArrayList<>();
+		List<FeesResponse> feesResponseList = new ArrayList<>();
 
-	    for (Fees fee : fees.getContent()) {
-	        FeesResponse feesResponse = setFeesResponse(fee);
-	        feesResponseList.add(feesResponse);
-	    }
+		for (Fees fee : fees.getContent()) {
+			FeesResponse feesResponse = setFeesResponse(fee);
+			feesResponseList.add(feesResponse);
+		}
 
-	    return new PageResponse<>(feesResponseList, fees.getNumber(), fees.getSize(), fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
+		return new PageResponse<>(feesResponseList, fees.getNumber(), fees.getSize(), fees.getTotalElements(),
+				fees.getTotalPages(), fees.isLast());
 	}
-
 
 	@Override
 	public FeesResponse findByFeesId(Integer feesId) {
-		// TODO Auto-generated method stub
-		Fees fees = feesRepository.findById(feesId).orElseThrow(()
-				->new ResourceNotFoundException("Fees Not found for given Id!!"));
+		Fees fees = feesRepository.findById(feesId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.FEES_NOT_FOUND));
 		return setFeesResponse(fees);
 	}
 
 	@Override
-	public List<FeesResponse> searchByName(String fullName,String status) {
-		List<Fees> findByStudent =  null ;
-		if(AppConstants.COMPLETED.equals(status)) {
-			findByStudent = feesRepository.findByStudentFullNameContaining(fullName,true);
-		}else{
-			findByStudent = feesRepository.findByStudentFullNameContaining(fullName,false);
+	public List<FeesResponse> searchByName(String fullName, String status) {
+		List<Fees> findByStudent = null;
+		if (AppConstants.COMPLETED.equals(status)) {
+			findByStudent = feesRepository.findByStudentFullNameContaining(fullName, true);
+		} else {
+			findByStudent = feesRepository.findByStudentFullNameContaining(fullName, false);
 		}
-           
-          if(Objects.isNull(findByStudent)) {
-        	  throw new ResourceNotFoundException("Student not found");
-          }
-         
-		return findByStudent.stream().map(obj->setFeesResponse(obj)).collect(Collectors.toList());
+
+		if (Objects.isNull(findByStudent)) {
+			throw new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND);
+		}
+
+		return findByStudent.stream().map(obj -> setFeesResponse(obj)).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<FeesResponse> findFeesByDates(String startDate, String endDate,String status) {
-        List<Fees> findFeesByGivenDates = null;
-        if(AppConstants.COMPLETED.equals(status)) {
-        	findFeesByGivenDates = feesRepository.findFeesByGivenDates(LocalDate.parse(startDate),LocalDate.parse(endDate),true);
-        }else {
-        	findFeesByGivenDates = feesRepository.findFeesByGivenDates(LocalDate.parse(startDate),LocalDate.parse(endDate),false);        	
-        }
-        if(Objects.isNull(findFeesByGivenDates)) {
-      	  throw new ResourceNotFoundException("Fees is not found from given Dates");
-        }
-       
-        return findFeesByGivenDates.stream().map(obj->setFeesResponse(obj)).collect(Collectors.toList());
+	public List<FeesResponse> findFeesByDates(String startDate, String endDate, String status) {
+		List<Fees> findFeesByGivenDates = null;
+		if (AppConstants.COMPLETED.equals(status)) {
+			findFeesByGivenDates = feesRepository.findFeesByGivenDates(LocalDate.parse(startDate),
+					LocalDate.parse(endDate), true);
+		} else {
+			findFeesByGivenDates = feesRepository.findFeesByGivenDates(LocalDate.parse(startDate),
+					LocalDate.parse(endDate), false);
+		}
+		if (Objects.isNull(findFeesByGivenDates)) {
+			throw new ResourceNotFoundException(AppConstants.FEES_NOT_FOUND_FOR_DATES);
+		}
+
+		return findFeesByGivenDates.stream().map(obj -> setFeesResponse(obj)).collect(Collectors.toList());
 	}
 
 	@Override
 	public PageResponse<FeesResponse> feesCompleteList(Integer page, Integer size) {
-		// TODO Auto-generated method stub
 		Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "feesId");
-		Page<Fees> fees = feesRepository.findAllByIsCompleted(true,pageable);
-		if(fees.getNumberOfElements()==0) {
-			return new PageResponse<>(Collections.emptyList(), fees.getNumber(), fees.getSize(), fees.getTotalElements(), fees.getTotalPages() ,fees.isLast());
+		Page<Fees> fees = feesRepository.findAllByIsCompleted(true, pageable);
+		if (fees.getNumberOfElements() == 0) {
+			return new PageResponse<>(Collections.emptyList(), fees.getNumber(), fees.getSize(),
+					fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
 		}
-		return new PageResponse<>( fees.stream().map(obj->setFeesResponse(obj)).collect(Collectors.toList()), fees.getNumber(), fees.getSize(), fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
+		return new PageResponse<>(fees.stream().map(obj -> setFeesResponse(obj)).collect(Collectors.toList()),
+				fees.getNumber(), fees.getSize(), fees.getTotalElements(), fees.getTotalPages(), fees.isLast());
 	}
 
 	@Override
 	public Fees updateFees(Fees fees) {
 		Fees feesData = feesRepository.findByFeesId(fees.getFeesId());
-		if(Objects.nonNull(feesData)) {
+		if (Objects.nonNull(feesData)) {
 			feesData.setFinalFees(fees.getFinalFees());
 			feesData.setRemainingFees(fees.getRemainingFees());
 			feesData.setFeesPaid(fees.getFeesPaid());
@@ -142,50 +144,55 @@ public class FeesServiceImpl implements IFeesService {
 
 	@Override
 	public ResponseEntity<?> getFeesCollectionMonthAndYearWise(int year) {
-		 Map<Integer,Double>response = new HashMap<>();
-         List<Object[]> totalFeesPaidByMonthAndYear = feesRepository.getTotalFeesPaidByMonth(year);
-		 for(Object[] row :totalFeesPaidByMonthAndYear) {
-			 response.put((Integer)row[0],(Double)row[1]);
-		 }
-		 return new ResponseEntity<>(response,HttpStatus.OK);
+		Map<Integer, Double> response = new HashMap<>();
+		List<Object[]> totalFeesPaidByMonthAndYear = feesRepository.getTotalFeesPaidByMonth(year);
+		for (Object[] row : totalFeesPaidByMonthAndYear) {
+			response.put((Integer) row[0], (Double) row[1]);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@Override
 	public ResponseEntity<?> getTotalfeesCollection() {
-	 Map<String,Object>feeResponse = new HashMap<>();
-	 List< Object[] > row = feesRepository.getTotalFeeCollection();
-	     feeResponse.put("Total", row.get(0)[0]); 
-	   feeResponse.put("Pending",row.get(0)[1]);
-	     feeResponse.put("Collected", row.get(0)[2]);
-	    return new ResponseEntity<>(feeResponse,HttpStatus.OK);
+		Map<String, Object> feeResponse = new HashMap<>();
+		List<Object[]> row = feesRepository.getTotalFeeCollection();
+		feeResponse.put("Total", row.get(0)[0]);
+		feeResponse.put("Pending", row.get(0)[1]);
+		feeResponse.put("Collected", row.get(0)[2]);
+		return new ResponseEntity<>(feeResponse, HttpStatus.OK);
 	}
-	
-	
-	public  FeesResponse setFeesResponse(Fees fees){
-		
-		FeesResponse feesResponse=new FeesResponse();
-		feesResponse.setCollege(fees.getStudent().getCollege());
-		feesResponse.setCourseFees(fees.getCourse().getCourseFees());
-		feesResponse.setCourseId(fees.getCourse().getCourseId());
-		feesResponse.setCourseName(fees.getCourse().getCourseName());
-		feesResponse.setCreatedDate(fees.getCreatedDate());
-		feesResponse.setCurrentCourse(fees.getStudent().getCurrentCourse());
-		feesResponse.setDate(fees.getDate());
-		feesResponse.setDob(fees.getStudent().getDob());
-		feesResponse.setEmail(fees.getStudent().getEmail());
-		feesResponse.setFeesId(fees.getFeesId());
-		feesResponse.setFeesPaid(fees.getFeesPaid());
-		feesResponse.setFinalFees(fees.getFinalFees());
-		feesResponse.setIsCompleted(fees.getIsCompleted());
-		feesResponse.setMobile(fees.getStudent().getMobile());
-		feesResponse.setProfilePic(fees.getStudent().getProfilePic());
-		feesResponse.setRemainingFees(fees.getRemainingFees());
-		feesResponse.setStudentId(fees.getStudent().getStudentId());
-		feesResponse.setUpdatedDate(fees.getUpdatedDate());
-		feesResponse.setFullName(fees.getStudent().getFullName());
-	    
-		return feesResponse;
+
+	public FeesResponse setFeesResponse(Fees fees) {
+		return FeesResponse.builder().college(fees.getStudent().getCollege())
+				.courseFees(fees.getCourse().getCourseFees()).courseId(fees.getCourse().getCourseId())
+				.courseName(fees.getCourse().getCourseName()).createdDate(fees.getCreatedDate())
+				.currentCourse(fees.getStudent().getCurrentCourse()).date(fees.getDate())
+				.dob(fees.getStudent().getDob()).email(fees.getStudent().getEmail()).feesId(fees.getFeesId())
+				.feesPaid(fees.getFeesPaid()).finalFees(fees.getFinalFees()).isCompleted(fees.getIsCompleted())
+				.mobile(fees.getStudent().getMobile()).profilePic(fees.getStudent().getProfilePic())
+				.remainingFees(fees.getRemainingFees()).studentId(fees.getStudent().getStudentId())
+				.updatedDate(fees.getUpdatedDate()).fullName(fees.getStudent().getFullName()).build();
 	}
- 
-	
+
+	// ......................... NEW METHOD'S ...................................
+
+	@Override
+	public FeesResponse createStudentFees(StudentFeesRequest feesRequest) {
+		Fees fees = new Fees(null, null, feesRequest.getFinalFees(), LocalDate.parse(feesRequest.getDate()));
+		Fees findByStudent = feesRepository
+				.findByStudent(studentRepository.findByStudentId(feesRequest.getStudentId()));
+		if (Objects.isNull(findByStudent)) {
+			Student student = studentRepository.findById(feesRequest.getStudentId()).get();
+			fees.setStudent(student);
+			fees.setCourse(student.getCourse());
+			fees.setRemainingFees(feesRequest.getFinalFees());
+			fees.setFeesPaid(0.0);
+			fees.setCreatedDate(LocalDate.now());
+			fees.setUpdatedDate(LocalDate.now());
+			Fees feesData = feesRepository.save(fees);
+			return setFeesResponse(feesData);
+		}
+		throw new ResourceNotFoundException(AppConstants.DATA_ALREADY_EXIST);
+	}
+
 }

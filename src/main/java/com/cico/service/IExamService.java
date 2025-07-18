@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.cico.payload.AddExamRequest;
 import com.cico.payload.ExamRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.TestFilterRequest;
 import com.cico.util.ExamType;
 
@@ -82,4 +83,12 @@ public interface IExamService {
 
 	// ==================== GENERAL EXAM METHODS ====================
 	ResponseEntity<?> deleteExamById(Integer examId);
+	
+	
+	
+	
+	// .................. NEW METHOD'S ................................
+	
+	
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, PaginationRequest request);
 }

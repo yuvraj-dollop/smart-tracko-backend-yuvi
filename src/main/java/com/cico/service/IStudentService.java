@@ -13,6 +13,7 @@ import com.cico.payload.CounsellingResponse;
 import com.cico.payload.MockResponse;
 import com.cico.payload.PageResponse;
 import com.cico.payload.StudentReponseForWeb;
+import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 
 public interface IStudentService {
@@ -68,7 +69,7 @@ public interface IStudentService {
 
 	public StudentResponse getStudentById(Integer studentId);
 
-	public ResponseEntity<?> registerStudent(Student student);
+	public ResponseEntity<?> registerStudent(StudentRequest student);
 
 	public ResponseEntity<?> getStudentProfileForWeb(Integer studentId);
 

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.SubjectResponse;
 import com.cico.service.ISubjectService;
+import com.cico.util.AppConstants;
 
 @RestController
 @RequestMapping("/subject")
@@ -78,10 +79,10 @@ public class SubjectController {
 	}
 
 	@GetMapping("/getAllSubjectsByCourseId")
-	public ResponseEntity<?> getAllSubjectsByCourseId(@RequestParam("courseId")Integer courseId){
-		System.err.println("...."+subjectService.getAllSubjectsByCourseId(courseId));
-	       return  subjectService.getAllSubjectsByCourseId(courseId);
-	
+	public ResponseEntity<?> getAllSubjectsByCourseId(@RequestParam("courseId") Integer courseId) {
+		System.err.println("...." + subjectService.getAllSubjectsByCourseId(courseId));
+		return subjectService.getAllSubjectsByCourseId(courseId);
+
 	}
 
 	@PutMapping("/deleteSubjectById")
@@ -94,12 +95,29 @@ public class SubjectController {
 	public ResponseEntity<?> getAllChapterWithSubjectId(@RequestParam("subjectId") Integer subjectId) {
 		return subjectService.getAllChapterWithSubjectId(subjectId);
 
-	} 
-
+	}
 
 	@GetMapping("/getAllChapterWithSubjectIdAndStudentId")
-	public ResponseEntity<?> getAllChapterWithSubjectIdAndStudentId(@RequestParam("subjectId") Integer subjectId,@RequestParam("studentId") Integer studentId) {
-		return subjectService.getAllChapterWithSubjectIdAndStudentId(subjectId,studentId);
+	public ResponseEntity<?> getAllChapterWithSubjectIdAndStudentId(@RequestParam("subjectId") Integer subjectId,
+			@RequestParam("studentId") Integer studentId) {
+		return subjectService.getAllChapterWithSubjectIdAndStudentId(subjectId, studentId);
 
-	} 
+	}
+
+	// .................. NEW API'S ................
+
+	@GetMapping("/v2/getAllSubjectsWithChapterCompletedStatus/{studentId}")
+	public ResponseEntity<List<SubjectResponse>> getAllSubjectsNew(
+			@PathVariable(name = AppConstants.STUDENT_ID) Integer studentId) {
+		List<SubjectResponse> subjects = subjectService.getAllSubjectsWithChapterCompletedStatus(studentId);
+		return ResponseEntity.ok(subjects);
+	}
+
+	@GetMapping("/v2/getAllChapterWithSubjectIdAndStudentId")
+	public ResponseEntity<?> getAllChapterWithSubjectIdAndStudentIdNew(
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return subjectService.getAllChapterWithSubjectIdAndStudentId(subjectId, studentId);
+
+	}
 }

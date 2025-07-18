@@ -52,33 +52,38 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 //			+ "GROUP BY s.subjectId, e.examId ,sr.id ORDER BY e.createdDate DESC")
 //	Page<SubjectExamResponse> getAllSubjectExam( ExamType examType,@Param("studentId") Integer studentId, PageRequest pageable);
 
-	
-	@Query("SELECT NEW com.cico.payload.SubjectExamResponse(" +
-		       "e.examName,  s.technologyStack.imageName,e.examId, s.technologyStack.imageName, " +
-		       "e.examTimer, e.passingMarks, sr.scoreGet, " +
-		       "e.scheduleTestDate, e.totalQuestionForTest, " +
-		       "e.examType, sr.id, s.subjectId, " +
-		       "e.examStartTime, e.isStart, " +
-		       "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " +
-		       "FROM Course c " +
-		       "LEFT JOIN c.subjects s ON s.isDeleted = 0 " +
-		       "JOIN s.exams e ON e.isActive = 1 AND e.isDeleted = 0 AND e.examType = :examType " +
-		       "LEFT JOIN e.results sr ON sr.student.studentId = :studentId " +
-		       "JOIN Student student ON student.studentId = :studentId " +
-		       "WHERE student.course = c AND c.isDeleted = 0 " +
-		       "AND (:status IS NULL OR " +
-		       "    (:status = 'PENDING' AND sr.id IS NULL) OR " +
-		       "    (:status = 'COMPLETED' AND sr.id IS NOT NULL)) " +
-		       "GROUP BY s.subjectId, e.examId, sr.id " +
-		       "ORDER BY e.createdDate DESC")
-		Page<SubjectExamResponse> getAllSubjectExam(
-		    @Param("examType") ExamType examType,
-		    @Param("studentId") Integer studentId,
-		    @Param("status") String status,
-		    Pageable pageable);
-	
-	
+	@Query("SELECT NEW com.cico.payload.SubjectExamResponse("
+			+ "e.examName,  s.technologyStack.imageName,e.examId, s.technologyStack.imageName, "
+			+ "e.examTimer, e.passingMarks, sr.scoreGet, " + "e.scheduleTestDate, e.totalQuestionForTest, "
+			+ "e.examType, sr.id, s.subjectId, " + "e.examStartTime, e.isStart, "
+			+ "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " + "FROM Course c "
+			+ "LEFT JOIN c.subjects s ON s.isDeleted = 0 "
+			+ "JOIN s.exams e ON e.isActive = 1 AND e.isDeleted = 0 AND e.examType = :examType "
+			+ "LEFT JOIN e.results sr ON sr.student.studentId = :studentId "
+			+ "JOIN Student student ON student.studentId = :studentId "
+			+ "WHERE student.course = c AND c.isDeleted = 0 " + "AND (:status IS NULL OR "
+			+ "    (:status = 'PENDING' AND sr.id IS NULL) OR " + "    (:status = 'COMPLETED' AND sr.id IS NOT NULL)) "
+			+ "GROUP BY s.subjectId, e.examId, sr.id " + "ORDER BY e.createdDate DESC")
+	Page<SubjectExamResponse> getAllSubjectExam(@Param("examType") ExamType examType,
+			@Param("studentId") Integer studentId, @Param("status") String status, Pageable pageable);
+
 	@Query("SELECT  s FROM Subject s RIGHT JOIN  s.exams e ON e.isDeleted = 0 AND s.isActive = 1 WHERE e.examId =:examId ")
 	Subject findByExamId(Integer examId);
+
+	// ............... NEW QUERY ...................
+
+	@Query("SELECT NEW com.cico.payload.SubjectExamResponse("
+			+ "e.examName, s.technologyStack.imageName, e.examId, s.technologyStack.imageName, "
+			+ "e.examTimer, e.passingMarks, sr.scoreGet, " + "e.scheduleTestDate, e.totalQuestionForTest, "
+			+ "e.examType, sr.id, s.subjectId, " + "e.examStartTime, e.isStart, "
+			+ "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " + "FROM Course c "
+			+ "LEFT JOIN c.subjects s ON s.isDeleted = 0 "
+			+ "JOIN s.exams e ON e.isActive = true AND e.isDeleted = false  AND e.isStart = false AND e.examType = :examType "
+			+ "LEFT JOIN e.results sr ON sr.student.studentId = :studentId "
+			+ "JOIN Student student ON student.studentId = :studentId "
+			+ "WHERE student.course = c AND c.isDeleted = 0 " + "AND e.scheduleTestDate >= CURRENT_DATE "
+			+ "GROUP BY s.subjectId, e.examId, sr.id " + "ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC")
+	List<SubjectExamResponse> findUpcomingSubjectExams(@Param("examType") ExamType examType,
+			@Param("studentId") Integer studentId);
 
 }

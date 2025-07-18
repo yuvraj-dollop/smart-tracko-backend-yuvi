@@ -66,7 +66,6 @@ public class OtpServiceImpl implements IOtpService {
         if (optionalOtp.isEmpty()) return false;
 
         Otp otpEntry = optionalOtp.get();
-
         if (otpEntry.getExpirationTime().isBefore(now)) return false;
 
 //        if (otpEntry.getVerificationAttempts() >= MAX_VERIFICATION_ATTEMPTS) {

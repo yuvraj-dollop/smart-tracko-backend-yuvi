@@ -36,32 +36,35 @@ public class AnnouncementController {
 	}
 
 	@PostMapping("/seenAnnouncement")
-	public ResponseEntity<?> seenAnnouncement(@RequestParam("announcementId") Long announcementId,
-			@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> seenAnnouncement(@RequestParam(name = AppConstants.ANNOUNCEMENT_ID) Long announcementId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return announcementService.seenAnnouncement(announcementId, studentId);
-	}	
+	}
 
 	@GetMapping("/getAnnouncementForStudent")
-	public ResponseEntity<?> getAnnouncementForStudent(@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> getAnnouncementForStudent(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return announcementService.getAnnouncementForStudent(studentId);
 	}
 
 	@GetMapping("/getNotificationCountForStudent")
-	public ResponseEntity<?> countUnseenNotificationForStudent(@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> countUnseenNotificationForStudent(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return announcementService.countUnseenNotificationForStudent(studentId);
 	}
-	
+
 	// ---------------- NEW API's --------------------------
 
-		@GetMapping("/v2/getAnnouncementForStudent")
-		public ResponseEntity<?> getAnnouncementForStudentNew(
-				@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
-			return announcementService.getAnnouncementForStudent(studentId);
-		}
+	@GetMapping("/v2/getAnnouncementForStudent")
+	public ResponseEntity<?> getAnnouncementForStudentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return announcementService.getAnnouncementForStudent(studentId);
+	}
 
-		@GetMapping("/v2/getNotificationCountForStudent")
-		public ResponseEntity<?> countUnseenNotificationForStudentNew(
-				@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
-			return announcementService.countUnseenNotificationForStudent(studentId);
-		}
+	@GetMapping("/v2/getNotificationCountForStudent")
+	public ResponseEntity<?> countUnseenNotificationForStudentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return announcementService.countUnseenNotificationForStudent(studentId);
+	}
+
 }

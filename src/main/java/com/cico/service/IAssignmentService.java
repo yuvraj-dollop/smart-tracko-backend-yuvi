@@ -6,15 +6,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.payload.AssignmentFilter;
+import com.cico.payload.AssignmentQuestionRequest;
 import com.cico.payload.AssignmentRequest;
 import com.cico.payload.AssignmentSubmissionRequest;
+import com.cico.payload.UpdateAssignmentQuestionRequest;
 import com.cico.util.SubmissionStatus;
 
 public interface IAssignmentService {
 
 	ResponseEntity<?> getAssignment(Long id);
 
-	ResponseEntity<?> createAssignment(AssignmentRequest assignmentRequest) ;
+	ResponseEntity<?> createAssignment(AssignmentRequest assignmentRequest);
 
 	// ResponseEntity<?> addQuestionInAssignment(AssignmentQuestionRequest
 	// questionRequest);
@@ -25,9 +27,11 @@ public interface IAssignmentService {
 
 	ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue);
 
-	ResponseEntity<?> getSubmitedAssignmetByStudentId(Integer studentId, Integer pageSise, Integer pageNumber, SubmissionStatus status);
+	ResponseEntity<?> getSubmitedAssignmetByStudentId(Integer studentId, Integer pageSise, Integer pageNumber,
+			SubmissionStatus status);
 
-	ResponseEntity<?> getAllSubmitedAssginments(Integer courseId, Integer subjectId, SubmissionStatus status, Integer pageSise, Integer pageNumber);
+	ResponseEntity<?> getAllSubmitedAssginments(Integer courseId, Integer subjectId, SubmissionStatus status,
+			Integer pageSise, Integer pageNumber);
 
 	ResponseEntity<?> updateSubmitedAssignmentStatus(Long submissionId, String status, String review);
 
@@ -71,8 +75,12 @@ public interface IAssignmentService {
 
 	ResponseEntity<?> activateAssigment(Long assignmentId);
 
-	ResponseEntity<?> getAllLockedAndUnlockedAssignment(Integer studentId, Integer pageSize, Integer pageNumber);
+	// .................. NEW METHODS ..............
 
+	ResponseEntity<?> getAllLockedAndUnlockedAssignment(Integer studentId, Integer pageSise, Integer pageNumber);
 
+	ResponseEntity<?> addQuestionInAssignment(AssignmentQuestionRequest assignmentQuestionRequest);
+
+	ResponseEntity<?> updateAssignmentQuestion(UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest);
 
 }

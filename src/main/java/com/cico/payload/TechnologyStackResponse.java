@@ -3,12 +3,14 @@ package com.cico.payload;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @JsonInclude(value = Include.NON_NULL)
 @NoArgsConstructor
+@Builder
 public class TechnologyStackResponse {
 	private Integer id;
 	private String imageName;
