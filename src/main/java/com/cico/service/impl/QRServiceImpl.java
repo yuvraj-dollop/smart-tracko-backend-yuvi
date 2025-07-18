@@ -30,7 +30,6 @@ import com.cico.repository.QrManageRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.security.JwtUtil;
 import com.cico.service.IQRService;
-import com.cico.service.ITokenManagementService;
 import com.cico.util.AppConstants;
 import com.cico.util.Roles;
 import com.google.zxing.BarcodeFormat;
@@ -61,8 +60,6 @@ public class QRServiceImpl implements IQRService {
 	private SimpMessageSendingOperations messageSendingOperations;
 
 	ExecutorService executor = Executors.newSingleThreadExecutor();
-	@Autowired
-	private ITokenManagementService tokenManagementService;
 
 	@Override
 	public QRResponse generateQRCode() throws WriterException, IOException {
@@ -134,16 +131,12 @@ public class QRServiceImpl implements IQRService {
 
 	
 	public ResponseEntity<?> removeDeviceFromWeb(HttpHeaders headers) {
-		System.err.println("---------->> WEB LOGOUT ===> "+headers);
-		String token = headers.getFirst(AppConstants.AUTHORIZATION);
-		String username = util.getUsername(token);
+		String username = util.getUsername(headers.getFirst(AppConstants.AUTHORIZATION));
 		QrManage findByUserId = qrManageRepository.findByUserId(username);
 		if(findByUserId != null) {
 			System.out.println(findByUserId);
 			jobEnd(findByUserId.getUuid(), "LOGOUT");
 			qrManageRepository.delete(findByUserId);
-			tokenManagementService.deleteToken(token);
-
 			return new ResponseEntity<>(new ApiResponse(Boolean.TRUE,AppConstants.SUCCESS, HttpStatus.OK),HttpStatus.OK);
 		}
 		return new ResponseEntity<>(new ApiResponse(Boolean.FALSE,AppConstants.FAILED, HttpStatus.OK),HttpStatus.OK);

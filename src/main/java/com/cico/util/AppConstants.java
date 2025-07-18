@@ -163,7 +163,6 @@ public class AppConstants {
 	public static final String ATTACHMENT_ADDED_SUCCESSFULLY = "Attachment added successfully!!";
 
 // ===========================YUVI================================
-	// FOR ANNOUNCEMET REQUEST
 
 	public static final String TITLE_REQUIRED = "Title is required";
 

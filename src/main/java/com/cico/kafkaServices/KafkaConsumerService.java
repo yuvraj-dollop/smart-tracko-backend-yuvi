@@ -111,5 +111,20 @@ public class KafkaConsumerService {
 		message.setTitle(notificationInfo.getTitle());
 		notificationService.sendFBNotificationByToken(message);
 	}
+	
+	
+	//==================================================email notification=============================================================//
+	@KafkaListener(topics = "email-topic", groupId = "email-group")
+	public void handleEmailEvent(String message) {
+		try {
+			EmailRequest payload = mapper.readValue(message, EmailRequest.class);
+			TemplateType templateType = payload.getTemplateType();
+			emailService.sendEmail(payload.getToEmail(), templateType, payload.getPlaceholders());
+		} catch (Exception e) {
+			System.err.println("Failed to process email event: " + e.getMessage());
+			// Ideally log to file or monitoring system
+		}
+	}
+
 
 }

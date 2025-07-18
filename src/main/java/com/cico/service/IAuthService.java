@@ -4,7 +4,6 @@ import com.cico.payload.AdminLoginRequest;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.ForgetPasswordRequest;
 import com.cico.payload.OtpRequest;
-import com.cico.payload.RefreshTokenRequest;
 import com.cico.payload.ResetPasswordRequest;
 import com.cico.payload.StudentLoginRequest;
 
@@ -23,7 +22,4 @@ public interface IAuthService {
 	public ApiResponse resendOtp();
 
 	public ApiResponse logout();
-
-	public ApiResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
-
 }
