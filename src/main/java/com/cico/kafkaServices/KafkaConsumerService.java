@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import com.cico.model.FirebaseNotificationMessage;
+import com.cico.payload.EmailRequest;
 import com.cico.payload.NotificationInfo;
+import com.cico.util.EmailService;
 import com.cico.util.NotificationConstant;
+import com.cico.util.TemplateType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +24,9 @@ public class KafkaConsumerService {
 	@Autowired
 	private FirebaseNotificationService notificationService;
 
+	
+	@Autowired
+	EmailService emailService;
 	// sending announcement notification for all the specific course students
 	
 	@KafkaListener(topics = NotificationConstant.ANNOUNCEMENT_TOPIC, groupId = NotificationConstant.NOTIFICATION_GROUP_ID)
