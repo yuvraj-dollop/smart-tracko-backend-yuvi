@@ -34,7 +34,7 @@ public class AppConstants {
 
 	public static final String FAILED = "FAILED";
 
-	public static final String STUDENT_ID = "studentId";
+	public static final String STUDENT_ID = "StudentId";
 
 	public static final String ADMIN_ID = "adminId";
 
@@ -163,6 +163,7 @@ public class AppConstants {
 	public static final String ATTACHMENT_ADDED_SUCCESSFULLY = "Attachment added successfully!!";
 
 // ===========================YUVI================================
+	// FOR ANNOUNCEMET REQUEST
 
 	public static final String TITLE_REQUIRED = "Title is required";
 
@@ -240,6 +241,82 @@ public class AppConstants {
 
 	public static final String USERNAME_OR_EMAIL_REQUIRED = "Username or Email is required";
 
+	public static final String USER_NOT_FOUND = "Student not found with given userId or email.";
+
+	public static final String PASSWORD_RESET_SUCCESSFULLY = "Password reset successful. Please login again.";
+
+	public static final String PASSWORD_NOT_MATCHED = "Passwords do not match.";
+
+	public static final String INVALID_TOKEN_TYPE_FOR_RESET_PASSWORD = "Invalid token type for resetting password.";
+
+	public static final String OTP_SENT_FOR_RESET_PASSWORD = "OTP sent to your registered email for password reset.";
+
+	public static final String OTP_SENT = "OTP sent. Please verify to continue.";
+
+	public static final String AUTH_TOKEN_REQUIRED = "Only AUTH_TOKENs can be used for resending OTP.";
+
+	public static final String JOB_TITLE_REQUIRED = "Job title is required";
+
+	public static final String JOB_DESCRIPTION_REQUIRED = "Job description is required";
+
+	public static final String COMPANY_NAME_REQUIRED = "Company name is required";
+
+	public static final String EXPERIENCE_REQUIRED_MANDATORY = "Experience required is mandatory";
+
+	public static final String TECHNICAL_SKILL_REQUIRED = "Technical skills are required";
+
+	public static final String JOB_PACKAGE_REQUIRED = "Job package must be provided";
+
+	public static final String JOB_TYPE_REQUIRED = "Job type must be specified";
+
+	public static final String TECHNOLOGY_STACK_REQUIRED = "Technology stack ID is required";
+
+	public static final String OTP_NOT_VERIFIED = "OTP is not verified";
+
+	public static final String RESEND_OTP_NOT_ALLOWED_FOR_THIS_TYPE = "OTP resend not allowed for this OTP type.";
+
+	public static final String OTP_SENT_FOR_LOGIN = "OTP sent to your registered email. Please verify.";
+
+	// public static final String ADMIN_NOT_FOUND = "Admin not found.";
+
+	public static final String INVALID_ROLE_TYPE = "Invalid role in token.";
+
+	public static final String MISSING_TOKEN = "Missing token";
+
+	public static final String INVALID_TOKEN_TYPE_FOR_VERIFICATION = "Invalid token type or OTP type for verification.";
+
+	public static final String INVALID_OR_EXPIRED_OTP = "Invalid token type or OTP type for verification.";
+
+	public static final String OTP_VERIFIED_SUCCESSFULLY = "OTP verified successfully";
+
+	public static final String LOGOUT_SUCCESSFULL = "Logout successful";
+
+	public static final String JOB_ID_REQUIRED = "Job ID is required";
+
+	public static final String BATCH_NOT_FOUND = "BATCH NOT FOUND";
+
+	public static final String BATCH_NOT_AVAILABLE = "No Upcoming Batch Available";
+
+	public static final String BATCH_ADD_SUCCESS = "Batch Created Successfully";
+
+	public static final String BATCH_UPDATE_SUCCESS = "Batch Update Successfully";
+
+	// public static final String COURSE_NOT_FOUND = "Course Not Found";
+
+	// public static final String BATCH_ALREADY_EXIST = "Batch already exist";
+
+	// public static final String SUBJECT_NOT_FOUND = "Subject not found";
+	// public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details are required";
+	// public static final String PAGE_SIZE = "pageSize";
+	// public static final String PAGE_NUMBER = "pageNumber";
+	// public static final String KEY = "key";
+
+	// public static final String MONTH = "month";
+	// public static final String YEAR = "year";
+
+	// public static final String ID = "id";
+
+	// public static final String STUDENT_ID_REQUIRED = "Student id is required";
 	// === STUDENT REQUEST VALIDATION ===
 	public static final String FULL_NAME_REQUIRED = "Full name is required";
 	public static final String DOB_REQUIRED = "Date of birth is required";
