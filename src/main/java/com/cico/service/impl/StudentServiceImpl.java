@@ -371,7 +371,6 @@ public class StudentServiceImpl implements IStudentService {
 							studentResponse.setToken(token);
 							response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
 							response.put("student", studentResponse);
-							tokenManagementService.save(new TokenManagement(null, token));
 							return new ResponseEntity<>(response, HttpStatus.OK);
 						} else {
 							System.out.println("2 CASE");
@@ -2126,7 +2125,6 @@ public class StudentServiceImpl implements IStudentService {
 //		response.put("totalRejected", totalRejected);
 //		response.put("categories", categories);
 //		return new ResponseEntity<>(response, HttpStatus.OK);
-
 		return null;
 	}
 

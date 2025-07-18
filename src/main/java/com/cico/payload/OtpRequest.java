@@ -12,7 +12,7 @@ import lombok.Setter;
 public class OtpRequest {
 
     // Will be extracted from token, not sent by client
-    private String usernameOrEmail;
+//    private String usernameOrEmail;
 
     @NotBlank(message = AppConstants.OTP_REQUIRED)
     @Pattern(regexp = "^[0-9]{6}$", message = AppConstants.OTP_LENGHT_VALIDATION)

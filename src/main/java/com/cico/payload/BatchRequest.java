@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatchRequest {
+	
+	 private Integer batchId; //OPTIONAL FOR UPDATE PURPOSE
 
     @NotNull(message = AppConstants.COURSE_ID_REQUIRED)
     private Integer courseId;

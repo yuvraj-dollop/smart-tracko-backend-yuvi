@@ -28,56 +28,56 @@ public class QRController {
 
 	@Autowired
 	private IQRService qrService;
-
+	
 	@Autowired
 	private JwtUtil util;
-
+	
 	@Autowired
 	private IQRService service;
-
+	
+	
 	@GetMapping("/qrGenerator")
-	public ResponseEntity<QRResponse> generateQrCodeAsBase64() throws Exception {
-		QRResponse generateQRCode = qrService.generateQRCode();
-		return ResponseEntity.ok(generateQRCode);
+	public ResponseEntity<QRResponse> generateQrCodeAsBase64() throws Exception{
+		 QRResponse generateQRCode = qrService.generateQRCode();
+      return ResponseEntity.ok(generateQRCode);
 	}
-
+	
 	@PostMapping("/qrlogin/{qrKey}/{token}")
-	public ResponseEntity<?> qrLoginWithToken(@PathVariable("qrKey") String qrKey,
-			@PathVariable("token") String token) {
-		if (Objects.isNull(qrKey)) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-		return qrService.QRLogin(qrKey, token);
-	}
+    public ResponseEntity<?> qrLoginWithToken(@PathVariable("qrKey") String qrKey,@PathVariable("token") String token){
+        if(Objects.isNull(qrKey)){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return qrService.QRLogin(qrKey, token);
+    }
 
-	@PostMapping("/updateWebLoginStatus")
-	public ResponseEntity<?> updateWebLoginStatus(@RequestParam("token") String token, @RequestParam("os") String os,
-			@RequestParam("deviceType") String deviceType, @RequestParam("browser") String browser) {
-		return qrService.updateWebLoginStatus(token, os, deviceType, browser);
+    @PostMapping("/updateWebLoginStatus")
+    public ResponseEntity<?> updateWebLoginStatus(@RequestParam("token")String token,@RequestParam("os") String os,
+			@RequestParam("deviceType") String deviceType, @RequestParam("browser") String browser){
+    	return qrService.updateWebLoginStatus(token,os,deviceType,browser);
 
-	}
+    }
+    
+    @GetMapping("/getLinkedDevice")
+    public ResponseEntity<?> getLinkedDevice(@RequestHeader HttpHeaders headers){
+    	return qrService.getLinkedDeviceData(headers);
+    }
+    
+    @GetMapping("/getLinkedDeviceByUuid")
+    public ResponseEntity<?> getLinkedDevice(@RequestParam("key") String key){
+    	return qrService.getLinkedDeviceDataByUuid(key);
+    }
+    
+    @DeleteMapping("/webLogout")
+    public ResponseEntity<?> logoutUserFromWeb(@RequestHeader HttpHeaders headers){
+    	System.out.println(headers.getFirst(AppConstants.AUTHORIZATION));
+    	return qrService.removeDeviceFromWeb(headers);
+    }
+    
+ // ................. NEW API'S .....................
 
-	@GetMapping("/getLinkedDevice")
-	public ResponseEntity<?> getLinkedDevice(@RequestHeader HttpHeaders headers) {
-		return qrService.getLinkedDeviceData(headers);
-	}
-
-	@GetMapping("/getLinkedDeviceByUuid")
-	public ResponseEntity<?> getLinkedDevice(@RequestParam("key") String key) {
-		return qrService.getLinkedDeviceDataByUuid(key);
-	}
-
-	@DeleteMapping("/webLogout")
-	public ResponseEntity<?> logoutUserFromWeb(@RequestHeader HttpHeaders headers) {
-		System.out.println(headers.getFirst(AppConstants.AUTHORIZATION));
-		return qrService.removeDeviceFromWeb(headers);
-	}
-
-	// ................. NEW API'S .....................
-
-	@GetMapping("/V2/getLinkedDeviceByUuid")
-	public ResponseEntity<?> getLinkedDeviceNew(@RequestParam(name = AppConstants.KEY) String key) {
-		return qrService.getLinkedDeviceDataByUuid(key);
-	}
-
+ 	@GetMapping("/V2/getLinkedDeviceByUuid")
+ 	public ResponseEntity<?> getLinkedDeviceNew(@RequestParam(name = AppConstants.KEY) String key) {
+ 		return qrService.getLinkedDeviceDataByUuid(key);
+ 	}
+    
 }

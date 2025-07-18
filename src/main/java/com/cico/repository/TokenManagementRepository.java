@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import com.cico.model.TokenManagement;
 
-
 @Repository
 public interface TokenManagementRepository extends JpaRepository<TokenManagement, Integer> {
 	

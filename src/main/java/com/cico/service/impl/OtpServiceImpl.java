@@ -60,15 +60,12 @@ public class OtpServiceImpl implements IOtpService {
 
     @Override
     public boolean validateOtp(String email, String otp, OtpType otpType) {
-    	System.err.println(email+", "+otpType);
         Optional<Otp> optionalOtp = otpRepo.findByEmailAndOtpType(email, otpType);
-       System.err.println("------------>> "+optionalOtp);
         LocalDateTime now = LocalDateTime.now();
 
         if (optionalOtp.isEmpty()) return false;
 
         Otp otpEntry = optionalOtp.get();
-System.err.println(otpEntry.getExpirationTime().isBefore(now)+" <----------");
         if (otpEntry.getExpirationTime().isBefore(now)) return false;
 
 //        if (otpEntry.getVerificationAttempts() >= MAX_VERIFICATION_ATTEMPTS) {

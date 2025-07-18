@@ -27,16 +27,16 @@ public class JwtUtil {
 	@Autowired
 	private HttpServletRequest httpServletRequest;
 
+	//======================= For APP ===================================
 	private String generateToken(Map<String, Object> claims, String subject) {
-
-		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(
-						new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(4 * 24 * 60 * 60 * 1000)))
-				.setIssuer("CICO").signWith(SignatureAlgorithm.HS256, secret).compact();
-//		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-//				.setExpiration(
-//						new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1)))
-//				.setIssuer("CICO").signWith(SignatureAlgorithm.HS256, secret).compact();
+		return Jwts.builder()
+				.setClaims(claims)
+				.setSubject(subject)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))) // 1 days
+				.setIssuer("CICO")
+				.signWith(SignatureAlgorithm.HS256, secret)
+				.compact();
 	}
 
 	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role) {
@@ -44,7 +44,7 @@ public class JwtUtil {
 		claims.put("Role", role);
 		claims.put("StudentId", studentId);
 		claims.put("deviceId", deviceId);
-		claims.put("tokenType", TokenType.ACCESS_TOKEN);
+		claims.put("platform", "mobile"); // platform claim for app
 		return generateToken(claims, subject);
 	}
 
@@ -52,98 +52,85 @@ public class JwtUtil {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", "ADMIN");
 		claims.put("adminId", adminId);
+		claims.put("platform", "mobile"); //  platform claim for app
 		return generateToken(claims, adminId);
 	}
 
-	// ===================for web
+	//======================= For WEB ===================================
 	private String generateToken(Map<String, Object> claims, String subject, TokenType tokenType) {
 		long expirationMillis;
 
 		if (tokenType == TokenType.AUTH_TOKEN) {
-			expirationMillis = TimeUnit.MINUTES.toMillis(5); // 05 minutes
-		} else if (tokenType == TokenType.ACCESS_TOKEN) {
-//			expirationMillis = TimeUnit.MINUTES.toMillis(3); // 3 minutes
-			expirationMillis = TimeUnit.DAYS.toMillis(1); // 1 days
+			expirationMillis = TimeUnit.MINUTES.toMillis(10); // 10 minutes
 		} else {
-//			expirationMillis = TimeUnit.MINUTES.toMillis(10); // 10 minutes
-			expirationMillis = TimeUnit.DAYS.toMillis(7); // 7 days
+			expirationMillis = TimeUnit.DAYS.toMillis(1); // 1 day
 		}
 
-		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + expirationMillis)).setIssuer("CICO")
-				.signWith(SignatureAlgorithm.HS256, secret).compact();
+		return Jwts.builder()
+				.setClaims(claims)
+				.setSubject(subject)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
+				.setIssuer("CICO")
+				.signWith(SignatureAlgorithm.HS256, secret)
+				.compact();
 	}
 
-	// ===================for web
-	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role,
-			TokenType tokenType, OtpType optType, Boolean isOtpVerified) {
+	public String generateTokenForStudent(String studentId, String subject, String deviceId, String role, TokenType tokenType, OtpType otpType,Boolean isOtpVerified) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", role);
 		claims.put("StudentId", studentId);
 		claims.put("deviceId", deviceId);
 		claims.put("tokenType", tokenType);
-		claims.put("otpType", optType);
+		claims.put("otpType", otpType);
+		claims.put("platform", "web"); // platform claim for web
 		claims.put("isOtpVerified", isOtpVerified);
 		return generateToken(claims, subject, tokenType);
 	}
 
-	// ===================for web
-	public String generateTokenForAdmin(String adminId, TokenType tokenType, OtpType optType,Boolean isOtpVerified) {
+	public String generateTokenForAdmin(String adminId, TokenType tokenType, OtpType otpType,Boolean isOtpVerified) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("Role", "ADMIN");
 		claims.put("adminId", adminId);
 		claims.put("tokenType", tokenType);
-		claims.put("otpType", optType);
+		claims.put("otpType", otpType);
+		claims.put("platform", "web"); // platform claim for web
 		claims.put("isOtpVerified", isOtpVerified);
 		return generateToken(claims, adminId, tokenType);
 	}
 
-	// ================== For Web
-	public String generateRefreshToken(String subject, String role, TokenType tokenType) {
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("Role", role);
-		claims.put("tokenType", tokenType);
-		return generateToken(claims, subject, tokenType);
-	}
-
+	// ==================== Utility ====================
 	public String getToken() {
 		String header = httpServletRequest.getHeader("Authorization");
-		System.out.println("header" + header);
 		if (header == null || !header.startsWith("Bearer ")) {
-			System.err.println("Exception not handled");
-//			throw new ExpiredJwtException("Authorization header is missing or invalid");
+			return null;
 		}
 		return header.substring(7);
 	}
 
 	public Claims getClaims(String token) {
-		System.err.println("token in util " + token);
-		if (token.startsWith("Bearer "))
-			token = token.substring(7);
-		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+		
+		try {
+			if (token.startsWith("Bearer "))
+				token = token.substring(7);
+			return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+		} catch (Exception e) {
+			// TODO: handle exception
+			throw new BadRequestException("Invalid Token");
+		}
+		
 	}
 
 	public String getUsername(String token) {
 		return getClaims(token).getSubject();
-
 	}
 
 	public Object getHeader(String token, String key) {
 		return getClaims(token).get(key);
 	}
 
-//	public Boolean isTokenExpired(String token) {
-//		return extractExpiration(token).before(new Date());
-//	}
-	public boolean isTokenExpired(String token) {
-		try {
-			return extractExpiration(token).before(new Date());
-		} catch (ExpiredJwtException e) {
-			return true; // Token is expired
-		} catch (Exception e) {
-			// Optional: you can return true for invalid tokens or handle separately
-			return true;
-		}
+	public Boolean isTokenExpired(String token) {
+		return extractExpiration(token).before(new Date());
 	}
 
 	public Date extractExpiration(String token) {
@@ -158,5 +145,4 @@ public class JwtUtil {
 	public String getRole(String token) {
 		return getClaims(token).get("Role").toString();
 	}
-
 }

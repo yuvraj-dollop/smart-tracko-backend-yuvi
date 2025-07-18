@@ -145,6 +145,7 @@ public class SecurityConfig {
 	        "Authorization",
 	        "Content-Type",
 	        "X-Requested-With",
+	        "X-Client-Source",
 	        "Accept",
 	        "Origin"
 	    ));

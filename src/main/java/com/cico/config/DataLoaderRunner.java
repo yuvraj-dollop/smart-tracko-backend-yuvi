@@ -13,6 +13,7 @@ import com.cico.model.Admin;
 import com.cico.model.LeaveType;
 import com.cico.repository.AdminRepository;
 import com.cico.repository.LeaveTypeRepository;
+import com.cico.service.impl.EmailTemplateFormatServiceImpl;
 import com.cico.util.Roles;
 
 @Component
@@ -26,9 +27,16 @@ public class DataLoaderRunner implements CommandLineRunner{
 	
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	
+
+    @Autowired
+    private EmailTemplateFormatServiceImpl emailTemplateFormatService;
 
 	@Override
 	public void run(String... args) throws Exception {
+		
+		 emailTemplateFormatService.preloadDefaultTemplates();
+		
 		List<Admin> findAll = adminRepository.findAll();
 		if(findAll.isEmpty()) {
 			Admin admin = new Admin();
