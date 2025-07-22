@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -159,14 +160,14 @@ public class ChapterController {
 		return chapterService.addContentToChapter(chapterContentRequest);
 	}
 
-	@GetMapping("/v2/getChapterDetails")
-	public ResponseEntity<?> getChapterDetailsNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+	@GetMapping("/v2/getChapterDetails/{chapterId}")
+	public ResponseEntity<?> getChapterDetailsNew(@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return chapterService.getChapterDetails(chapterId);
 	}
 
-	@GetMapping("/v2/getChapterContentListByChapterId")
+	@GetMapping("/v2/getChapterContentListByChapterId/{chapterId}")
 	public ResponseEntity<?> getChapterContentListByChapterIdNew(
-			@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId,
+			@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId,
 			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber,
 			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize) {
 		return chapterService.getChapterContentListByChapterId(chapterId, pageNumber, pageSize);

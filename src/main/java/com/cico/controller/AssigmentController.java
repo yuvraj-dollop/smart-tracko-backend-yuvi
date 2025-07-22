@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -212,6 +213,7 @@ public class AssigmentController {
 
 	// ........................... NEW API's ........................
 
+	// ............... GET METHOD .................
 	@GetMapping("/v2/getSubmitedAssignmetByStudentId")
 	public ResponseEntity<?> getSubmitedAssignmetByStudentIdNew(
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
@@ -229,12 +231,39 @@ public class AssigmentController {
 		return service.getAllLockedAndUnlockedAssignment(studentId, pageSize, pageNumber);
 	}
 
+	@GetMapping("/v2/getCountOfAssignmentAndTask/{studentId}")
+	public ResponseEntity<?> getCountOfAssignmentAndTask(
+			@PathVariable(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return service.getCountOfAssignmentAndTask(studentId);
+	}
+
+	@GetMapping("/v2/getAssignmentQuesSubmissionStatus")
+	public ResponseEntity<?> getAssignmentQuesSubmissionStatusNew(
+			@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return service.getAssignmentQuesSubmissionStatus(questionId, studentId);
+	}
+
+	@GetMapping("/v2/getAssignmentQuesById/{questionId}")
+	public ResponseEntity<?> getAssignmentQuestionNew(@PathVariable(name = AppConstants.QUESTION_ID) Long questionId) {
+		return service.getAssignmentQuesById(questionId);
+	}
+
+	// ............... POST METHOD ..................
+
 	@PostMapping("/v2/addQuestionInAssignment")
 	public ResponseEntity<?> addQuestionInAssignment(
 			@Valid @RequestBody AssignmentQuestionRequest assignmentQuestionRequest) {
 		return service.addQuestionInAssignment(assignmentQuestionRequest);
 	}
 
+	@PostMapping("/v2/submitAssignment")
+	public ResponseEntity<?> submitAssignmentByStudentNew(@RequestParam(name = AppConstants.FILE) MultipartFile file,
+			@Valid AssignmentSubmissionRequest assignmentSubmissionRequest) throws Exception {
+		return service.submitAssignment(file, assignmentSubmissionRequest);
+	}
+
+	// ............... PUT METHOD ..................
 	@PutMapping("/v2/updateAssignmentQuestion")
 	public ResponseEntity<?> updateAssignmentQuestion(
 			@Valid @RequestBody UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest) {

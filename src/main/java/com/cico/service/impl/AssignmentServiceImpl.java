@@ -19,6 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.cico.exception.BadRequestException;
+import com.cico.exception.InvalidFileTypeException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.kafkaServices.KafkaProducerService;
@@ -53,6 +56,7 @@ import com.cico.repository.CourseRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
 import com.cico.service.IAssignmentService;
+import com.cico.service.ITaskService;
 import com.cico.util.AppConstants;
 import com.cico.util.NotificationConstant;
 import com.cico.util.SubmissionStatus;
@@ -85,6 +89,9 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	@Autowired
 	private KafkaProducerService kafkaProducerService;
+
+	@Autowired
+	private ITaskService taskService;
 
 	AssignmentServiceImpl(LeaveServiceImpl leaveServiceImpl) {
 		this.leaveServiceImpl = leaveServiceImpl;
@@ -161,11 +168,23 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	}
 
 	@Override
-	public ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue)
-	{
+	public ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue) {
 		Optional<AssignmentTaskQuestion> obj = assignmentTaskQuestionRepository.findByQuestionId(readValue.getTaskId());
 		boolean anyMatch = obj.get().getAssignmentSubmissions().parallelStream()
 				.anyMatch(obj2 -> obj2.getStudent().getStudentId() == readValue.getStudentId());
+
+		if (file != null && !file.isEmpty()) {
+			String contentType = file.getContentType();
+			String originalFilename = file.getOriginalFilename();
+			Boolean isPdf = contentType.equals("application/pdf") || originalFilename.endsWith(".pdf");
+			Boolean isZip = contentType.equals("application/zip")
+					|| originalFilename.equalsIgnoreCase("application/x-zip-compressed")
+					|| originalFilename.endsWith(".zip");
+			if (!isPdf && !isZip) {
+				throw new InvalidFileTypeException("Only PDF or ZIP files are allowed for submission.");
+			}
+
+		}
 
 		if (!anyMatch) {
 			AssignmentSubmission submission = new AssignmentSubmission();
@@ -1237,6 +1256,28 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		response.put("id", assignmentTaskQuestion.getAssignment().getId());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
+	}
+
+	@Override
+	public ResponseEntity<?> getCountOfAssignmentAndTask(Integer studentId) {
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> {
+			throw new ResourceNotFoundException("Student not found");
+		});
+
+		if (student.getCourse() == null) {
+			throw new ResourceNotFoundException("Student course not found");
+		}
+		Long TotakAssignment = assignmentRepository.countByCourseIdAndIsDeletedFalse(student.getCourse().getCourseId());
+		Long TotakSubmittedAssignment = submissionRepository.countSubmittedAssignmentsByStudentId(studentId);
+		Long TotakTask = taskService.countTaskOfStudent(studentId);
+		Long TotakSubmittedTask = taskService.countSubmittedTasksByStudentId(studentId);
+		Map<String, Long> response = new HashMap<>();
+		response.put("TotakAssignment", TotakAssignment);
+		response.put("TotakSubmittedAssignment", TotakSubmittedAssignment);
+		response.put("TotakTask", TotakTask);
+		response.put("TotakSubmittedTask", TotakSubmittedTask);
+
+		return ResponseEntity.ok(response);
 	}
 
 }

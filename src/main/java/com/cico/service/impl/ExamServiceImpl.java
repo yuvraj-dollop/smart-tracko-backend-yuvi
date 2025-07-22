@@ -169,10 +169,35 @@ public class ExamServiceImpl implements IExamService {
 
 		ExamResultResponse res = new ExamResultResponse();
 		res.setCorrecteQuestions(save.getCorrecteQuestions());
-		res.setId(save.getNotSelectedQuestions());
+		res.setNotSelectedQuestions(save.getNotSelectedQuestions());
 		res.setScoreGet(save.getScoreGet());
 		res.setWrongQuestions(save.getWrongQuestions());
 		res.setId(save.getId());
+		res.setTotalQuestion(save.getTotalQuestion());
+		res.setStudentId(save.getStudent().getStudentId());
+		res.setStudentName(save.getStudent().getFullName());
+		res.setProfilePic(save.getStudent().getProfilePic());
+
+		List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
+
+		int total = allResults.size();
+		int lowerScores = 0;
+
+		for (ChapterExamResult result : allResults) {
+			if (result.getScoreGet() <= save.getScoreGet()) {
+				lowerScores++;
+			}
+		}
+
+		System.err.println("TOTAL ====> " + total);
+		int percentile = 0;
+		if (total == 1) {
+			percentile = 100;
+		} else {
+			percentile = (int) Math.round(((double) lowerScores / total) * 100);
+		}
+
+		res.setPercentile(percentile);
 
 		// .....firebase notification .....//
 
@@ -315,7 +340,8 @@ public class ExamServiceImpl implements IExamService {
 		chapterExamResultResponse.setWrongQuestions(examResult.getWrongQuestions());
 		chapterExamResultResponse.setTotalQuestion(examResult.getTotalQuestion());
 		chapterExamResultResponse.setScoreGet(examResult.getScoreGet());
-
+		chapterExamResultResponse
+				.setSelectedQuestions((examResult.getTotalQuestion() - examResult.getNotSelectedQuestions()));
 		List<QuestionResponse> questions = examResult.getChapter().getExam().getQuestions().stream()
 				.map(obj -> questionFilter(obj)).collect(Collectors.toList());
 
@@ -839,6 +865,7 @@ public class ExamServiceImpl implements IExamService {
 			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
 					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprion));
 			response.put("examTimer", chapter.get().getExam().getExamTimer());
+			response.put("chapterId", chapterId);
 
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
@@ -1512,6 +1539,114 @@ public class ExamServiceImpl implements IExamService {
 		pageResponse.setLast(page >= totalPages - 1);
 
 		return ResponseEntity.ok(pageResponse);
+	}
+
+	@Override
+	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
+
+		Map<String, Object> response = new HashMap<>();
+		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+		if (chapter.isPresent()) {
+			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
+					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
+			response.put("examTimer", chapter.get().getExam().getExamTimer());
+			response.put("chapterId", chapterId);
+			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		response.put(AppConstants.MESSAGE, "Chapter not found");
+		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	}
+
+	public QuestionResponse questionFilterWithoudCorrectOprionNew(Question question) {
+		List<String> options = new ArrayList<>();
+		options.add(question.getOption1());
+		options.add(question.getOption2());
+		options.add(question.getOption3());
+		options.add(question.getOption4());
+		QuestionResponse questionResponse = new QuestionResponse();
+		questionResponse.setOption(options);
+		questionResponse.setQuestionId(question.getQuestionId());
+		questionResponse.setQuestionContent(question.getQuestionContent());
+		questionResponse.setQuestionImage(question.getQuestionImage());
+		return questionResponse;
+	}
+
+	@Override
+	public ResponseEntity<?> getChapterExamResultNew(Integer id) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		ChapterExamResult examResult = chapterExamResultRepo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+		ChapterExamResultResponse chapterExamResultResponse = new ChapterExamResultResponse();
+
+		Map<Integer, String> review = examResult.getReview();
+		chapterExamResultResponse.setCorrecteQuestions(examResult.getCorrecteQuestions());
+		chapterExamResultResponse.setId(examResult.getId());
+		chapterExamResultResponse.setNotSelectedQuestions(examResult.getNotSelectedQuestions());
+		chapterExamResultResponse.setReview(review);
+		chapterExamResultResponse.setWrongQuestions(examResult.getWrongQuestions());
+		chapterExamResultResponse.setTotalQuestion(examResult.getTotalQuestion());
+		chapterExamResultResponse.setScoreGet(examResult.getScoreGet());
+		chapterExamResultResponse
+				.setSelectedQuestions((examResult.getTotalQuestion() - examResult.getNotSelectedQuestions()));
+
+		List<Question> questions = examResult.getChapter().getExam().getQuestions();
+		// Set selectedOption temporarily in each question
+		for (Question q : questions) {
+			String selected = review.get(q.getQuestionId());
+			System.err.println(
+					"SELECTED ==> " + selected + " , QUESTION ID ==> " + q.getQuestionId() + ", REVIEW ==> " + review);
+			if (selected != null) {
+				q.setSelectedOption(selected); // Assuming setter exists
+			}
+		}
+
+		// Now pass to mapper
+		List<QuestionResponse> questionResponses = questions.stream().map(this::questionFilterNew)
+				.collect(Collectors.toList());
+		response.put("examResult", chapterExamResultResponse);
+
+		response.put("questions", questionResponses);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	public QuestionResponse questionFilterNew(Question question) {
+		System.err.println("question.getSelectedOption() => " + question.getSelectedOption());
+		List<String> options = new ArrayList<>();
+		options.add(question.getOption1());
+		options.add(question.getOption2());
+		options.add(question.getOption3());
+		options.add(question.getOption4());
+		QuestionResponse questionResponse = new QuestionResponse();
+		questionResponse.setOption(options);
+		questionResponse.setQuestionId(question.getQuestionId());
+		questionResponse.setQuestionContent(question.getQuestionContent());
+		questionResponse.setQuestionImage(question.getQuestionImage());
+
+		// correctOpt Index Set
+		String correct = question.getCorrectOption() != null ? question.getCorrectOption().trim() : null;
+		if (correct != null) {
+			for (int i = 0; i < options.size(); i++) {
+				if (options.get(i).trim().equalsIgnoreCase(correct)) {
+					questionResponse.setCorrectOpt(i);
+					break;
+				}
+			}
+		}
+
+		// selectedOpt Index Set
+		String selected = question.getSelectedOption() != null ? question.getSelectedOption().trim() : null;
+		if (selected != null) {
+			for (int i = 0; i < options.size(); i++) {
+				if (options.get(i).trim().equalsIgnoreCase(selected)) {
+					questionResponse.setSelectedOpt(i);
+					break;
+				}
+			}
+		}
+		return questionResponse;
 	}
 
 }

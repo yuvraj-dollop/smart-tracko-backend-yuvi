@@ -197,7 +197,7 @@ public class SubjectServiceImpl implements ISubjectService {
 		Course course = studentRepository.findById(studentId).get().getCourse();
 
 		List<Subject> subjects = courseRepository.findByCourseId(course.getCourseId()).get().getSubjects();
-		List<Subject> list = subjects.parallelStream().filter(obj ->!obj.getIsDeleted()).toList();
+		List<Subject> list = subjects.parallelStream().filter(obj -> !obj.getIsDeleted()).toList();
 		if (list.isEmpty())
 			new ResourceNotFoundException("No subject available");
 
@@ -206,7 +206,8 @@ public class SubjectServiceImpl implements ISubjectService {
 		for (Subject s : list) {
 
 			SubjectResponse response = new SubjectResponse();
-			response.setChapterCount((long) (s.getChapters().stream().filter(obj ->!obj.getIsDeleted())).toList().size());
+			response.setChapterCount(
+					(long) (s.getChapters().stream().filter(obj -> !obj.getIsDeleted())).toList().size());
 			TechnologyStackResponse stackResponse = new TechnologyStackResponse();
 			stackResponse.setId(s.getTechnologyStack().getId());
 			stackResponse.setImageName(s.getTechnologyStack().getImageName());
@@ -273,11 +274,14 @@ public class SubjectServiceImpl implements ISubjectService {
 		if (!allChapterWithSubjectId.isEmpty() && allChapterWithSubjectId.get(0)[3] != null) {
 			List<ChapterResponse> chapterResponses = new ArrayList<>();
 			for (Object[] row : allChapterWithSubjectId) {
+				Integer chapterId = (Integer) row[3];
 				ChapterResponse chapterResponse = new ChapterResponse();
-				chapterResponse.setChapterId((Integer) row[3]);
+				chapterResponse.setChapterId(chapterId);
 				chapterResponse.setChapterName((String) row[4]);
 				chapterResponse.setChapterImage((String) row[1]);
 				chapterResponse.setScoreGet((Integer) row[5]);
+				chapterResponse
+						.setIsCompleted(chapterCompletedRepository.isQuizCompletedByStudent(chapterId,subjectId, studentId));
 				chapterResponses.add(chapterResponse);
 			}
 			response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
@@ -285,6 +289,7 @@ public class SubjectServiceImpl implements ISubjectService {
 		}
 		if (!allChapterWithSubjectId.isEmpty())
 			response.put("subjectName", (String) allChapterWithSubjectId.get(0)[2]);
+
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 

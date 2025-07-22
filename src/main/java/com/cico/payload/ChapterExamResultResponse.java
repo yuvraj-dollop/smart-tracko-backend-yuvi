@@ -9,13 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Data;
 
 @Data
-@JsonInclude(value =  Include.NON_NULL)
+@JsonInclude(value = Include.NON_NULL)
 public class ChapterExamResultResponse {
 
 	private Integer id;
 	private Integer correcteQuestions;
 	private Integer wrongQuestions;
 	private Integer notSelectedQuestions;
+	private Integer selectedQuestions;
 	private Integer scoreGet;
 	public Integer totalQuestion;
 	private Map<Integer, String> review = new HashMap<>();

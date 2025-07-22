@@ -91,4 +91,8 @@ public interface IExamService {
 	
 	
 	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, PaginationRequest request);
+
+	public ResponseEntity<?> getChapterExamNew(Integer chapterId);
+
+	public ResponseEntity<?> getChapterExamResultNew(Integer id);
 }

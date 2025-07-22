@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,6 @@ import com.cico.model.SubjectExam;
 import com.cico.payload.QuestionResponse;
 import com.cico.repository.ChapterRepository;
 import com.cico.repository.CourseExamRepository;
-import com.cico.repository.CourseRepository;
 import com.cico.repository.ExamRepo;
 import com.cico.repository.QuestionRepo;
 import com.cico.repository.SubjectExamRepo;
@@ -88,21 +88,27 @@ public class QuestionServiceImpl implements IQuestionService {
 	@Autowired
 	private SubmittedExamHistoryRepo submittedExamHistoryRepo;
 
-	@Autowired
-	private CourseRepository courseRepository;
-
 	@Override
 	public Question addQuestionToChapterExam(Integer chapterId, String questionContent, String option1, String option2,
 			String option3, String option4, MultipartFile image, String correctOption) {
 		Question questionObj = questionRepo.findByQuestionContentAndIsDeleted(questionContent.trim(), false);
-
 		Optional<Chapter> chapter = chapterRepository.findById(chapterId);
 		if (!chapter.isPresent()) {
-			throw new ResourceNotFoundException("Chapter not found ");
+			throw new ResourceNotFoundException(AppConstants.CHAPTER_NOT_FOUND);
 		}
 
-		if (Objects.nonNull(questionObj) && chapter.get().getExam().getQuestions().contains(questionObj))
-			throw new ResourceAlreadyExistException("Question already exist");
+//		if (Objects.nonNull(questionObj) && chapter.get().getExam().getQuestions().contains(questionObj))
+//			throw new ResourceAlreadyExistException(AppConstants.QUESTION_ALREDY_EXISTS);
+
+		// UPDATE
+		Optional<Question> existing = questionRepo.findByContentAndExam(questionContent.trim(),
+				chapter.get().getExam().getExamId());
+		if (existing.isPresent()) {
+			throw new ResourceAlreadyExistException(AppConstants.QUESTION_ALREDY_EXISTS);
+		}
+
+		// Check Options Are Not Duplicate
+		this.validateUniqueOptions(option1, option2, option3, option4);
 
 		questionObj = new Question();
 		questionObj.setQuestionContent(questionContent.trim());
@@ -132,7 +138,10 @@ public class QuestionServiceImpl implements IQuestionService {
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(subjectId);
 		Question questionObj = questionRepo.findByQuestionContentAndIsDeleted(questionContent.trim(), false);
 		if (Objects.nonNull(questionObj))
-			throw new ResourceAlreadyExistException("Question already exist");
+			throw new ResourceAlreadyExistException(AppConstants.QUESTION_ALREDY_EXISTS);
+
+		// Check Options Are Not Duplicate
+		this.validateUniqueOptions(option1, option2, option3, option4);
 
 		questionObj = new Question();
 		questionObj.setQuestionContent(questionContent.trim());
@@ -161,9 +170,11 @@ public class QuestionServiceImpl implements IQuestionService {
 
 		Map<String, Object> response = new HashMap<>();
 
+		// Check Options Are Not Duplicate
+		this.validateUniqueOptions(option1, option2, option3, option4);
 		// check question is present or not
 		Question question = questionRepo.findByQuestionIdAndIsDeleted(questionId, false)
-				.orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
 
 		if (question.getIsSelected()) {
 			response.put(AppConstants.MESSAGE, "Update failed: Already selected for exams");
@@ -177,7 +188,7 @@ public class QuestionServiceImpl implements IQuestionService {
 
 			Optional<Exam> exam = examRepo.findByExamIdAndIsDeleted(examId, false);
 			if (exam.isEmpty())
-				throw new ResourceNotFoundException("Exam not found ");
+				throw new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND);
 
 			if (exam.get().getIsStarted() || exam.get().getIsActive()) {
 				response.put(AppConstants.MESSAGE,
@@ -195,13 +206,13 @@ public class QuestionServiceImpl implements IQuestionService {
 			Optional<Subject> subject = subjectRepository.findBySubjectIdAndIsDeleted(examId);
 
 			if (subject.isEmpty()) {
-				throw new ResourceNotFoundException("Subject not found ");
+				throw new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND);
 			}
 			Question questionObj = questionRepo.findByQuestionContentAndIsDeleted(questionContent.trim(), false);
 
 			if (Objects.nonNull(questionObj) && subject.get().getQuestions().contains(questionObj)
 					&& questionObj.getQuestionId() != question.getQuestionId()) {
-				throw new ResourceAlreadyExistException("Question already exist");
+				throw new ResourceAlreadyExistException(AppConstants.QUESTION_ALREDY_EXISTS);
 			}
 
 		} else {
@@ -260,7 +271,7 @@ public class QuestionServiceImpl implements IQuestionService {
 	@Override
 	public void deleteQuestion(Integer questionId) {
 		Question question = questionRepo.findByQuestionIdAndIsDeleted(questionId, false)
-				.orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
 
 		question.setIsDeleted(true);
 		questionRepo.save(question);
@@ -269,7 +280,7 @@ public class QuestionServiceImpl implements IQuestionService {
 	@Override
 	public void updateQuestionStatus(Integer questionId) {
 		Question question = questionRepo.findByQuestionIdAndIsDeleted(questionId, false)
-				.orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
 
 		if (question.getIsActive().equals(true))
 			question.setIsActive(false);
@@ -660,6 +671,19 @@ public class QuestionServiceImpl implements IQuestionService {
 		response.put(AppConstants.TIMER, exam.getExamTimer());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
+	}
+
+	private void validateUniqueOptions(String option1, String option2, String option3, String option4) {
+		// Check for duplicate options
+		Set<String> optionSet = new HashSet<String>();
+		optionSet.add(option1.trim());
+		optionSet.add(option2.trim());
+		optionSet.add(option3.trim());
+		optionSet.add(option4.trim());
+
+		if (optionSet.size() < 4) {
+			throw new ResourceAlreadyExistException(AppConstants.OPTION_ALREDY_EXISTS);
+		}
 	}
 
 }

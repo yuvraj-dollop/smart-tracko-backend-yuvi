@@ -27,8 +27,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 	@Autowired
 	private CustomUserDetailsServiceImpl detailsServiceImpl;
-	@Autowired
-	private ITokenManagementService tokenManagementService;
+//	@Autowired
+//	private ITokenManagementService tokenManagementService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -47,15 +47,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 		if (token != null) {
 			System.err.println(",,,,,,,,,,,,,,,,");
 
-			if (token.startsWith("Bearer ")) {
-				token = token.substring(7);
-			}
-			String uri = request.getRequestURI();
-			 
-			boolean isOtpFlow = uri.equals("/api/auth/v2/refresh-token") || uri.equals("/api/auth/v2/verify-otp")
-					|| uri.equals("/api/auth/v2/resend-otp") || uri.equals("/api/auth/v2/reset-password");
+//			if (token.startsWith("Bearer ")) {
+//				token = token.substring(7);
+//			}
+//			String uri = request.getRequestURI();
+//			 
+//			boolean isOtpFlow = uri.equals("/api/auth/v2/refresh-token") || uri.equals("/api/auth/v2/verify-otp")
+//					|| uri.equals("/api/auth/v2/resend-otp") || uri.equals("/api/auth/v2/reset-password");
 
-			if (isOtpFlow||tokenManagementService.existsByToken(token)) {
+//			if (isOtpFlow||tokenManagementService.existsByToken(token)) {
 				
 //				String tokenPlatform = String.valueOf(util.getClaims(token).get("platform"));
 //				if (tokenPlatform == null || clientSource == null || !tokenPlatform.equalsIgnoreCase(clientSource)) {
@@ -72,11 +72,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 					SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 				}
-			} else {
-				// ❌ Invalid token — respond with 401 Unauthorized
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
-				return;
-			}
+//			} else {
+//				// ❌ Invalid token — respond with 401 Unauthorized
+//				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+//				return;
+//			}
 		}
 
 		filterChain.doFilter(request, response);

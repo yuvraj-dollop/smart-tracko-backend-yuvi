@@ -86,11 +86,6 @@ public interface ITaskService {
 	ResponseEntity<?> getAllTasks(Integer pageSise, Integer pageNumber, Integer courseId, Integer subjectId);
 
 	ResponseEntity<?> getAllTaskQuestionWithSubmissionCount(Long taskId);
-	
-	
-	
-	
-
 
 	// .........................NEW METHOD'S ...............................
 
@@ -104,4 +99,7 @@ public interface ITaskService {
 
 	ResponseEntity<?> updateTaskQuestion(UpdateTaskQuestionRequest taskQuestionRequest);
 
+	public Long countSubmittedTasksByStudentId(Integer studentId);
+
+	public Long countTaskOfStudent(Integer studentId);
 }

@@ -1013,4 +1013,15 @@ public class TaskServiceImpl implements ITaskService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Override
+	public Long countTaskOfStudent(Integer studentId) {
+		return taskRepo.countAllTaskOfStudent(studentId);
+	}
+	
+	@Override
+	public Long countSubmittedTasksByStudentId(Integer studentId)
+	{
+		return taskSubmissionRepository.countSubmittedTasksByStudentId(studentId);
+	}
+
 }

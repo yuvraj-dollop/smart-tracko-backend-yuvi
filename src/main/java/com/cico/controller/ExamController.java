@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -182,14 +183,26 @@ public class ExamController {
 		return examService.getChapterExamIsCompleteOrNot(chapterId, studentId);
 	}
 
-	@GetMapping("/v2/getChapterExamResult")
-	public ResponseEntity<?> getChapterExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
-		return examService.getChapterExamResult(resultId);
+	@GetMapping("/v2/getChapterExamResult/{resultId}")
+	public ResponseEntity<?> getChapterExamResultNew(@PathVariable(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getChapterExamResultNew(resultId);
 	}
 
-	@PutMapping("/v2/setChapterExamStartStatus")
+	@PutMapping("/v2/setChapterExamStartStatus/{chapterId}")
 	public ResponseEntity<?> setChapterExamStartStatusNew(
-			@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+			@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return examService.setChapterExamStartStatus(chapterId);
+	}
+
+	@GetMapping("/v2/getChapterExam/{chapterId}")
+	public ResponseEntity<?> getChapterExamNew(@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+		return examService.getChapterExamNew(chapterId);
+	}
+
+	// POST
+	@PostMapping("/v2/addChapterExam")
+	public ResponseEntity<?> addChapterExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
+		System.err.println(" ------------- >chapterExamResult => "+chapterExamResult);
+		return this.examService.addChapterExamResult(chapterExamResult);
 	}
 }

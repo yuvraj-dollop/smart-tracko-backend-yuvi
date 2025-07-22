@@ -21,5 +21,6 @@ public class ChapterResponse {
 	private Integer subjectId;
 	private String subjectName;
 	private Integer scoreGet;
+	private Boolean isCompleted;
 
 }

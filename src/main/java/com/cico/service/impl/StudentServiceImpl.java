@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -1216,7 +1217,7 @@ public class StudentServiceImpl implements IStudentService {
 	public Map<String, Object> getCalenderData(Integer id, Integer month, Integer year) { // working code
 		Map<String, Object> response = new HashMap<>();
 		Student student = studRepo.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND+" with ID: " + id));
 
 		LocalDate joinDate = student.getJoinDate();
 
@@ -1319,7 +1320,7 @@ public class StudentServiceImpl implements IStudentService {
 			data.setEarlyCheckOut(earlycheckout);
 			data.setSundayCount(sundayCount);
 			response.put("StudentCalenderData", data);
-			response.put("status", true);
+			response.put(AppConstants.STATUS, true);
 		} else {
 
 			response.put("status", false);
@@ -1330,7 +1331,7 @@ public class StudentServiceImpl implements IStudentService {
 	@Override
 	public Map<String, Object> getStudentData(Integer studentId) {
 		Student student = studRepo.findById(studentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found with this id :"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
 		Map<String, Object> response = new HashMap<>();
 		response.put("studentName", student.getFullName());
 		response.put("profilePic", student.getProfilePic());
@@ -2164,7 +2165,7 @@ public class StudentServiceImpl implements IStudentService {
 
 		Map<String, Object> res = new HashMap<>();
 		res.put("AccessToken", token);
-		//res.put("RefreshToken", refreshToken);
+		// res.put("RefreshToken", refreshToken);
 
 		ApiResponse response = new ApiResponse(true, "Student login successfully.", HttpStatus.OK);
 		response.setData(res);

@@ -34,7 +34,7 @@ public class AppConstants {
 
 	public static final String FAILED = "FAILED";
 
-	public static final String STUDENT_ID = "StudentId";
+	public static final String STUDENT_ID = "studentId";
 
 	public static final String ADMIN_ID = "adminId";
 
@@ -476,4 +476,10 @@ public class AppConstants {
 	public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details are required";
 	public static final String PAGE_SIZE = "pageSize";
 	public static final String PAGE_NUMBER = "pageNumber";
+
+	public static final String QUESTION_ALREDY_EXISTS = "Question already exist";
+
+	public static final String OPTION_ALREDY_EXISTS = "Options must be unique and not repeated.";
+	public static final String INVALID_FILE_TYPE = "Invalid file type";
+
 }

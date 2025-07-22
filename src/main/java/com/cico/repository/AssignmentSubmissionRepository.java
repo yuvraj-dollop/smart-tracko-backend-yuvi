@@ -52,6 +52,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.cico.model.AssignmentSubmission;
+import com.cico.model.AssignmentTaskQuestion;
 import com.cico.payload.AssignmentSubmissionResponse;
 import com.cico.util.SubmissionStatus;
 
@@ -72,5 +73,8 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
 
 	@Query("SELECT a FROM AssignmentSubmission a WHERE  a.submissionId =:submissionId")
 	Optional<AssignmentSubmission> findBySubmissionId(Long submissionId);
+
+	@Query("SELECT COUNT(a) FROM Assignment a JOIN a.AssignmentQuestion aq ON aq.isDeleted = 0 JOIN aq.assignmentSubmissions s WHERE s.student.studentId = :studentId")
+	Long countSubmittedAssignmentsByStudentId(@Param("studentId") Integer studentId);
 
 }

@@ -12,7 +12,7 @@ spring:
     type: redis
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: ${MYSQL_PASSWORD:Yuvi122@}
+    password: ${MYSQL_PASSWORD:Nikku@2021}
 #    url: jdbc:mysql://${MYSQL_HOST:108.181.203.244}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
     username: ${MYSQL_USERNAME:root}
@@ -36,7 +36,7 @@ spring:
 
   credentials:
   username: root
-  password: Yuvi122@
+  password: Nikku@2021
   
   kafka:
     consumer:

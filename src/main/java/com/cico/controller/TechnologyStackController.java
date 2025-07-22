@@ -33,33 +33,36 @@ public class TechnologyStackController {
 	public ResponseEntity<ApiResponse> creatTechnologyStack(@RequestParam("technologyName") String technologyName,
 			@RequestParam("image") MultipartFile file) {
 		TechnologyStack createTechnologyStack = TechnologyStackService.createTechnologyStack(technologyName, file);
-		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(Boolean.TRUE, "TechnologyStack Created Successfully", HttpStatus.CREATED));
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse(Boolean.TRUE, "TechnologyStack Created Successfully", HttpStatus.CREATED));
 	}
 
 	@PutMapping("/updateTechnologyStackApi")
 	public ResponseEntity<ApiResponse> uodateTechnologyStack(@RequestParam("technologyStackId") Integer id,
 			@RequestParam("technologyName") String technologyName, @RequestParam("image") MultipartFile file) {
 		TechnologyStack createTechnologyStack = TechnologyStackService.updateTechnologyStack(id, technologyName, file);
-		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(Boolean.TRUE, "TechnologyStack Created Successfully", HttpStatus.CREATED));
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse(Boolean.TRUE, "TechnologyStack Created Successfully", HttpStatus.CREATED));
 	}
 
 	// get technologyStack
 	@GetMapping("/getTechnologyStackApi/{id}")
 	public ResponseEntity<TechnologyStack> getTechnologyStack(@PathVariable("id") Integer id) {
 		TechnologyStack technologyStack = TechnologyStackService.getTechnologyStack(id);
-		return new ResponseEntity<>(technologyStack,HttpStatus.OK);
+		return new ResponseEntity<>(technologyStack, HttpStatus.OK);
 	}
 
 	// get all technologyStack
 	@GetMapping("/getAllTechnologyStackApi")
 	public ResponseEntity<List<TechnologyStack>> getAllTechnologyStack() {
 		List<TechnologyStack> technologyStack = TechnologyStackService.getAllTechnologyStack();
-		return new ResponseEntity<>(technologyStack,HttpStatus.OK);
+		return new ResponseEntity<>(technologyStack, HttpStatus.OK);
 	}
 
 	@DeleteMapping("deleteTechnologyStackApi/{id}")
 	public ResponseEntity<ApiResponse> deleteTechnologyStackApi(@PathVariable("id") Integer id) {
 		TechnologyStackService.deleteTechnologyStack(id);
-		return new ResponseEntity<ApiResponse>(new ApiResponse(Boolean.TRUE,"Deleted Successfully",HttpStatus.OK),HttpStatus.OK);
+		return new ResponseEntity<ApiResponse>(new ApiResponse(Boolean.TRUE, "Deleted Successfully", HttpStatus.OK),
+				HttpStatus.OK);
 	}
 }

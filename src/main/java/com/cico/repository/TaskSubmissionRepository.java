@@ -84,5 +84,16 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
  
  	@Query("SELECT ts.task.taskName FROM TaskSubmission ts WHERE ts.id = :submissionId")
 	Optional<String> fetchTaskNameByTaskSubmissionId(Long submissionId);
+ 	
+ 	
+ 	
+ 	// ............... NEW QUERIES ...................
+ 	@Query("""
+ 	    SELECT COUNT(DISTINCT ts.task.taskId)
+ 	    FROM TaskSubmission ts
+ 	    WHERE ts.student.studentId = :studentId
+ 	""")
+	Long countSubmittedTasksByStudentId(@Param("studentId") Integer studentId);
+
 
 }

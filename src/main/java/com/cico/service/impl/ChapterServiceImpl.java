@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -347,6 +348,7 @@ public class ChapterServiceImpl implements IChapterService {
 		response.put("totalPages", chapterContentPage.getTotalPages());
 		response.put("currentPage", chapterContentPage.getNumber());
 		response.put("last", chapterContentPage.isLast());
+		response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
 		response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

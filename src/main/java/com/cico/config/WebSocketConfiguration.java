@@ -19,7 +19,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 		registry.addEndpoint("/socket").setAllowedOrigins(
 				"https://cico.dollopinfotech.com/", "https://cico.dollopinfotech.com",
 				"http://localhost:4200",
-				"http://192.168.1.21:4200","http://192.168.1.90:4200/"
+				"http://192.168.1.215:4200","http://192.168.1.215:4200/"
 				).withSockJS();
 
 	}
