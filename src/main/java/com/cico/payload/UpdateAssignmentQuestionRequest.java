@@ -20,8 +20,11 @@ public class UpdateAssignmentQuestionRequest {
 	@NotBlank(message = AppConstants.QUESTION_REQUIRED)
 	private String question;
 
-	@NotBlank(message = AppConstants.VIDEO_URL_REQUIRED)
+//	@NotBlank(message = AppConstants.VIDEO_URL_REQUIRED)
 	private String videoUrl;
+		
+	@NotBlank(message = AppConstants.TITLE_REQUIRED)
+	private String title;
 
 	private List<String> questionImages; // existing image URLs
 

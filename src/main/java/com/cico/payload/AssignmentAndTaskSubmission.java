@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonInclude(value = Include.NON_NULL)
 @NoArgsConstructor
-
 public class AssignmentAndTaskSubmission {
 
 	private Long assignmentId;

@@ -189,7 +189,6 @@ public class ExamServiceImpl implements IExamService {
 			}
 		}
 
-		System.err.println("TOTAL ====> " + total);
 		int percentile = 0;
 		if (total == 1) {
 			percentile = 100;
@@ -492,14 +491,22 @@ public class ExamServiceImpl implements IExamService {
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
 		SubjectExam exam = new SubjectExam();
 
-		Optional<SubjectExam> isExamExist = subject.getExams().stream()
-				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
+//		Optional<SubjectExam> isExamExist = subject.getExams().stream()
+//				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
+//
+//		// checking exam existance with the name;
+//		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
+//
+//		if (contains)
+//			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
 
-		// checking exam existance with the name;
-		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
+		// UPDATE
+		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),
+				request.getExamName().trim());
 
-		if (contains)
+		if (existingExam.isPresent()) {
 			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+		}
 
 		// schedule exam case
 		if (request.getScheduleTestDate() != null) {
@@ -1460,57 +1467,36 @@ public class ExamServiceImpl implements IExamService {
 
 	// ....................... NEW METHOD'S .........................
 
-	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, PaginationRequest request) {
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, LocalDate startDate, LocalDate endDate,
+			PaginationRequest request) {
 		Student student = studentRepository.findById(studentId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
 
+		if (startDate == null) {
+			startDate = LocalDate.now();
+		}
+
+		// Validation: endDate should not be before startDate
+		if (endDate != null && endDate.isBefore(startDate)) {
+			Map<String, Object> error = new HashMap<>();
+			error.put(AppConstants.MESSAGE, "End date cannot be before start date");
+			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		}
+
 		// Fetch data
 		List<SubjectExamResponse> subjectExams = subjectRepository.findUpcomingSubjectExams(ExamType.SCHEDULEEXAM,
-				studentId);
-		List<CourseExamResponse> courseExams = courseExamRepo.findUpcomingCourseExams(ExamType.SCHEDULEEXAM,
-				student.getCourse().getCourseId(), studentId);
+				startDate, endDate, studentId);
+		List<CourseExamResponse> courseExams = courseExamRepo.findUpcomingCourseExams(ExamType.SCHEDULEEXAM, startDate,
+				endDate, student.getCourse().getCourseId(), studentId);
 
 		// Convert both to UpcomingExamResponse
 		List<UpcomingExamResponse> allExams = new ArrayList<>();
 
 		for (SubjectExamResponse s : subjectExams) {
-			UpcomingExamResponse response = new UpcomingExamResponse();
-			response.setExamId(s.getExamId());
-			response.setExamName(s.getExamName());
-			response.setExamImage(s.getExamImage());
-			response.setExamTimer(s.getExamTimer());
-			response.setTotalQuestionForTest(s.getTotalQuestionForTest());
-			response.setPassingMarks(s.getPassingMarks());
-			response.setScoreGet(s.getScoreGet());
-			response.setScheduleTestDate(s.getScheduleTestDate());
-			response.setExamStartTime(s.getExamStartTime());
-			response.setIsStart(s.getIsStart());
-			response.setExamType(s.getExamType());
-			response.setResultId(s.getResultId());
-			response.setStatus(s.getStatus());
-			response.setSubjectId(s.getSubjectId());
-			response.setExamFrom("SUBJECT");
-			allExams.add(response);
+			allExams.add(mapSubjectExamToUpcoming(s));
 		}
-
 		for (CourseExamResponse c : courseExams) {
-			UpcomingExamResponse response = new UpcomingExamResponse();
-			response.setExamId(c.getExamId());
-			response.setExamName(c.getExamName());
-			response.setExamImage(c.getExamImage());
-			response.setExamTimer(c.getExamTimer());
-			response.setTotalQuestionForTest(c.getTotalQuestionForTest());
-			response.setPassingMarks(c.getPassingMarks());
-			response.setScoreGet(c.getScoreGet());
-			response.setScheduleTestDate(c.getScheduleTestDate());
-			response.setExamStartTime(c.getExamStartTime());
-			response.setIsStart(c.getIsStart());
-			response.setExamType(c.getExamType());
-			response.setResultId(c.getResultId());
-			response.setStatus(c.getStatus());
-			response.setCourseId(c.getCourseId());
-			response.setExamFrom("COURSE");
-			allExams.add(response);
+			allExams.add(mapCourseExamToUpcoming(c));
 		}
 
 		// Sort by schedule date and time
@@ -1539,6 +1525,24 @@ public class ExamServiceImpl implements IExamService {
 		pageResponse.setLast(page >= totalPages - 1);
 
 		return ResponseEntity.ok(pageResponse);
+	}
+
+	private UpcomingExamResponse mapSubjectExamToUpcoming(SubjectExamResponse s) {
+		return UpcomingExamResponse.builder().examId(s.getExamId()).examName(s.getExamName())
+				.examImage(s.getExamImage()).examTimer(s.getExamTimer())
+				.totalQuestionForTest(s.getTotalQuestionForTest()).passingMarks(s.getPassingMarks())
+				.scoreGet(s.getScoreGet()).scheduleTestDate(s.getScheduleTestDate()).examStartTime(s.getExamStartTime())
+				.isStart(s.getIsStart()).examType(s.getExamType()).resultId(s.getResultId()).status(s.getStatus())
+				.subjectId(s.getSubjectId()).examFrom("SUBJECT").build();
+	}
+
+	private UpcomingExamResponse mapCourseExamToUpcoming(CourseExamResponse c) {
+		return UpcomingExamResponse.builder().examId(c.getExamId()).examName(c.getExamName())
+				.examImage(c.getExamImage()).examTimer(c.getExamTimer())
+				.totalQuestionForTest(c.getTotalQuestionForTest()).passingMarks(c.getPassingMarks())
+				.scoreGet(c.getScoreGet()).scheduleTestDate(c.getScheduleTestDate()).examStartTime(c.getExamStartTime())
+				.isStart(c.getIsStart()).examType(c.getExamType()).resultId(c.getResultId()).status(c.getStatus())
+				.courseId(c.getCourseId()).examFrom("COURSE").build();
 	}
 
 	@Override
@@ -1607,7 +1611,7 @@ public class ExamServiceImpl implements IExamService {
 		List<QuestionResponse> questionResponses = questions.stream().map(this::questionFilterNew)
 				.collect(Collectors.toList());
 		response.put("examResult", chapterExamResultResponse);
-
+		response.put("chapterId", examResult.getChapter().getChapterId());
 		response.put("questions", questionResponses);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

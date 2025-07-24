@@ -238,7 +238,7 @@ public class TaskController {
 	}
 
 	@PostMapping("/v2/studentTaskSubmittion")
-	public ResponseEntity<?> StudentTaskSubmittion(@Valid @RequestBody TaskSubmissionRequest submissionRequest)
+	public ResponseEntity<?> StudentTaskSubmittion(@Valid TaskSubmissionRequest submissionRequest)
 			throws Exception {
 		return taskService.studentTaskSubmittion(submissionRequest);
 	}

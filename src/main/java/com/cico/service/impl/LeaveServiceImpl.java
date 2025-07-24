@@ -179,7 +179,7 @@ public class LeaveServiceImpl implements ILeaveService {
 				}
 
 				LeaveResponse responseData = mapper.map(leaves, LeaveResponse.class);
-				responseData.setLeaveType(leaveTypeRepository.findById(leaves.getLeaveTypeId()).get());
+				responseData.setLeaveType(leaveTypeRepository.findById(leaves.getLeaveTypeId()).orElse(null));
 				leavesResponse.add(responseData);
 
 			}

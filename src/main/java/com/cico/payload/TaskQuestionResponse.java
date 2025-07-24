@@ -34,12 +34,13 @@ public class TaskQuestionResponse {
 	private String title;
 	private Boolean codeSubmisionStatus;
 
-	public TaskQuestionResponse(Long questionId, String question, List<String> questionImages, String videoUrl) {
+	public TaskQuestionResponse(Long questionId, String question, List<String> questionImages, String videoUrl,String title) {
 		super();
 		this.questionId = questionId;
 		this.question = question;
 		this.questionImages = questionImages;
 		this.videoUrl = videoUrl;
+		this.title = title;
 
 	}
 

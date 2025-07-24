@@ -168,9 +168,10 @@ public class ChapterController {
 	@GetMapping("/v2/getChapterContentListByChapterId/{chapterId}")
 	public ResponseEntity<?> getChapterContentListByChapterIdNew(
 			@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
 			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber,
 			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize) {
-		return chapterService.getChapterContentListByChapterId(chapterId, pageNumber, pageSize);
+		return chapterService.getChapterContentListByChapterId(chapterId, studentId, pageNumber, pageSize);
 	}
 
 }

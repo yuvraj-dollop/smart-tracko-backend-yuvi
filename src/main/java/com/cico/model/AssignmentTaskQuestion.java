@@ -19,6 +19,8 @@ public class AssignmentTaskQuestion {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long questionId;
+    
+    private String title;
 
     @Column(columnDefinition = "longtext")
     private String question;

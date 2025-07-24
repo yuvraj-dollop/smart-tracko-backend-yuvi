@@ -132,7 +132,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 	@Query("""
 			    SELECT NEW com.cico.payload.AssignmentAndTaskSubmission(
 			        t.questionId,
-			        SUBSTRING(t.question, 1, 15),
+			        t.title,
 			        COUNT(DISTINCT ts),
 			        COUNT(DISTINCT CASE WHEN ts.status = 'Unreviewed' THEN ts END),
 			        COUNT(DISTINCT CASE WHEN ts.status IN ('Rejected', 'Accepted', 'Reviewing') THEN ts END)

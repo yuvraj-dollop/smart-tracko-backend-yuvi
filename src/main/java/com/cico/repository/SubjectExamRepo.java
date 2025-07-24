@@ -41,4 +41,12 @@ public interface SubjectExamRepo extends JpaRepository<SubjectExam, Integer> {
 			+ "LEFT JOIN s.exams as se "
 			+ "WHERE se.examType =:examType AND se.isActive=TRUE AND se.isDeleted=FALSE AND student.studentId =:studentId ")
 	Long fetchTotalExamCount(@Param("studentId") Integer studentId,@Param("examType") ExamType examType);
+	
+
+
+	// ................... NEW QUERIES ........................
+	
+	@Query(value = "SELECT * FROM subject_exam WHERE subject_id = :subjectId AND exam_name = :examName AND is_deleted = false LIMIT 1", nativeQuery = true)
+	Optional<SubjectExam> findBySubjectIdAndExamName(@Param("subjectId") Integer subjectId, @Param("examName") String examName);
+
 }

@@ -101,14 +101,9 @@ public class JwtUtil {
 
 	public Claims getClaims(String token) {
 
-		try {
-			if (token.startsWith("Bearer "))
-				token = token.substring(7);
-			return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-		} catch (Exception e) {
-			// TODO: handle exception
-			throw new BadRequestException("Invalid Token");
-		}
+		if (token.startsWith("Bearer "))
+			token = token.substring(7);
+		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
 
 	}
 

@@ -345,18 +345,4 @@ public class StudentController {
 		Map<String, Object> studentData = studentService.getStudentData(studentId);
 		return new ResponseEntity<Map<String, Object>>(studentData, HttpStatus.OK);
 	}
-
-	@GetMapping("/v2/getStudentCalenderData")
-	public ResponseEntity<Map<String, Object>> getStudentCalenderData(@RequestParam(name = AppConstants.ID) Integer id,
-			@RequestParam(name = AppConstants.MONTH) Integer month,
-			@RequestParam(name = AppConstants.YEAR) Integer year) {
-		Map<String, Object> response = studentService.getCalenderData(id, month, year);
-		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-	}
-
-	@GetMapping("/v2/getTodayAttendance/{studentId}")
-	public ResponseEntity<Map<String, Object>> getTodayAttendanceNew(@PathVariable Integer studentId) {
-		Map<String, Object> todayAttendance = studentService.getTodayAttendance(studentId);
-		return ResponseEntity.ok(todayAttendance);
-	}
 }

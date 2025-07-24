@@ -45,9 +45,10 @@ public interface IChapterService {
 	
 	public Chapter getChapterByid(Integer chapterId);
 
+	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer pageNumber, Integer pageSize);
+	
 	ResponseEntity<?> getChapterExamQuestionsWithPagination(Integer chapterId, Integer pageNumber, Integer pageSize);
 
-	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer pageNumber, Integer pageSize);
 
 	ResponseEntity<?>  getChapterDetails(Integer chapterId);
 	
@@ -59,6 +60,8 @@ public interface IChapterService {
 	ResponseEntity<?> updateChapter(UpdateChapterRequest chapterRequest);
 
 	ResponseEntity<?> addContentToChapter(@Valid AddChapterContentRequest chapterContentRequest);
+
+	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer studentId,Integer pageNumber, Integer pageSize);
 	
 
 }

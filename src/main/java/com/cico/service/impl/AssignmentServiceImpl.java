@@ -149,12 +149,13 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAssignmentQuesById(Long questionId) { ///
+	public ResponseEntity<?> getAssignmentQuesById(Long questionId) {
 		Map<String, Object> response = new HashMap<>();
 		AssignmentTaskQuestion assignmentTaskQuestion = assignmentTaskQuestionRepository.findByQuestionId(questionId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
 
 		AssignmentTaskFilterReponse obj = new AssignmentTaskFilterReponse();
+		obj.setTitle(assignmentTaskQuestion.getTitle());
 		obj.setQuestion(assignmentTaskQuestion.getQuestion());
 		obj.setQuestionId(assignmentTaskQuestion.getQuestionId());
 		obj.setVideoUrl(assignmentTaskQuestion.getVideoUrl());
@@ -806,7 +807,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	public TaskQuestionResponse taskquestionResponseFilter(AssignmentTaskQuestion obj) {
 		TaskQuestionResponse taskQuestionResponse = new TaskQuestionResponse(obj.getQuestionId(), obj.getQuestion(),
-				obj.getQuestionImages(), obj.getVideoUrl());
+				obj.getQuestionImages(), obj.getVideoUrl(), obj.getTitle());
 
 		taskQuestionResponse.setIsActive(obj.getIsActive());
 
@@ -1007,13 +1008,13 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		try {
 			Optional<Student> optionalStudent = studentRepository.findById(studentId);
 			if (optionalStudent.isEmpty()) {
-				response.put(AppConstants.MESSAGE, "Student not found");
+				response.put(AppConstants.MESSAGE, AppConstants.STUDENT_NOT_FOUND);
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 
 			Student student = optionalStudent.get();
 			if (student.getCourse() == null) {
-				response.put(AppConstants.MESSAGE, "Student course not found");
+				response.put(AppConstants.MESSAGE, AppConstants.COURSE_NOT_FOUND);
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 
@@ -1056,44 +1057,6 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 			handleUnlockConditions(allAssignment, unLockedAssignment, lockedAssignment, studentId);
 
-//			List<AssignmentFilterResponse> assignmentFilterResponses = unLockedAssignment.stream().map(obj -> {
-//				AssignmentFilterResponse res = new AssignmentFilterResponse();
-//				res.setId(obj.getId());
-//				res.setTitle(obj.getTitle());
-//				res.setStatus(obj.getIsActive());
-//				res.setTaskQuestion(obj.getAssignmentQuestion() == null ? new ArrayList<>()
-//						: obj.getAssignmentQuestion().stream().filter(q -> {
-//							// Always show active and not deleted
-//							if (Boolean.TRUE.equals(q.getIsActive()) && Boolean.FALSE.equals(q.getIsDeleted())) {
-//								return true;
-//							}
-//
-//							// If question is inactive or deleted, check if student submitted it
-//							if ((Boolean.FALSE.equals(q.getIsActive()) || Boolean.TRUE.equals(q.getIsDeleted()))
-//									&& q.getAssignmentSubmissions() != null) {
-//								return q.getAssignmentSubmissions().stream()
-//										.anyMatch(sub -> sub != null && sub.getStudent() != null
-//												&& sub.getStudent().getStudentId().equals(studentId));
-//							}
-//
-//							return false;
-//						}).map(q -> new AssignmentTaskFilterReponse(q, studentId, q.getTaskNumber()))
-//								.collect(Collectors.toList()));
-//
-//				int totalTaskCompleted = obj
-//						.getAssignmentQuestion() == null
-//								? 0
-//								: (int) obj.getAssignmentQuestion().stream()
-//										.flatMap(obj2 -> obj2.getAssignmentSubmissions() == null ? Stream.empty()
-//												: obj2.getAssignmentSubmissions().stream()
-//														.filter(obj3 -> obj3 != null && obj3.getStudent() != null
-//																&& obj3.getStudent().getStudentId() == studentId))
-//										.count();
-//
-//				res.setTotalTaskCompleted(totalTaskCompleted);
-//				return res;
-//			}).collect(Collectors.toList());
-
 			List<AssignmentFilterResponse> assignmentFilterResponses = new ArrayList<>();
 
 			for (Assignment assignment : unLockedAssignment) {
@@ -1121,7 +1084,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
 		} catch (Exception e) {
-			e.printStackTrace(); // You can replace with a logger
+//			e.printStackTrace(); // You can replace with a logger
 			response.put(AppConstants.MESSAGE, "An error occurred while processing the assignments");
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -1172,34 +1135,29 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	private void handleUnlockConditions(List<Assignment> allAssignment, List<Assignment> unLockedAssignment,
 			List<Assignment> lockedAssignment, Integer studentId) {
-		int count = 0;
 
-		if (unLockedAssignment.size() == 1 && lockedAssignment.size() > 1 && allAssignment.size() > 1) {
-			Assignment firstUnlocked = unLockedAssignment.get(0);
-			if (firstUnlocked.getAssignmentQuestion() != null) {
-				List<AssignmentSubmission> submissions = getSubmittedAssignments(firstUnlocked, studentId);
-				if (submissions.size() == firstUnlocked.getAssignmentQuestion().size()) {
-					unLockedAssignment.add(allAssignment.get(1));
+		// Loop through unlocked assignments
+		for (int i = 0; i < unLockedAssignment.size(); i++) {
+			Assignment current = unLockedAssignment.get(i);
+
+			if (current.getAssignmentQuestion() == null)
+				continue;
+
+			List<AssignmentSubmission> submissions = getSubmittedAssignments(current, studentId);
+
+			boolean allSubmitted = submissions.size() == current.getAssignmentQuestion().size();
+
+			// If current assignment is fully submitted, try to unlock the next one
+			if (allSubmitted && unLockedAssignment.size() < allAssignment.size()) {
+				int nextIndex = allAssignment.indexOf(current) + 1;
+
+				if (nextIndex < allAssignment.size()) {
+					Assignment nextAssignment = allAssignment.get(nextIndex);
+
+					if (lockedAssignment.remove(nextAssignment)) {
+						unLockedAssignment.add(nextAssignment);
+					}
 				}
-			}
-		} else if (allAssignment.size() > 2) {
-			int startIndex = Math.max(0, unLockedAssignment.size() - 2);
-			for (int i = startIndex; i < unLockedAssignment.size(); i++) {
-				Assignment unlocked = unLockedAssignment.get(i);
-				if (unlocked.getAssignmentQuestion() == null)
-					continue;
-
-				List<AssignmentSubmission> submissions = getSubmittedAssignments(unlocked, studentId);
-				boolean hasUnreviewed = submissions.stream()
-						.anyMatch(sub -> sub.getStatus() != null && "Unreviewed".equals(sub.getStatus().name()));
-
-				if (submissions.size() == unlocked.getAssignmentQuestion().size() && hasUnreviewed) {
-					count++;
-				}
-			}
-
-			if (count == 1 && !lockedAssignment.isEmpty()) {
-				unLockedAssignment.add(lockedAssignment.remove(0));
 			}
 		}
 	}
@@ -1209,6 +1167,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 		Assignment assignment = checkIsPresent(request.getAssignmentId());
 		AssignmentTaskQuestion assignmentTaskQuestion = new AssignmentTaskQuestion();
+		assignmentTaskQuestion.setTitle(request.getTitle());
 		assignmentTaskQuestion.setQuestion(request.getQuestion());
 		assignmentTaskQuestion.setVideoUrl(request.getVideoUrl());
 		assignmentTaskQuestion.setIsDeleted(false);
@@ -1235,6 +1194,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 				.findByQuestionId(request.getQuestionId())
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
 
+		assignmentTaskQuestion.setTitle(request.getTitle());
 		assignmentTaskQuestion.setQuestion(request.getQuestion());
 		assignmentTaskQuestion.setVideoUrl(request.getVideoUrl());
 		if (Objects.isNull(request.getQuestionImages())) {
@@ -1259,7 +1219,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	}
 
 	@Override
-	public ResponseEntity<?> getCountOfAssignmentAndTask(Integer studentId) {
+	public Long countSubmittedAssignmentByStudentId(Integer studentId) {
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> {
 			throw new ResourceNotFoundException("Student not found");
 		});
@@ -1267,15 +1227,35 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		if (student.getCourse() == null) {
 			throw new ResourceNotFoundException("Student course not found");
 		}
-		Long TotakAssignment = assignmentRepository.countByCourseIdAndIsDeletedFalse(student.getCourse().getCourseId());
-		Long TotakSubmittedAssignment = submissionRepository.countSubmittedAssignmentsByStudentId(studentId);
-		Long TotakTask = taskService.countTaskOfStudent(studentId);
-		Long TotakSubmittedTask = taskService.countSubmittedTasksByStudentId(studentId);
-		Map<String, Long> response = new HashMap<>();
-		response.put("TotakAssignment", TotakAssignment);
-		response.put("TotakSubmittedAssignment", TotakSubmittedAssignment);
-		response.put("TotakTask", TotakTask);
-		response.put("TotakSubmittedTask", TotakSubmittedTask);
+		return assignmentRepository.countByCourseIdAndIsDeletedFalse(student.getCourse().getCourseId());
+	}
+
+	@Override
+	public Long countAssignmentOfStudent(Integer studentId) {
+		return submissionRepository.countSubmittedAssignmentsByStudentId(studentId);
+	}
+
+	@Override
+	public ResponseEntity<?> getAssignmentQuestionDetails(Long questionId, Integer studentId) {
+		Map<String, Object> response = new HashMap<>();
+		AssignmentTaskQuestion assignmentTaskQuestion = assignmentTaskQuestionRepository.findByQuestionId(questionId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+
+		AssignmentTaskFilterReponse obj = new AssignmentTaskFilterReponse();
+		obj.setTitle(assignmentTaskQuestion.getTitle());
+		obj.setQuestion(assignmentTaskQuestion.getQuestion());
+		obj.setQuestionId(assignmentTaskQuestion.getQuestionId());
+		obj.setVideoUrl(assignmentTaskQuestion.getVideoUrl());
+		obj.setQuestionImages(assignmentTaskQuestion.getQuestionImages());
+
+		// setting assignment attachament
+		obj.setAssignmentAttachement(assignmentTaskQuestion.getAssignment().getTaskAttachment());
+		response.put("question", obj);
+
+		AssignmentSubmissionResponse submittedAssignment = submissionRepository
+				.getSubmitAssignmentQuestionByStudentId(studentId, questionId, null);
+		if (submittedAssignment != null)
+			response.put("submittedAssignment", submittedAssignment);
 
 		return ResponseEntity.ok(response);
 	}

@@ -84,15 +84,41 @@ public interface CourseExamRepository extends JpaRepository<CourseExam, Integer>
 
 	// ............... NEW QUERY ...................
 
-	@Query("SELECT NEW com.cico.payload.CourseExamResponse("
-			+ "e.examName, e.examId, c.technologyStack.imageName, e.examTimer, "
-			+ "e.passingMarks, sr.scoreGet, e.scheduleTestDate, e.totalQuestionForTest, "
-			+ "e.examType, sr.id, c.courseId, e.examStartTime, e.isStart) " + "FROM CourseExam e " + "JOIN e.course c "
-			+ "LEFT JOIN CourseExamResult sr ON (sr.courseExam.examId = e.examId AND sr.student.studentId = :studentId) "
-			+ "WHERE c.courseId = :courseId " + "AND e.isActive = true "
-			+ "AND e.isDeleted = false AND e.isStart = false " + "AND e.examType = :examType "
-			+ "AND e.scheduleTestDate >= CURRENT_DATE " + "ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC")
+	@Query("""
+			    SELECT NEW com.cico.payload.CourseExamResponse(
+			        e.examName,
+			        e.examId,
+			        c.technologyStack.imageName,
+			        e.examTimer,
+			        e.passingMarks,
+			        sr.scoreGet,
+			        e.scheduleTestDate,
+			        e.totalQuestionForTest,
+			        e.examType,
+			        sr.id,
+			        c.courseId,
+			        e.examStartTime,
+			        e.isStart
+			    )
+			    FROM CourseExam e
+			    JOIN e.course c
+			    LEFT JOIN CourseExamResult sr ON sr.courseExam.examId = e.examId AND sr.student.studentId = :studentId
+			    WHERE c.courseId = :courseId
+			      AND e.isActive = true
+			      AND e.isDeleted = false
+			      AND e.isStart = false
+			      AND e.examType = :examType
+			      AND (
+			            (e.scheduleTestDate > :startDate)
+			         OR (e.scheduleTestDate = :startDate AND e.examStartTime >= CURRENT_TIME)
+			      )
+			      AND (
+			           :endDate IS NULL OR e.scheduleTestDate <= :endDate
+			      )
+			    ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC
+			""")
 	List<CourseExamResponse> findUpcomingCourseExams(@Param("examType") ExamType examType,
+			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
 			@Param("courseId") Integer courseId, @Param("studentId") Integer studentId);
 
 }

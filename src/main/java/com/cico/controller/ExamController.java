@@ -168,15 +168,6 @@ public class ExamController {
 
 	// ......................... NEW API'S ..............................
 
-	@GetMapping("/v2/getAllUpcomingScheduleExams")
-	public ResponseEntity<?> getAllUpcomingScheduleExams(
-			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
-			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize,
-			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber) {
-		return examService.getAllUpcomingExams(studentId,
-				PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
-	}
-
 	@GetMapping("/v2/checkExamCompleteOrNot")
 	public ResponseEntity<?> checkExamCompletedOrNotNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId,
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {

@@ -1,5 +1,7 @@
 package com.cico.service;
 
+import java.time.LocalDate;
+
 import org.springframework.http.ResponseEntity;
 
 import com.cico.payload.AddExamRequest;
@@ -90,7 +92,7 @@ public interface IExamService {
 	// .................. NEW METHOD'S ................................
 	
 	
-	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, PaginationRequest request);
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, LocalDate startDate, LocalDate endDate, PaginationRequest request);
 
 	public ResponseEntity<?> getChapterExamNew(Integer chapterId);
 

@@ -20,8 +20,10 @@ import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Chapter;
 import com.cico.model.ChapterContent;
+import com.cico.model.ChapterExamResult;
 import com.cico.model.Exam;
 import com.cico.model.Question;
+import com.cico.model.Student;
 import com.cico.model.Subject;
 import com.cico.payload.AddChapterContentRequest;
 import com.cico.payload.AddChapterRequest;
@@ -30,9 +32,11 @@ import com.cico.payload.ChapterResponse;
 import com.cico.payload.QuestionResponse;
 import com.cico.payload.UpdateChapterRequest;
 import com.cico.repository.ChapterContentRepository;
+import com.cico.repository.ChapterExamResultRepo;
 import com.cico.repository.ChapterRepository;
 import com.cico.repository.ExamRepo;
 import com.cico.repository.QuestionRepo;
+import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
 import com.cico.service.IChapterService;
 import com.cico.util.AppConstants;
@@ -50,6 +54,11 @@ public class ChapterServiceImpl implements IChapterService {
 	SubjectRepository subjectRepo;
 	@Autowired
 	ChapterContentRepository chapterContentRepository;
+	@Autowired
+	private ChapterExamResultRepo chapterExamResultRepo;
+
+	@Autowired
+	private StudentRepository studentRepository;
 
 	@Autowired
 	FileServiceImpl fileServiceImpl;
@@ -454,6 +463,45 @@ public class ChapterServiceImpl implements IChapterService {
 		return ChapterContentResponse.builder().id(chapterContent.getId()).title(chapterContent.getTitle())
 				.subTitle(chapterContent.getSubTitle()).content(chapterContent.getContent())
 				.isDeleted(chapterContent.getIsDeleted()).chapterName(chapterName).build();
+	}
+
+	@Override
+	public ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer studentId, Integer pageNumber,
+			Integer pageSize) {
+		Map<String, Object> response = new HashMap<>();
+		Page<ChapterContent> chapterContentPage = chapterContentRepository.findAllByChapterId(chapterId,
+				PageRequest.of(pageNumber, pageSize));
+		if (chapterContentPage.isEmpty()) {
+			response.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		List<ChapterContentResponse> contentList = chapterContentPage.getContent().stream()
+				.map(this::chapterContentResponse).collect(Collectors.toList());
+
+		response.put("chapterContents", contentList);
+		response.put("totalPages", chapterContentPage.getTotalPages());
+		response.put("currentPage", chapterContentPage.getNumber());
+		response.put("last", chapterContentPage.isLast());
+		response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+		response.put("resultId", getChapterExamResultId(chapterId,studentId));
+		response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private Integer getChapterExamResultId(Integer chapterId, Integer studentId) {
+		Optional<Chapter> chapterOpt = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+		if (chapterOpt.isEmpty())
+			return null;
+
+		Chapter chapter = chapterOpt.get();
+		if (chapter.getExam() == null)
+			return null;
+
+		Student student = studentRepository.findByStudentId(studentId);
+		if (student == null)
+			return null;
+
+		return chapterExamResultRepo.findByChapterAndStudent(chapter, student).map(ChapterExamResult::getId).orElse(null);
 	}
 
 }

@@ -86,10 +86,10 @@ public class AssigmentController {
 
 	// =============== QUESTION MANAGEMENT ===============
 	@PostMapping("/addQuestionInAssignment")
-	public ResponseEntity<?> addQuestionInAssignment(@RequestParam("assignmentId") Long assignmentId,
-			@RequestParam("question") String question, @RequestParam("videoUrl") String videoUrl,
+	public ResponseEntity<?> addQuestionInAssignment(@Valid AssignmentQuestionRequest assignmentQuestionRequest,
 			@RequestParam(value = "questionImages", required = false) List<MultipartFile> questionImages) {
-		return service.addQuestionInAssignment(question, videoUrl, questionImages, assignmentId);
+		assignmentQuestionRequest.setQuestionImages(questionImages);
+		return service.addQuestionInAssignment(assignmentQuestionRequest);
 	}
 
 	@GetMapping("/getAssignmentQuesById")
@@ -102,12 +102,23 @@ public class AssigmentController {
 		return service.deleteTaskQuestion(questionId);
 	}
 
+//	@PutMapping("/updateAssignmentQuestion")
+//	public ResponseEntity<?> updateAssignmentQuestion(@RequestParam("questionId") Long questionId,
+//			@RequestParam("question") String question, @RequestParam("videoUrl") String videoUrl,
+//			@RequestParam(value = "questionImages", required = false) List<String> questionImages,
+//			@RequestParam(value = "newImages", required = false) List<MultipartFile> newImages) {
+//		return service.updateAssignmentQuestion(questionId, question, videoUrl, questionImages, newImages);
+//	}
+
 	@PutMapping("/updateAssignmentQuestion")
-	public ResponseEntity<?> updateAssignmentQuestion(@RequestParam("questionId") Long questionId,
-			@RequestParam("question") String question, @RequestParam("videoUrl") String videoUrl,
-			@RequestParam(value = "questionImages", required = false) List<String> questionImages,
+	public ResponseEntity<?> updateAssignmentQuestion(
+			@Valid UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest,
+			@RequestParam(value = "newImages", required = false) List<String> questionImages,
 			@RequestParam(value = "newImages", required = false) List<MultipartFile> newImages) {
-		return service.updateAssignmentQuestion(questionId, question, videoUrl, questionImages, newImages);
+		System.err.println("updateAssignmentQuestion =>>> " + updateAssignmentQuestionRequest);
+		updateAssignmentQuestionRequest.setQuestionImages(questionImages);
+		updateAssignmentQuestionRequest.setNewImages(newImages);
+		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
 	}
 
 	// =============== SUBMISSION MANAGEMENT ===============
@@ -231,12 +242,6 @@ public class AssigmentController {
 		return service.getAllLockedAndUnlockedAssignment(studentId, pageSize, pageNumber);
 	}
 
-	@GetMapping("/v2/getCountOfAssignmentAndTask/{studentId}")
-	public ResponseEntity<?> getCountOfAssignmentAndTask(
-			@PathVariable(name = AppConstants.STUDENT_ID) Integer studentId) {
-		return service.getCountOfAssignmentAndTask(studentId);
-	}
-
 	@GetMapping("/v2/getAssignmentQuesSubmissionStatus")
 	public ResponseEntity<?> getAssignmentQuesSubmissionStatusNew(
 			@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
@@ -249,24 +254,19 @@ public class AssigmentController {
 		return service.getAssignmentQuesById(questionId);
 	}
 
-	// ............... POST METHOD ..................
-
-	@PostMapping("/v2/addQuestionInAssignment")
-	public ResponseEntity<?> addQuestionInAssignment(
-			@Valid @RequestBody AssignmentQuestionRequest assignmentQuestionRequest) {
-		return service.addQuestionInAssignment(assignmentQuestionRequest);
+	// FOR STUDENT - RETURN QUESTION DETAILS, SUBMISSION DETAILS, STATUS AND ADMIN RESPONSE FOR THE ASSIGNMENT ALSO
+	@GetMapping("/v2/getAssignmentQuestionDetails")
+	public ResponseEntity<?> getAssignmentQuestionDetails(
+			@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return service.getAssignmentQuestionDetails(questionId, studentId);
 	}
+
+	// ............... POST METHOD ..................
 
 	@PostMapping("/v2/submitAssignment")
 	public ResponseEntity<?> submitAssignmentByStudentNew(@RequestParam(name = AppConstants.FILE) MultipartFile file,
 			@Valid AssignmentSubmissionRequest assignmentSubmissionRequest) throws Exception {
 		return service.submitAssignment(file, assignmentSubmissionRequest);
-	}
-
-	// ............... PUT METHOD ..................
-	@PutMapping("/v2/updateAssignmentQuestion")
-	public ResponseEntity<?> updateAssignmentQuestion(
-			@Valid @RequestBody UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest) {
-		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
 	}
 }

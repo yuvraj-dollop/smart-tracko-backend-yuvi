@@ -83,6 +83,9 @@ public interface IAssignmentService {
 
 	ResponseEntity<?> updateAssignmentQuestion(UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest);
 
-	ResponseEntity<?> getCountOfAssignmentAndTask(Integer studentId);
+	public Long countSubmittedAssignmentByStudentId(Integer studentId);
 
+	public Long countAssignmentOfStudent(Integer studentId);
+
+	public ResponseEntity<?> getAssignmentQuestionDetails(Long questionId, Integer studentId);
 }

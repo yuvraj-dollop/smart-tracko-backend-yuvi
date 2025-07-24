@@ -1,5 +1,6 @@
 package com.cico.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,19 +72,60 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 	Subject findByExamId(Integer examId);
 
 	// ............... NEW QUERY ...................
+//
+//	@Query("SELECT NEW com.cico.payload.SubjectExamResponse("
+//			+ "e.examName, s.technologyStack.imageName, e.examId, s.technologyStack.imageName, "
+//			+ "e.examTimer, e.passingMarks, sr.scoreGet, " + "e.scheduleTestDate, e.totalQuestionForTest, "
+//			+ "e.examType, sr.id, s.subjectId, " + "e.examStartTime, e.isStart, "
+//			+ "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " + "FROM Course c "
+//			+ "LEFT JOIN c.subjects s ON s.isDeleted = 0 "
+//			+ "JOIN s.exams e ON e.isActive = true AND e.isDeleted = false  AND e.isStart = false AND e.examType = :examType "
+//			+ "LEFT JOIN e.results sr ON sr.student.studentId = :studentId "
+//			+ "JOIN Student student ON student.studentId = :studentId "
+//			+ "WHERE student.course = c AND c.isDeleted = false"
+//			+ " AND ((e.scheduleTestDate > :startDate) OR (e.scheduleTestDate = :startDate AND e.examStartTime >= CURRENT_TIME))"
+//			+ " AND (:endDate IS NULL OR e.scheduleTestDate <= :endDate)" + "GROUP BY s.subjectId, e.examId, sr.id"
+//			+ "ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC")
+//	List<SubjectExamResponse> findUpcomingSubjectExams(@Param("examType") ExamType examType,
+//			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+//			@Param("studentId") Integer studentId);
 
-	@Query("SELECT NEW com.cico.payload.SubjectExamResponse("
-			+ "e.examName, s.technologyStack.imageName, e.examId, s.technologyStack.imageName, "
-			+ "e.examTimer, e.passingMarks, sr.scoreGet, " + "e.scheduleTestDate, e.totalQuestionForTest, "
-			+ "e.examType, sr.id, s.subjectId, " + "e.examStartTime, e.isStart, "
-			+ "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " + "FROM Course c "
-			+ "LEFT JOIN c.subjects s ON s.isDeleted = 0 "
-			+ "JOIN s.exams e ON e.isActive = true AND e.isDeleted = false  AND e.isStart = false AND e.examType = :examType "
-			+ "LEFT JOIN e.results sr ON sr.student.studentId = :studentId "
-			+ "JOIN Student student ON student.studentId = :studentId "
-			+ "WHERE student.course = c AND c.isDeleted = 0 " + "AND e.scheduleTestDate >= CURRENT_DATE "
-			+ "GROUP BY s.subjectId, e.examId, sr.id " + "ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC")
+	@Query("""
+			    SELECT NEW com.cico.payload.SubjectExamResponse(
+			        e.examName,
+			        s.technologyStack.imageName,
+			        e.examId,
+			        s.technologyStack.imageName,
+			        e.examTimer,
+			        e.passingMarks,
+			        sr.scoreGet,
+			        e.scheduleTestDate,
+			        e.totalQuestionForTest,
+			        e.examType,
+			        sr.id,
+			        s.subjectId,
+			        e.examStartTime,
+			        e.isStart,
+			        CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END
+			    )
+			    FROM Course c
+			    LEFT JOIN c.subjects s ON s.isDeleted = false
+			    JOIN s.exams e ON e.isActive = true AND e.isDeleted = false AND e.isStart = false AND e.examType = :examType
+			    LEFT JOIN e.results sr ON sr.student.studentId = :studentId
+			    JOIN Student student ON student.studentId = :studentId
+			    WHERE student.course = c AND c.isDeleted = false
+			      AND (
+			            (e.scheduleTestDate > :startDate)
+			         OR (e.scheduleTestDate = :startDate AND e.examStartTime >= CURRENT_TIME)
+			      )
+			      AND (
+			           :endDate IS NULL OR e.scheduleTestDate <= :endDate
+			      )
+			    GROUP BY s.subjectId, e.examId, sr.id
+			    ORDER BY e.scheduleTestDate ASC, e.examStartTime ASC
+			""")
 	List<SubjectExamResponse> findUpcomingSubjectExams(@Param("examType") ExamType examType,
+			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
 			@Param("studentId") Integer studentId);
 
 }

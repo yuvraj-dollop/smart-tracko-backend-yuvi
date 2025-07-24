@@ -44,30 +44,33 @@ public class FileServiceImpl implements IFileService {
 	private Cloudinary cloudinary;
 
 	public String uploadFileInFolder(MultipartFile file, String destinationPath) {
-	    String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-	    String randomId = UUID.randomUUID().toString();
-	    String randomName = randomId.concat(originalFilename.substring(originalFilename.lastIndexOf(".")));
+		String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+		String randomId = UUID.randomUUID().toString();
+		String randomName = randomId.concat(originalFilename.substring(originalFilename.lastIndexOf(".")));
+		try {
+			Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+					ObjectUtils.asMap("public_id", randomName, "resource_type", "auto", // auto-detect resource type
+							"folder", destinationPath, // specify the folder
+							"overwrite", true, // overwrite if file with the same name exists
+							"invalidate", true, // invalidate CDN cache
+							"use_filename", true, // use the specified filename
+							"unique_filename", false, // ensure a unique filename
+							"eager",
+							Arrays.asList(new Transformation().width(100).height(100).crop("fill").gravity("face")) // specify
+																													// eager
+																													// transformations
+																													// if
+																													// needed
+					));
 
-	    try {
-	        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-	                "public_id", randomName,
-	                "resource_type", "auto",  // auto-detect resource type
-	                "folder", destinationPath,  // specify the folder
-	                "overwrite", true,  // overwrite if file with the same name exists
-	                "invalidate", true, // invalidate CDN cache
-	                "use_filename", true, // use the specified filename
-	                "unique_filename", false, // ensure a unique filename
-	                "eager", Arrays.asList(new Transformation().width(100).height(100).crop("fill").gravity("face")) // specify eager transformations if needed
-	        ));
+			System.err.println(uploadResult);
+			return (String) uploadResult.get("secure_url");
 
-	        System.err.println(uploadResult);
-	        return (String) uploadResult.get("secure_url");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-
-	    return null;
+		return null;
 	}
 
 //	public String uploadFileInFolder(MultipartFile file,String dir) {
