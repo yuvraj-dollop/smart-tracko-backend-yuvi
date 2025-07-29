@@ -306,7 +306,8 @@ public class AppConstants {
 	// public static final String BATCH_ALREADY_EXIST = "Batch already exist";
 
 	// public static final String SUBJECT_NOT_FOUND = "Subject not found";
-	// public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details are required";
+	// public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details
+	// are required";
 	// public static final String PAGE_SIZE = "pageSize";
 	// public static final String PAGE_NUMBER = "pageNumber";
 	// public static final String KEY = "key";
@@ -363,6 +364,7 @@ public class AppConstants {
 	public static final String CHAPTER_CONTENT_BODY_REQUIRED = "Content body is required";
 
 	public static final String ANNOUNCEMENT_ID = "announcementId";
+	public static final String ANNOUNCEMENT_IDS = "announcementIds";
 
 	public static final String SUBMISSION_ID = "submissionId";
 
@@ -415,7 +417,7 @@ public class AppConstants {
 	public static final String PAY_ID = "payId";
 
 	public static final String KEY = "key";
-	
+
 	public static final String MONTH = "month";
 
 	public static final String SUBJECT_NOT_FOUND = "Subject not found";
@@ -481,5 +483,16 @@ public class AppConstants {
 
 	public static final String OPTION_ALREDY_EXISTS = "Options must be unique and not repeated.";
 	public static final String INVALID_FILE_TYPE = "Invalid file type";
+
+	public static final String ALL_ANNOUNCEMENTS_ALREADY_CLEARED = "All selected announcements are already cleared by the student.";
+
+	public static final String ANNOUNCEMENTS_CLEARED_SUCCESSFULLY = "Selected announcements cleared for student.";
+
+	public static final String ALL_ANNOUNCEMENTS_ALREADY_SEEN = "All selected announcements already seen by the student.";
+
+	public static final String STUDENT_ID_POSITIVE = "Student ID must be a positive integer";
+
+	public static final String ANNOUNCEMENT_IDS_REQUIRED = "At least one announcement ID is required";
+	public static final String ANNOUNCEMENT_ID_NOT_NULL = "Announcement ID cannot be null";
 
 }

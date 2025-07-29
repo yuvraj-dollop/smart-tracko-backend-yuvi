@@ -32,6 +32,7 @@ public class AssignmentSubmissionResponse {
 	private Long taskNumber;
 	private Boolean codeSubmisionStatus;
 	private String codeSubmission;
+	private String originalFileName;
 
 	// USED BY getAllTaskSubmissionBYTaskId() MEthod in TaskRepo
 	public AssignmentSubmissionResponse(String applyForCourse, String fullName, LocalDateTime submissionDate,

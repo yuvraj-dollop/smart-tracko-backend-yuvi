@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.BadRequestException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Chapter;
@@ -273,6 +274,11 @@ public class QuestionServiceImpl implements IQuestionService {
 		Question question = questionRepo.findByQuestionIdAndIsDeleted(questionId, false)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
 
+		Exam exam = examRepo.findExamByQuestionId(questionId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND));
+		if (Boolean.TRUE.equals(exam.getIsStarted())) {
+			throw new BadRequestException("Cannot update question status. Exam has already started.");
+		}
 		question.setIsDeleted(true);
 		questionRepo.save(question);
 	}
@@ -282,10 +288,13 @@ public class QuestionServiceImpl implements IQuestionService {
 		Question question = questionRepo.findByQuestionIdAndIsDeleted(questionId, false)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND));
 
-		if (question.getIsActive().equals(true))
-			question.setIsActive(false);
-		else
-			question.setIsActive(true);
+		Exam exam = examRepo.findExamByQuestionId(questionId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND));
+		if (Boolean.TRUE.equals(exam.getIsStarted())) {
+			throw new BadRequestException("Cannot update question status. Exam has already started.");
+		}
+
+		question.setIsActive(!Boolean.TRUE.equals(question.getIsActive()));
 
 		questionRepo.save(question);
 

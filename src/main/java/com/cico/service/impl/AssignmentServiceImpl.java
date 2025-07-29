@@ -170,9 +170,13 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	@Override
 	public ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue) {
+		System.err.println("AAAAAAAAAAAAAAAAA ==> " + readValue);
 		Optional<AssignmentTaskQuestion> obj = assignmentTaskQuestionRepository.findByQuestionId(readValue.getTaskId());
-		boolean anyMatch = obj.get().getAssignmentSubmissions().parallelStream()
-				.anyMatch(obj2 -> obj2.getStudent().getStudentId() == readValue.getStudentId());
+//		boolean anyMatch = obj.get().getAssignmentSubmissions().parallelStream()
+//				.anyMatch(obj2 -> obj2.getStudent().getStudentId() == readValue.getStudentId());
+
+		boolean anyMatch = obj.get().getAssignmentSubmissions().stream()
+				.anyMatch(obj2 -> obj2.getStudent().getStudentId().equals(readValue.getStudentId()));
 
 		if (file != null && !file.isEmpty()) {
 			String contentType = file.getContentType();
@@ -186,6 +190,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			}
 
 		}
+		System.err.println("ANY MATCH IF ASSIGNMENT ALREDY SUBMITTED ==> " + anyMatch);
 
 		if (!anyMatch) {
 			AssignmentSubmission submission = new AssignmentSubmission();
@@ -201,6 +206,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			obj.get().getAssignmentSubmissions().add(save);
 			assignmentTaskQuestionRepository.save(obj.get());
 
+			System.err.println("FOR DEBUG ===> " + save);
 			// .....firebase notification .....//
 
 //			NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(readValue.getStudentId());
@@ -209,7 +215,11 @@ public class AssignmentServiceImpl implements IAssignmentService {
 //			fcmIds.setTitle("Submission updates!");
 //			kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
 			// .....firebase notification .....//
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			Map<String, Object> res = new HashMap<>();
+			res.put("response", "Assignment Submitted");
+			res.put("questionId", readValue.getTaskId());
+			System.err.println("RESPONSE FOR DEBUG ==> " + res);
+			return ResponseEntity.ok(res);
 		} else {
 			throw new ResourceAlreadyExistException("ALREADY THIS ASSIGNMENT TASK SUBMITED!!");
 		}
@@ -1251,13 +1261,42 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		// setting assignment attachament
 		obj.setAssignmentAttachement(assignmentTaskQuestion.getAssignment().getTaskAttachment());
 		response.put("question", obj);
+		response.put("assignmentId", assignmentTaskQuestion.getAssignment().getId());
 
 		AssignmentSubmissionResponse submittedAssignment = submissionRepository
 				.getSubmitAssignmentQuestionByStudentId(studentId, questionId, null);
-		if (submittedAssignment != null)
-			response.put("submittedAssignment", submittedAssignment);
+		System.err.println(submittedAssignment + " <<<-----------------");
+		if (submittedAssignment != null) {
+			submittedAssignment
+					.setOriginalFileName(extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
+		System.err.println("extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()) => "
+				+ extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
+		response.put("submittedAssignment", submittedAssignment);
+		}
 
 		return ResponseEntity.ok(response);
 	}
+
+	private String extractOriginalFileNameFromUrl(String url) {
+	    if (url == null || url.isBlank() || !url.contains("/")) {
+	        return null;
+	    }
+
+	    // Get the last segment (file name) after last '/'
+	    String fileName = url.substring(url.lastIndexOf("/") + 1); // e.g., 29a9af80-xyz_Submit My File.zip
+
+	    int underscoreIndex = fileName.indexOf("_");
+	    int dotIndex = fileName.lastIndexOf(".");
+
+	    // Ensure underscore is before dot (correct format) and both exist
+	    if (underscoreIndex != -1 && dotIndex != -1 && underscoreIndex < dotIndex) {
+	        String originalFileName = fileName.substring(underscoreIndex + 1, dotIndex); // e.g., Submit My File
+	        return originalFileName.trim(); // Removes any extra spaces if present
+	    }
+
+	    // Fallback: return default name
+	    return "SubmittedFile";
+	}
+
 
 }

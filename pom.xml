@@ -22,8 +22,8 @@
 	</properties>
 
 	<dependencies>
-	
-	<!--MAil service-->
+
+		<!--MAil service-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
@@ -166,6 +166,14 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.2.3</version>
+		</dependency>
+
+		<!--
+		https://mvnrepository.com/artifact/com.github.vladimir-bukhtoyarov/bucket4j-core -->
+		<dependency>
+			<groupId>com.github.vladimir-bukhtoyarov</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.0.1</version>
 		</dependency>
 	</dependencies>
 

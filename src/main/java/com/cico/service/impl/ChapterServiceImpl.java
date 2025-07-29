@@ -478,12 +478,25 @@ public class ChapterServiceImpl implements IChapterService {
 		List<ChapterContentResponse> contentList = chapterContentPage.getContent().stream()
 				.map(this::chapterContentResponse).collect(Collectors.toList());
 
+		// Fetch Chapter and Exam
+		Optional<Chapter> chapterOpt = chapterRepo.findById(chapterId);
+		boolean isExamAvailable = false;
+
+		if (chapterOpt.isPresent()) {
+			Exam exam = chapterOpt.get().getExam();
+			if (exam != null && Boolean.TRUE.equals(exam.getIsActive()) && exam.getQuestions() != null
+					&& exam.getQuestions().stream().anyMatch(q -> !Boolean.TRUE.equals(q.getIsDeleted()))) {
+				isExamAvailable = true;
+			}
+		}
+
 		response.put("chapterContents", contentList);
 		response.put("totalPages", chapterContentPage.getTotalPages());
 		response.put("currentPage", chapterContentPage.getNumber());
 		response.put("last", chapterContentPage.isLast());
 		response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
-		response.put("resultId", getChapterExamResultId(chapterId,studentId));
+		response.put("resultId", getChapterExamResultId(chapterId, studentId));
+		response.put("isExamAvailable", isExamAvailable);
 		response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -501,7 +514,8 @@ public class ChapterServiceImpl implements IChapterService {
 		if (student == null)
 			return null;
 
-		return chapterExamResultRepo.findByChapterAndStudent(chapter, student).map(ChapterExamResult::getId).orElse(null);
+		return chapterExamResultRepo.findByChapterAndStudent(chapter, student).map(ChapterExamResult::getId)
+				.orElse(null);
 	}
 
 }

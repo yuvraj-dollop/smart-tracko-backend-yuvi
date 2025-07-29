@@ -818,23 +818,49 @@ public class ExamServiceImpl implements IExamService {
 
 	// ******************************************
 
+//	@Override
+//	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
+//
+//		Map<String, Object> response = new HashMap<>();
+//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+//		if (chapter.isPresent()) {
+//
+//			Optional<Exam> exam = examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(), false);
+//			if (exam.isPresent() && exam.get().getIsActive()) {
+//				exam.get().setIsStarted(true);
+//				examRepo.save(exam.get());
+//				return new ResponseEntity<>(HttpStatus.OK);
+//			}
+//		}
+//		response.put(AppConstants.MESSAGE, "Chapter not found");
+//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+//
+//	}
+
 	@Override
 	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
-
 		Map<String, Object> response = new HashMap<>();
-		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
-		if (chapter.isPresent()) {
 
-			Optional<Exam> exam = examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(), false);
-			if (exam.isPresent()) {
-				exam.get().setIsStarted(true);
-				examRepo.save(exam.get());
-				return new ResponseEntity<>(HttpStatus.OK);
-			}
+		Optional<Chapter> chapterOpt = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+		if (chapterOpt.isEmpty()) {
+			response.put(AppConstants.MESSAGE, "Chapter not found");
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		}
-		response.put(AppConstants.MESSAGE, "Chapter not found");
-		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 
+		Exam exam = chapterOpt.get().getExam();
+
+		// Validate exam is not null, is active, and has at least one valid question
+		boolean hasValidQuestions = exam != null && exam.getQuestions() != null
+				&& exam.getQuestions().stream().anyMatch(q -> !Boolean.TRUE.equals(q.getIsDeleted()));
+
+		if (exam != null && Boolean.TRUE.equals(exam.getIsActive()) && hasValidQuestions) {
+			exam.setIsStarted(true);
+			examRepo.save(exam);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
+
+		response.put(AppConstants.MESSAGE, "Exam is either inactive or has no available questions");
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	@Override
@@ -1545,19 +1571,57 @@ public class ExamServiceImpl implements IExamService {
 				.courseId(c.getCourseId()).examFrom("COURSE").build();
 	}
 
+//	@Override
+//	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
+//
+//		Map<String, Object> response = new HashMap<>();
+//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+//		if (chapter.isPresent()) {
+//			
+//			
+//			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
+//					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
+//			response.put("examTimer", chapter.get().getExam().getExamTimer());
+//			response.put("chapterId", chapterId);
+//			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+//			return new ResponseEntity<>(response, HttpStatus.OK);
+//		}
+//		response.put(AppConstants.MESSAGE, "Chapter not found");
+//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+//	}
+
 	@Override
 	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
-
 		Map<String, Object> response = new HashMap<>();
 		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+
 		if (chapter.isPresent()) {
-			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
-					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
-			response.put("examTimer", chapter.get().getExam().getExamTimer());
+			Exam exam = chapter.get().getExam();
+
+			// Check if exam or questions list is null or empty
+			if (exam == null || exam.getQuestions() == null || exam.getQuestions().isEmpty()) {
+				throw new ResourceNotFoundException("Exam not available");
+			}
+
+			// Filter out deleted questions
+			List<Question> filteredQuestions = exam.getQuestions().stream()
+					.filter(q -> Boolean.FALSE.equals(q.getIsDeleted())).toList();
+
+			// If filtered list is empty, treat as no valid questions
+			if (filteredQuestions.isEmpty()) {
+				throw new ResourceNotFoundException("Exam not available");
+			}
+
+			response.put("testQuestions",
+					filteredQuestions.parallelStream().map(this::questionFilterWithoudCorrectOprionNew));
+			response.put("examTimer", exam.getExamTimer());
 			response.put("chapterId", chapterId);
 			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+
+			System.err.println("************* ==> "+filteredQuestions);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
+
 		response.put(AppConstants.MESSAGE, "Chapter not found");
 		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 	}
@@ -1596,9 +1660,14 @@ public class ExamServiceImpl implements IExamService {
 		chapterExamResultResponse
 				.setSelectedQuestions((examResult.getTotalQuestion() - examResult.getNotSelectedQuestions()));
 
-		List<Question> questions = examResult.getChapter().getExam().getQuestions();
+		List<Question> allQuestions = examResult.getChapter().getExam().getQuestions();
+		List<Question> questions = allQuestions.stream()
+				.filter(q -> !Boolean.TRUE.equals(q.getIsDeleted()) && Boolean.TRUE.equals(q.getIsActive()))
+				.collect(Collectors.toList());
+
 		// Set selectedOption temporarily in each question
 		for (Question q : questions) {
+			System.err.println("q.getQuestionId() => " + q.getQuestionId());
 			String selected = review.get(q.getQuestionId());
 			System.err.println(
 					"SELECTED ==> " + selected + " , QUESTION ID ==> " + q.getQuestionId() + ", REVIEW ==> " + review);

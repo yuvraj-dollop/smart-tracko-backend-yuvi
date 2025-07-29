@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cico.payload.AnnouncementActionRequest;
 import com.cico.payload.AnnouncementRequest;
 import com.cico.service.IAnnouncementService;
 import com.cico.util.AppConstants;
@@ -58,13 +59,23 @@ public class AnnouncementController {
 	@GetMapping("/v2/getAnnouncementForStudent")
 	public ResponseEntity<?> getAnnouncementForStudentNew(
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
-		return announcementService.getAnnouncementForStudent(studentId);
+		return announcementService.getAnnouncementForStudentNew(studentId);
 	}
 
-	@GetMapping("/v2/getNotificationCountForStudent")
-	public ResponseEntity<?> countUnseenNotificationForStudentNew(
-			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
-		return announcementService.countUnseenNotificationForStudent(studentId);
+//	@GetMapping("/v2/getNotificationCountForStudent")
+//	public ResponseEntity<?> countUnseenNotificationForStudentNew(
+//			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+//		return announcementService.countUnseenNotificationForStudent(studentId);
+//	}
+
+	@PostMapping("/v2/seenAnnouncement")
+	public ResponseEntity<?> markAnnouncementsAsSeen(@Valid @RequestBody AnnouncementActionRequest request) {
+		return announcementService.markAnnouncementsAsSeen(request);
+	}
+
+	@PostMapping("/v2/clearNotificationForStudent")
+	public ResponseEntity<?> clearNotificationForStudent(@Valid @RequestBody AnnouncementActionRequest request) {
+		return announcementService.clearNotificationForStudent(request);
 	}
 
 }

@@ -2160,12 +2160,9 @@ public class StudentServiceImpl implements IStudentService {
 
 		String token = util.generateTokenForStudent(student.getStudentId().toString(), student.getUserId(),
 				student.getDeviceId(), student.getRole());
-//		String refreshToken = util.generateRefreshToken(student.getUserId(), student.getRole(),
-//				TokenType.REFRESH_TOKEN);
 
 		Map<String, Object> res = new HashMap<>();
 		res.put("AccessToken", token);
-		// res.put("RefreshToken", refreshToken);
 
 		ApiResponse response = new ApiResponse(true, "Student login successfully.", HttpStatus.OK);
 		response.setData(res);

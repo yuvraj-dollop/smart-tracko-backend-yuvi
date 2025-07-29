@@ -21,4 +21,5 @@ public class ChapterContentResponse {
 	private String content;
 	private Boolean isDeleted = false;
 	private String  chapterName;
+	private Boolean isActive;
 }
