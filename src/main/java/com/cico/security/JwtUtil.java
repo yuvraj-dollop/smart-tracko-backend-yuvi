@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.cico.exception.BadRequestException;
 import com.cico.util.OtpType;
 import com.cico.util.TokenType;
 

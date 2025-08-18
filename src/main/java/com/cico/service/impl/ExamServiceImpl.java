@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,97 +118,197 @@ public class ExamServiceImpl implements IExamService {
 	@Autowired
 	private QuestionRepo questionRepo;
 
+	private final Map<String, Object> locks = new ConcurrentHashMap<>();
+
+//	@Override
+//	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
+//		Student student = studentRepository.findById(chapterExamResult.getStudentId())
+//				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+//		Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
+//
+//		Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
+//				student);
+//		if (findByChapterAndStudent.isPresent())
+//			throw new ResourceAlreadyExistException("You have already submitted this test");
+//
+//		ChapterExamResult examResult = new ChapterExamResult();
+//		Map<Integer, String> review = chapterExamResult.getReview();
+//		int correct = 0;
+//		int inCorrect = 0;
+//		examResult.setChapter(chapter);
+//		examResult.setStudent(student);
+//
+//		List<Question> questions = chapter.getExam().getQuestions();
+//		questions = questions.stream().filter(obj -> !obj.getIsDeleted()).collect(Collectors.toList());
+//
+//		for (Question q : questions) {
+//			Integer id = q.getQuestionId();
+//			String correctOption = q.getCorrectOption();
+//
+//			if (Objects.nonNull(review)) {
+//				String reviewAns = review.get(id);
+//				if (Objects.nonNull(reviewAns)) {
+//					if (review.get(id).equals(correctOption)) {
+//						correct++;
+//					} else {
+//						inCorrect++;
+//					}
+//				}
+//			}
+//		}
+//		examResult.setReview(review);
+//		examResult.setCorrecteQuestions(correct);
+//		examResult.setWrongQuestions(inCorrect);
+//		examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
+//		examResult.setScoreGet(correct - inCorrect);
+//		examResult.setTotalQuestion(questions.size());
+//		ChapterExamResult save = chapterExamResultRepo.save(examResult);
+//
+//		ChapterCompleted chapterCompleted = new ChapterCompleted();
+//		chapterCompleted.setChapterId(chapterExamResult.getChapterId());
+//		chapterCompleted.setStudentId(chapterExamResult.getStudentId());
+//		chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
+//		chapterCompletedRepository.save(chapterCompleted);
+//
+//		ExamResultResponse res = new ExamResultResponse();
+//		res.setCorrecteQuestions(save.getCorrecteQuestions());
+//		res.setNotSelectedQuestions(save.getNotSelectedQuestions());
+//		res.setScoreGet(save.getScoreGet());
+//		res.setWrongQuestions(save.getWrongQuestions());
+//		res.setId(save.getId());
+//		res.setTotalQuestion(save.getTotalQuestion());
+//		res.setStudentId(save.getStudent().getStudentId());
+//		res.setStudentName(save.getStudent().getFullName());
+//		res.setProfilePic(save.getStudent().getProfilePic());
+//
+//		List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
+//
+//		int total = allResults.size();
+//		int lowerScores = 0;
+//
+//		for (ChapterExamResult result : allResults) {
+//			if (result.getScoreGet() <= save.getScoreGet()) {
+//				lowerScores++;
+//			}
+//		}
+//
+//		int percentile = 0;
+//		if (total == 1) {
+//			percentile = 100;
+//		} else {
+//			percentile = (int) Math.round(((double) lowerScores / total) * 100);
+//		}
+//
+//		res.setPercentile(percentile);
+//
+//		// .....firebase notification .....//
+//
+//		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
+//		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
+//		fcmIds.setMessage(message);
+//		fcmIds.setTitle("Exam Completed!");
+//		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
+//		// .....firebase notification .....//
+//
+//		return new ResponseEntity<>(res, HttpStatus.OK);
+//	}
+
 	@Override
 	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
-		Student student = studentRepository.findById(chapterExamResult.getStudentId())
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
-		Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
+		String lockKey = chapterExamResult.getStudentId() + "-" + chapterExamResult.getChapterId();
+		Object lock = locks.computeIfAbsent(lockKey, k -> new Object());
 
-		Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
-				student);
-		if (findByChapterAndStudent.isPresent())
-			throw new ResourceAlreadyExistException("You have already submitted this test");
+		synchronized (lock) {
+			Student student = studentRepository.findById(chapterExamResult.getStudentId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+			Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
 
-		ChapterExamResult examResult = new ChapterExamResult();
-		Map<Integer, String> review = chapterExamResult.getReview();
-		int correct = 0;
-		int inCorrect = 0;
-		examResult.setChapter(chapter);
-		examResult.setStudent(student);
+			Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
+					student);
+			if (findByChapterAndStudent.isPresent())
+				throw new ResourceAlreadyExistException("You have already submitted this test");
 
-		List<Question> questions = chapter.getExam().getQuestions();
-		questions = questions.stream().filter(obj -> !obj.getIsDeleted()).collect(Collectors.toList());
+			ChapterExamResult examResult = new ChapterExamResult();
+			Map<Integer, String> review = chapterExamResult.getReview();
+			int correct = 0;
+			int inCorrect = 0;
+			examResult.setChapter(chapter);
+			examResult.setStudent(student);
 
-		for (Question q : questions) {
-			Integer id = q.getQuestionId();
-			String correctOption = q.getCorrectOption();
+			List<Question> questions = chapter.getExam().getQuestions();
+			questions = questions.stream().filter(obj -> !obj.getIsDeleted()).collect(Collectors.toList());
 
-			if (Objects.nonNull(review)) {
-				String reviewAns = review.get(id);
-				if (Objects.nonNull(reviewAns)) {
-					if (review.get(id).equals(correctOption)) {
-						correct++;
-					} else {
-						inCorrect++;
+			for (Question q : questions) {
+				Integer id = q.getQuestionId();
+				String correctOption = q.getCorrectOption();
+
+				if (Objects.nonNull(review)) {
+					String reviewAns = review.get(id);
+					if (Objects.nonNull(reviewAns)) {
+						if (review.get(id).equals(correctOption)) {
+							correct++;
+						} else {
+							inCorrect++;
+						}
 					}
 				}
 			}
-		}
-		examResult.setReview(review);
-		examResult.setCorrecteQuestions(correct);
-		examResult.setWrongQuestions(inCorrect);
-		examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
-		examResult.setScoreGet(correct - inCorrect);
-		examResult.setTotalQuestion(questions.size());
-		ChapterExamResult save = chapterExamResultRepo.save(examResult);
+			examResult.setReview(review);
+			examResult.setCorrecteQuestions(correct);
+			examResult.setWrongQuestions(inCorrect);
+			examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
+			examResult.setScoreGet(correct - inCorrect);
+			examResult.setTotalQuestion(questions.size());
+			ChapterExamResult save = chapterExamResultRepo.save(examResult);
 
-		ChapterCompleted chapterCompleted = new ChapterCompleted();
-		chapterCompleted.setChapterId(chapterExamResult.getChapterId());
-		chapterCompleted.setStudentId(chapterExamResult.getStudentId());
-		chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
-		chapterCompletedRepository.save(chapterCompleted);
+			ChapterCompleted chapterCompleted = new ChapterCompleted();
+			chapterCompleted.setChapterId(chapterExamResult.getChapterId());
+			chapterCompleted.setStudentId(chapterExamResult.getStudentId());
+			chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
+			chapterCompletedRepository.save(chapterCompleted);
 
-		ExamResultResponse res = new ExamResultResponse();
-		res.setCorrecteQuestions(save.getCorrecteQuestions());
-		res.setNotSelectedQuestions(save.getNotSelectedQuestions());
-		res.setScoreGet(save.getScoreGet());
-		res.setWrongQuestions(save.getWrongQuestions());
-		res.setId(save.getId());
-		res.setTotalQuestion(save.getTotalQuestion());
-		res.setStudentId(save.getStudent().getStudentId());
-		res.setStudentName(save.getStudent().getFullName());
-		res.setProfilePic(save.getStudent().getProfilePic());
+			ExamResultResponse res = new ExamResultResponse();
+			res.setCorrecteQuestions(save.getCorrecteQuestions());
+			res.setNotSelectedQuestions(save.getNotSelectedQuestions());
+			res.setScoreGet(save.getScoreGet());
+			res.setWrongQuestions(save.getWrongQuestions());
+			res.setId(save.getId());
+			res.setTotalQuestion(save.getTotalQuestion());
+			res.setStudentId(save.getStudent().getStudentId());
+			res.setStudentName(save.getStudent().getFullName());
+			res.setProfilePic(save.getStudent().getProfilePic());
 
-		List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
+			List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
 
-		int total = allResults.size();
-		int lowerScores = 0;
+			int total = allResults.size();
+			int lowerScores = 0;
 
-		for (ChapterExamResult result : allResults) {
-			if (result.getScoreGet() <= save.getScoreGet()) {
-				lowerScores++;
+			for (ChapterExamResult result : allResults) {
+				if (result.getScoreGet() <= save.getScoreGet()) {
+					lowerScores++;
+				}
 			}
+
+			int percentile = 0;
+			if (total == 1) {
+				percentile = 100;
+			} else {
+				percentile = (int) Math.round(((double) lowerScores / total) * 100);
+			}
+
+			res.setPercentile(percentile);
+
+			// .....firebase notification .....//
+			NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
+			String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
+			fcmIds.setMessage(message);
+			fcmIds.setTitle("Exam Completed!");
+			kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
+			// .....firebase notification .....//
+
+			// ✅ Return response inside synchronized block
+			return new ResponseEntity<>(res, HttpStatus.OK);
 		}
-
-		int percentile = 0;
-		if (total == 1) {
-			percentile = 100;
-		} else {
-			percentile = (int) Math.round(((double) lowerScores / total) * 100);
-		}
-
-		res.setPercentile(percentile);
-
-		// .....firebase notification .....//
-
-		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
-		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
-		fcmIds.setMessage(message);
-		fcmIds.setTitle("Exam Completed!");
-		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
-		// .....firebase notification .....//
-
-		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 
 	public Exam checkChapterExamIsPresent(Integer examId) {
@@ -1618,7 +1719,7 @@ public class ExamServiceImpl implements IExamService {
 			response.put("chapterId", chapterId);
 			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
 
-			System.err.println("************* ==> "+filteredQuestions);
+			System.err.println("************* ==> " + filteredQuestions);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 

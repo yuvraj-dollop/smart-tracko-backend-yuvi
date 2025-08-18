@@ -157,7 +157,8 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 	@Override
 	public ResponseEntity<?> getAnnouncementForStudentNew(Integer studentId) {
 
-		Student student = studentRepository.findById(studentId).get();
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new RuntimeException(AppConstants.STUDENT_NOT_FOUND));
 
 		List<AnnouncementStudentResponse> collect = announcementRepository
 				.getAnnouncementForStudentByCourseNew(student.getCourse(), student).stream()

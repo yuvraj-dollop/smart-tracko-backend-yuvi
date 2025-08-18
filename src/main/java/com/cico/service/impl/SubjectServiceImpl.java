@@ -196,7 +196,11 @@ public class SubjectServiceImpl implements ISubjectService {
 
 		Course course = studentRepository.findById(studentId).get().getCourse();
 
-		List<Subject> subjects = courseRepository.findByCourseId(course.getCourseId()).get().getSubjects();
+//		List<Subject> subjects = courseRepository.findByCourseId(course.getCourseId()).get().getSubjects();
+		Course courseEntity = courseRepository.findByCourseId(course.getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND));
+
+		List<Subject> subjects = courseEntity.getSubjects();
 		List<Subject> list = subjects.parallelStream().filter(obj -> !obj.getIsDeleted()).toList();
 		if (list.isEmpty())
 			new ResourceNotFoundException("No subject available");
@@ -280,8 +284,8 @@ public class SubjectServiceImpl implements ISubjectService {
 				chapterResponse.setChapterName((String) row[4]);
 				chapterResponse.setChapterImage((String) row[1]);
 				chapterResponse.setScoreGet((Integer) row[5]);
-				chapterResponse
-						.setIsCompleted(chapterCompletedRepository.isQuizCompletedByStudent(chapterId,subjectId, studentId));
+				chapterResponse.setIsCompleted(
+						chapterCompletedRepository.isQuizCompletedByStudent(chapterId, subjectId, studentId));
 				chapterResponses.add(chapterResponse);
 			}
 			response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
