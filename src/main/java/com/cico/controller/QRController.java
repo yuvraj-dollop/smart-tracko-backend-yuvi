@@ -75,7 +75,7 @@ public class QRController {
     
  // ................. NEW API'S .....................
 
- 	@GetMapping("/V2/getLinkedDeviceByUuid")
+ 	@GetMapping("/v2/getLinkedDeviceByUuid")
  	public ResponseEntity<?> getLinkedDeviceNew(@RequestParam(name = AppConstants.KEY) String key) {
  		return qrService.getLinkedDeviceDataByUuid(key);
  	}

@@ -1217,7 +1217,7 @@ public class StudentServiceImpl implements IStudentService {
 	public Map<String, Object> getCalenderData(Integer id, Integer month, Integer year) { // working code
 		Map<String, Object> response = new HashMap<>();
 		Student student = studRepo.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND+" with ID: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND + " with ID: " + id));
 
 		LocalDate joinDate = student.getJoinDate();
 

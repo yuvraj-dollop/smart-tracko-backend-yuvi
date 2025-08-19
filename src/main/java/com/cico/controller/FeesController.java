@@ -179,4 +179,10 @@ public class FeesController {
 		return new ResponseEntity<FeesPayResponse>(updateFeesPay, HttpStatus.OK);
 	}
 
+	@GetMapping("/v2/getAllTransectionsByStudentId")
+	public ResponseEntity<?> getAllTransectionsOfStudentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return feesPayService.getAllTransectionByStudentIdNew(studentId);
+	}
+
 }

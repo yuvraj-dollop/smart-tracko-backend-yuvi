@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "feespay")
+@Builder
 public class FeesPay {
 
 	@Id
@@ -32,16 +34,15 @@ public class FeesPay {
 	private String description;
 	private LocalDateTime createDate;
 	private LocalDateTime updatedDate;
-	
+
 	public FeesPay(Double feesPayAmount, LocalDate payDate, String recieptNo, String description) {
 		super();
 		this.feesPayAmount = feesPayAmount;
 		this.payDate = payDate;
 		this.recieptNo = recieptNo;
 		this.description = description;
-		this.createDate=LocalDateTime.now();
-		this.updatedDate=LocalDateTime.now();
+		this.createDate = LocalDateTime.now();
+		this.updatedDate = LocalDateTime.now();
 	}
-	
-	
+
 }

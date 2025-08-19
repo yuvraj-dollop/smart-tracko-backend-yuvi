@@ -86,5 +86,14 @@ public class BatchController {
 	public ResponseEntity<?> firstUpcomingBatchOfCurrentCourse(@PathVariable String courseName) {
 		return new ResponseEntity<>(batchService.getFirstUpcomingBatchOfCurrentCourse(courseName), HttpStatus.OK);
 	}
+	
+	//================================= New Methods =====================================================
+
+	@GetMapping("/v2/getUpcomingBatches")
+	public ResponseEntity<List<BatchResponse>> getUpcomingBatchesNew() {
+		List<BatchResponse> batches = batchService.getUpcomingBatchesNew();
+		return ResponseEntity.status(HttpStatus.OK).body(batches);
+
+	}
 
 }

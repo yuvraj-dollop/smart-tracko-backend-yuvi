@@ -100,4 +100,18 @@ public class CourseController {
     public ResponseEntity<?> getCoureWithBatchesAndSubjects(@RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
         return courseService.getCoureWithBatchesAndSubjects(courseId);
     }
+    //=================================================== New Apis =============================================================
+    
+    @GetMapping("/v2/getAllCourseForStudent")
+    public ResponseEntity<?> getAllCourseForStudentNew(@RequestParam(name=AppConstants.STUDENT_ID) Integer studentId) {
+        return courseService.getAllCourseForStudentNew(studentId);
+    }
+    
+    @GetMapping("/v2/getCourseProgress")
+    public ResponseEntity<?> getCourseProgressNew(@RequestParam(name=AppConstants.STUDENT_ID) Integer studentId) {
+        return courseService.getCourseProgressNew(studentId);
+    }
+
+    
+
 }

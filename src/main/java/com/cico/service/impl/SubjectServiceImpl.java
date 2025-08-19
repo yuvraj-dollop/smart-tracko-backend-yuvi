@@ -259,6 +259,7 @@ public class SubjectServiceImpl implements ISubjectService {
 
 	@Override
 	public ResponseEntity<?> getAllSubjectsByCourseId(Integer courseId) {
+		System.err.println("======================= course id==>>  " + courseId);
 		List<SubjectResponse> list = subRepo.getAllSubjectByCourseId(courseId);
 		Map<String, Object> response = new HashMap<>();
 		if (list.isEmpty()) {
@@ -299,6 +300,37 @@ public class SubjectServiceImpl implements ISubjectService {
 
 	public Subject checkSubjectIsPresent(Integer subjectId) {
 		return subRepo.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found!!"));
+	}
+
+	@Override
+	public SubjectResponse toResponse(Subject subject) {
+		if (subject == null) {
+			return null;
+		}
+
+		// Build TechnologyStackResponse if available
+		TechnologyStackResponse ts = null;
+		if (subject.getTechnologyStack() != null) {
+			ts = TechnologyStackResponse.builder().id(subject.getTechnologyStack().getId())
+					.technologyName(subject.getTechnologyStack().getTechnologyName())
+					.imageName(subject.getTechnologyStack().getImageName()).build();
+		}
+
+		// Chapter counts
+		long chapterCount = 0;
+		long chapterCompleted = 0;
+		if (subject.getChapters() != null) {
+			chapterCount = subject.getChapters().size();
+			chapterCompleted = subject.getChapters().stream().filter(Chapter::getIsCompleted) // assuming Chapter has
+																								// getIsCompleted()
+					.count();
+		}
+
+		// ✅ Build SubjectResponse using Lombok @Builder
+		return SubjectResponse.builder().subjectId(subject.getSubjectId()).subjectName(subject.getSubjectName())
+				.isDeleted(subject.getIsDeleted()).isActive(subject.getIsActive()).chapterCount(chapterCount)
+				.chapterCompleted(chapterCompleted).technologyStack(ts) // can be null, handled by @JsonInclude
+				.build();
 	}
 
 }

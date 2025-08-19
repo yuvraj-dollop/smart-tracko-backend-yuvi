@@ -2,12 +2,6 @@ package com.cico.payload;
 
 import java.time.LocalDate;
 
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-
-import com.cico.model.Course;
-import com.cico.model.Student;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,5 +32,6 @@ public class FeesResponse {
 	private LocalDate date;
 	private LocalDate createdDate;
 	private LocalDate updatedDate;
-	private Boolean isCompleted=false;
+	@Builder.Default
+	private Boolean isCompleted = false;
 }

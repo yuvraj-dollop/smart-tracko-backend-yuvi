@@ -78,4 +78,10 @@ public class AnnouncementController {
 		return announcementService.clearNotificationForStudent(request);
 	}
 
+	@GetMapping("/v2/getNotificationCountForStudent")
+	public ResponseEntity<?> countUnseenNotificationForStudentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return announcementService.countUnseenNotificationForStudent(studentId);
+	}
+
 }
