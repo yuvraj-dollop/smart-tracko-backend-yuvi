@@ -26,6 +26,7 @@ public class TaskResponse {
 	private Boolean isCompleted;
 	private Long totalTask;
 	private Boolean isActive;
+	private LocalDateTime dateTime;
 
 	public TaskResponse(Long taskId, String taskName, Boolean isCompleted) {
 		super();
@@ -40,6 +41,13 @@ public class TaskResponse {
 		this.taskName = taskName;
 		this.totalTask = totalTask;
 		this.isActive = isActive;
+	}
+
+	public TaskResponse(Long taskId, String taskName, Boolean isCompleted, LocalDateTime createdDate) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+		this.isCompleted = isCompleted;
+		this.createdDate = createdDate;
 	}
 
 }

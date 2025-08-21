@@ -1,5 +1,6 @@
 package com.cico.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,5 +155,33 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 			    WHERE a.course.courseId = :courseId AND a.isDeleted = false AND a.isActive = true
 			""")
 	Long countByCourseIdAndIsDeletedFalse(@Param("courseId") Integer courseId);
+
+//	.....................................New ....................
+	// 🔹 Count total assignments for a student's course in a given month range
+	@Query("""
+			    SELECT COUNT(a)
+			    FROM Assignment a
+			    WHERE a.course.courseId = :courseId
+			    AND a.createdDate BETWEEN :startDate AND :endDate
+			    AND a.isDeleted = false
+			""")
+	int countAssignmentsByCourseAndMonth(@Param("courseId") Integer courseId,
+			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+	// 🔹 Count assignments by status for a student's course in a given month range
+	@Query("""
+			    SELECT COUNT(DISTINCT a.id)
+			    FROM Assignment a
+			    JOIN a.AssignmentQuestion t
+			    JOIN t.assignmentSubmissions ts
+			    WHERE a.course.courseId = :courseId
+			    AND ts.student.studentId = :studentId
+			    AND ts.status = :status
+			    AND a.createdDate BETWEEN :startDate AND :endDate
+			    AND a.isDeleted = false
+			""")
+	int countCompletedAssignmentsByStudentAndMonth(@Param("courseId") Integer courseId,
+			@Param("studentId") Integer studentId, @Param("status") SubmissionStatus status,
+			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
 }

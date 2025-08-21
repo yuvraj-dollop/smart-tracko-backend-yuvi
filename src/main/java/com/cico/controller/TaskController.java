@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -225,10 +224,10 @@ public class TaskController {
 		return taskService.getSubmittedTaskQuestionForStudent(studentId, pageNumber, pageSise, status);
 	}
 
-	@PostMapping("/v2/getAllTaskOfStudent/{studentId}")
-	public ResponseEntity<?> getAllTaskOfStudentNew(@PathVariable(name = AppConstants.STUDENT_ID) Integer studentId,
-			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize,
-			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber,
+	@GetMapping("/v2/getAllTaskOfStudent")
+	public ResponseEntity<?> getAllTaskOfStudentNew(@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = "10") Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = "0") Integer pageNumber,
 			@RequestParam(name = AppConstants.STATUS, required = false) String status) {
 		StudentTaskFilterRequest studentTaskFilterRequest = StudentTaskFilterRequest.builder().studentId(studentId)
 				.pageRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build())
@@ -238,8 +237,7 @@ public class TaskController {
 	}
 
 	@PostMapping("/v2/studentTaskSubmittion")
-	public ResponseEntity<?> StudentTaskSubmittion(@Valid TaskSubmissionRequest submissionRequest)
-			throws Exception {
+	public ResponseEntity<?> StudentTaskSubmittion(@Valid TaskSubmissionRequest submissionRequest) throws Exception {
 		return taskService.studentTaskSubmittion(submissionRequest);
 	}
 
@@ -266,4 +264,15 @@ public class TaskController {
 
 	}
 
+	@GetMapping("/v2/getTaskQuestionsByTaskIdForStudent")
+	public ResponseEntity<?> getTaskQuestionByTaskIdForStudentNew(
+			@RequestParam(name = AppConstants.TASK_ID) Long taskId, @RequestParam("studentId") Integer studentId) {
+		return taskService.getTaskQuestionsByTaskIdForStudent(taskId, studentId);
+	}
+
+	@GetMapping("/v2/isTaskSubmittedByStudent")
+	public ResponseEntity<?> isTaskSubmittedByStudentNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return taskService.isTaskQuestionSubmittedByStudentId(questionId, studentId);
+	}
 }

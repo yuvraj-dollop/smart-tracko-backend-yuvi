@@ -3,10 +3,12 @@ package com.cico.controller;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.constraints.DecimalMin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,7 @@ import com.cico.util.AppConstants;
 @RestController
 @RequestMapping("/fees")
 @CrossOrigin("*")
+@Validated
 public class FeesController {
 	@Autowired
 	private IFeesService feesService;
@@ -39,7 +42,8 @@ public class FeesController {
 
 	@PostMapping("/createStudentFees")
 	public ResponseEntity<?> createStudentFees(@RequestParam("studentId") Integer studentId,
-			@RequestParam("courseId") Integer courseId, @RequestParam("finalFees") Double finalFees,
+			@RequestParam("courseId") Integer courseId,
+			@DecimalMin(value = "0.0", inclusive = false, message = "Final fees must be greater than 0") @RequestParam("finalFees") Double finalFees,
 			@RequestParam("date") String date) {
 		FeesResponse createStudentFees = feesService.createStudentFees(studentId, courseId, finalFees, date);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createStudentFees);

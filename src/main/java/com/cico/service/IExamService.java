@@ -85,16 +85,21 @@ public interface IExamService {
 
 	// ==================== GENERAL EXAM METHODS ====================
 	ResponseEntity<?> deleteExamById(Integer examId);
-	
-	
-	
-	
+
 	// .................. NEW METHOD'S ................................
-	
-	
-	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, LocalDate startDate, LocalDate endDate, PaginationRequest request);
+
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, LocalDate startDate, LocalDate endDate,
+			PaginationRequest request);
 
 	public ResponseEntity<?> getChapterExamNew(Integer chapterId);
 
 	public ResponseEntity<?> getChapterExamResultNew(Integer id);
+
+	ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId);
+
+	ResponseEntity<?> getperformanceDataMonthaly(Integer studentId);
+
+	ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId);
+
+	ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId);
 }

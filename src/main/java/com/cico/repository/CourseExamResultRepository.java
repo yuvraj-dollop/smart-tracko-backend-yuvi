@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.cico.model.CourseExam;
 import com.cico.model.CourseExamResult;
@@ -23,4 +24,19 @@ public interface CourseExamResultRepository extends JpaRepository<CourseExamResu
 
 	@Query("SELECT COUNT(cer) FROM CourseExamResult cer WHERE cer.courseExam = :exam ")
 	Long findByCourseExam(CourseExam exam);
+
+//............................................... New ......................................
+	@Query("""
+			    SELECT r
+			    FROM CourseExamResult r
+			    JOIN r.courseExam ce
+			    JOIN ce.course c
+			    WHERE r.student.studentId = :studentId
+			    AND c.courseId = :courseId
+			""")
+	List<CourseExamResult> findByStudentAndCourse(@Param("studentId") Integer studentId,
+			@Param("courseId") Integer courseId);
+
+	List<CourseExamResult> findByStudent_StudentId(Integer studentId);
+
 }

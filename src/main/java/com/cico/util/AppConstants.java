@@ -173,6 +173,8 @@ public class AppConstants {
 
 	public static final String COURSE_ID_REQUIRED = "At least one course ID must be provided";
 
+	public static final String DURATION_POSITIVE_REQUIRED = "Duration must be a positive number greater than 0";
+
 	// FOR COURSE REQUEST
 	public static final String COURSE_NAME_REQUIRED = "Course name is required";
 

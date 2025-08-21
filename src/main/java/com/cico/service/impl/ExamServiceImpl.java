@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +52,9 @@ import com.cico.payload.PaginationRequest;
 import com.cico.payload.QuestionResponse;
 import com.cico.payload.SubjectExamResponse;
 import com.cico.payload.TestFilterRequest;
+import com.cico.payload.TestPerformanceResponse;
 import com.cico.payload.UpcomingExamResponse;
+import com.cico.repository.AssignmentRepository;
 import com.cico.repository.ChapterCompletedRepository;
 import com.cico.repository.ChapterExamResultRepo;
 import com.cico.repository.ChapterRepository;
@@ -69,6 +72,7 @@ import com.cico.service.IExamService;
 import com.cico.util.AppConstants;
 import com.cico.util.ExamType;
 import com.cico.util.NotificationConstant;
+import com.cico.util.SubmissionStatus;
 
 @Service
 public class ExamServiceImpl implements IExamService {
@@ -119,7 +123,8 @@ public class ExamServiceImpl implements IExamService {
 	private QuestionRepo questionRepo;
 
 	private final Map<String, Object> locks = new ConcurrentHashMap<>();
-
+	@Autowired
+	private AssignmentRepository assignmentRepository;
 //	@Override
 //	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
 //		Student student = studentRepository.findById(chapterExamResult.getStudentId())
@@ -1823,4 +1828,340 @@ public class ExamServiceImpl implements IExamService {
 		return questionResponse;
 	}
 
+//........................................... New .........................................
+	@Override
+	public ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDate joiningDate = student.getJoinDate();
+
+		int totalObtained = 0;
+		int totalMax = 0;
+		int passed = 0;
+		int failed = 0;
+		boolean notAttempted = true;
+
+		List<CourseExamResult> courseResults = courseExamResultRepo.findByStudentAndCourse(studentId, courseId);
+		List<SubjectExamResult> subjectResults = subjectExamResultRepo.findByStudentAndCourse(studentId, courseId);
+
+		// 🔹 Calculate for course exams
+		for (CourseExamResult r : courseResults) {
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			notAttempted = false;
+			int obtained = r.getScoreGet();
+			int maxMarks = r.getCourseExam().getTotalQuestionForTest();
+
+			totalObtained += obtained;
+			totalMax += maxMarks;
+			if (obtained >= (maxMarks * 0.4))
+				passed++;
+			else
+				failed++;
+		}
+
+		// 🔹 Calculate for subject exams
+		for (SubjectExamResult r : subjectResults) {
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			notAttempted = false;
+			int obtained = r.getScoreGet();
+			int maxMarks = r.getTotalQuestion();
+
+			totalObtained += obtained;
+			totalMax += maxMarks;
+			if (obtained >= (maxMarks * 0.4))
+				passed++;
+			else
+				failed++;
+		}
+
+		double percentage = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0;
+		if (percentage < 0) {
+			percentage = 0;
+		}
+		// 🔹 Grade Calculation
+		String grade;
+		if (notAttempted || totalMax == 0) {
+			grade = "N/A"; // didn’t attempt any valid exam
+		} else if (percentage == 0) {
+			grade = "F"; // attempted but got zero
+		} else if (percentage >= 90)
+			grade = "A+";
+		else if (percentage >= 80)
+			grade = "A";
+		else if (percentage >= 70)
+			grade = "B";
+		else if (percentage >= 60)
+			grade = "C";
+		else if (percentage >= 50)
+			grade = "D";
+		else
+			grade = "F";
+
+		// -------------------------
+		// 🔹 Rank Calculation
+		// -------------------------
+		List<Student> allStudents = studentRepository.findByCourse_CourseId(courseId);
+		List<Map<String, Object>> allResults = new ArrayList<>();
+
+		for (Student s : allStudents) {
+			int obtainedMarks = 0;
+			int maxMarks = 0;
+
+			for (CourseExamResult r : courseExamResultRepo.findByStudentAndCourse(s.getStudentId(), courseId)) {
+				LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+				if (examDate != null && examDate.isBefore(s.getJoinDate()))
+					continue;
+
+				obtainedMarks += r.getScoreGet();
+				maxMarks += r.getCourseExam().getTotalQuestionForTest();
+			}
+
+			for (SubjectExamResult r : subjectExamResultRepo.findByStudentAndCourse(s.getStudentId(), courseId)) {
+				LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+						.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+						.getScheduleTestDate();
+				if (examDate != null && examDate.isBefore(s.getJoinDate()))
+					continue;
+
+				obtainedMarks += r.getScoreGet();
+				maxMarks += r.getTotalQuestion();
+			}
+
+			double percent = maxMarks > 0 ? (obtainedMarks * 100.0 / maxMarks) : 0;
+			allResults.add(Map.of("studentId", s.getStudentId(), "percentage", percent));
+		}
+
+		// Sort by percentage desc
+		allResults.sort((a, b) -> Double.compare((double) b.get("percentage"), (double) a.get("percentage")));
+
+		// Find current student's rank
+		int rank = 0;
+		for (int i = 0; i < allResults.size(); i++) {
+			if (allResults.get(i).get("studentId").equals(studentId)) {
+				rank = i + 1;
+				break;
+			}
+		}
+		double performancePercentage = student.getPerformancePercentage();
+		double improvementRate = 0.0;
+		if (percentage != performancePercentage) {
+			improvementRate = percentage - performancePercentage;
+		}
+
+		return ResponseEntity.ok(Map.ofEntries(Map.entry("studentId", studentId), Map.entry("courseId", courseId),
+				Map.entry("totalObtained", totalObtained), Map.entry("totalMax", totalMax),
+				Map.entry("percentage", percentage), Map.entry("grade", grade), Map.entry("rank", rank),
+				Map.entry("passed", passed), Map.entry("failed", failed), Map.entry("notAttempted", notAttempted),
+				Map.entry("improvementRate", improvementRate)));
+	}
+
+	private double calculateMonthlyPercentage(Student student, YearMonth month) {
+		LocalDate joiningDate = student.getJoinDate(); // changed getter to LocalDateTime
+
+		int totalObtained = 0;
+		int totalMax = 0;
+
+		// 🔹 Course Exams
+		for (CourseExamResult r : courseExamResultRepo.findByStudentAndCourse(student.getStudentId(),
+				student.getCourse().getCourseId())) {
+
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate == null || examDate.isBefore(student.getJoinDate())) {
+				continue; // skip this exam
+			}
+			LocalDateTime examDateTime = examDate.atStartOfDay();
+
+			if (YearMonth.from(examDateTime.toLocalDate()).equals(month)) {
+				totalObtained += r.getScoreGet();
+				totalMax += r.getCourseExam().getTotalQuestionForTest();
+			}
+		}
+
+		// 🔹 Subject Exams
+		for (SubjectExamResult r : subjectExamResultRepo.findByStudentAndCourse(student.getStudentId(),
+				student.getCourse().getCourseId())) {
+
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate == null || examDate.isBefore(joiningDate))
+				continue;
+			LocalDateTime examDateTime = examDate.atStartOfDay();
+			if (YearMonth.from(examDateTime.toLocalDate()).equals(month)) {
+				totalObtained += r.getScoreGet();
+				totalMax += r.getTotalQuestion();
+			}
+		}
+		double percent = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0.0;
+		if (percent < 0) {
+			percent = 0;
+		}
+
+		return percent;
+	}
+
+	@Override
+	public ResponseEntity<?> getperformanceDataMonthaly(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDateTime joiningDateTime = student.getJoinDate().atStartOfDay();
+		LocalDateTime currentDateTime = LocalDateTime.now();
+
+		YearMonth startMonth = YearMonth.from(joiningDateTime.toLocalDate());
+		YearMonth endMonth = YearMonth.from(currentDateTime.toLocalDate());
+
+		List<Student> courseStudents = studentRepository.findByCourse_CourseId(courseId);
+
+		List<Map<String, Object>> monthlyData = new ArrayList<>();
+
+		YearMonth month = startMonth;
+		while (!month.isAfter(endMonth)) {
+
+			// 🔹 Student exam percentage for this month
+			double studentPercentage = calculateMonthlyPercentage(student, month);
+
+			// 🔹 Course average percentage for this month
+			double totalPercent = 0.0;
+			int count = 0;
+			for (Student s : courseStudents) {
+				double percent = calculateMonthlyPercentage(s, month);
+				totalPercent += percent;
+				count++;
+			}
+			double courseAverage = count > 0 ? totalPercent / count : 0.0;
+
+			// 🔹 Assignment stats for this student in this month
+			LocalDateTime startDateTime = month.atDay(1).atStartOfDay();
+			LocalDateTime endDateTime = month.atEndOfMonth().atTime(23, 59, 59);
+
+			int totalAssignments = assignmentRepository.countAssignmentsByCourseAndMonth(courseId, startDateTime,
+					endDateTime);
+			int completedAssignments = assignmentRepository.countCompletedAssignmentsByStudentAndMonth(courseId,
+					studentId, SubmissionStatus.Accepted, startDateTime, endDateTime);
+			int pendingAssignments = totalAssignments - completedAssignments;
+
+			monthlyData.add(Map.of("month", month.toString(), "studentPercentage", studentPercentage,
+					"courseAveragePercentage", courseAverage, "totalAssignments", totalAssignments,
+					"completedAssignments", completedAssignments, "pendingAssignments", pendingAssignments));
+
+			month = month.plusMonths(1);
+		}
+
+		return ResponseEntity.ok(Map.of("studentId", studentId, "courseId", courseId, "performance", monthlyData));
+	}
+
+	@Override
+	public ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDate joiningDate = student.getJoinDate();
+
+		// Get all subjects of this course
+		List<Subject> subjects = student.getCourse().getSubjects();
+
+		List<Map<String, Object>> subjectPerformanceList = new ArrayList<>();
+
+		for (Subject subject : subjects) {
+			List<SubjectExamResult> subjectResults = subjectExamResultRepo
+					.findByStudent_StudentIdAndSubject_SubjectId(studentId, subject.getSubjectId());
+
+			int totalObtained = 0;
+			int totalMax = 0;
+
+			for (SubjectExamResult r : subjectResults) {
+				LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+						.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+						.getScheduleTestDate();
+
+				if (examDate != null && examDate.isBefore(joiningDate))
+					continue; // skip exams before joining
+
+				totalObtained += r.getScoreGet();
+				totalMax += r.getTotalQuestion();
+			}
+
+			double percentage = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+
+			subjectPerformanceList.add(Map.of("subjectId", subject.getSubjectId(), "subjectName",
+					subject.getSubjectName(), "percentage", percentage));
+		}
+
+		return ResponseEntity.ok(subjectPerformanceList);
+	}
+
+	@Override
+	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		LocalDate joiningDate = student.getJoinDate();
+		List<TestPerformanceResponse> testPerformances = new ArrayList<>();
+
+		// 1️⃣ Course Exam Results
+		List<CourseExamResult> courseResults = courseExamResultRepo.findByStudent_StudentId(studentId);
+		for (CourseExamResult r : courseResults) {
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue; // skip before joining
+
+			int obtained = r.getScoreGet();
+			int total = r.getCourseExam().getTotalQuestionForTest();
+			double percentage = total > 0 ? (obtained * 100.0 / total) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+			Integer examTimer = r.getCourseExam().getExamTimer();
+			LocalTime scheduleTestTime = r.getCourseExam().getExamStartTime();
+			String examName = r.getCourseExam().getExamName(); // make sure examName comes from CourseExam
+
+			testPerformances.add(new TestPerformanceResponse(r.getCourseExam().getExamId(), examName, "SUBJECT",
+					examDate == null ? "" : examDate.toString(), total, obtained, percentage,
+					examTimer == null ? "" : examTimer.toString(),
+					scheduleTestTime == null ? "" : scheduleTestTime.toString(),
+					obtained >= (total * 0.4) ? "PASS" : "FAIL"));
+		}
+
+		// 2️⃣ Subject Exam Results
+		List<SubjectExamResult> subjectResults = subjectExamResultRepo.findByStudent_StudentId(studentId);
+		for (SubjectExamResult r : subjectResults) {
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			int obtained = r.getScoreGet();
+			int total = r.getTotalQuestion();
+			double percentage = total > 0 ? (obtained * 100.0 / total) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+			SubjectExam exam = subjectExamRepo.findById(r.getSubjectExamId()).get();
+			String examName = exam.getExamName();
+			LocalTime scheduleTestTime = exam.getExamStartTime();
+			Integer examTimer = exam.getExamTimer();
+			testPerformances.add(new TestPerformanceResponse(r.getSubjectExamId(), examName, "SUBJECT",
+					examDate == null ? "" : examDate.toString(), total, obtained, percentage,
+					examTimer == null ? "" : examTimer.toString(),
+					scheduleTestTime == null ? "" : scheduleTestTime.toString(),
+					obtained >= (total * 0.4) ? "PASS" : "FAIL"));
+		}
+
+		return ResponseEntity.ok(testPerformances);
+	}
 }
