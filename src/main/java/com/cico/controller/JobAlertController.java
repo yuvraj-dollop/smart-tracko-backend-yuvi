@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cico.model.JobAlert;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.CreateJobRequest;
 import com.cico.payload.JobAlertResponse;
@@ -98,63 +97,60 @@ public class JobAlertController {
 //
 //		return service.getAllJobsAndIntership(page, size);
 //	}
-	
-	
-	//===================================new updated apis=====================================//
-		@PostMapping("/v2/createJobApi")
-		public ResponseEntity<ApiResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
-			service.createJob(request);
-			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));
-		}
-		
-		@GetMapping("/v2/getJobApi")
-		public ResponseEntity<JobAlertResponse> getJob(@RequestParam("jobId") Integer jobId) {
-			JobAlertResponse job = service.getJob(jobId);
-			return new ResponseEntity<>(job, HttpStatus.OK);
-		}
-		
-		@PutMapping("/v2/activeJobApi")
-		public ResponseEntity<JobAlertResponse> activeJob(@RequestParam("jobId") Integer jobId) {
-		    JobAlertResponse jobAlertResponse = service.activeJob(jobId);
-		    return new ResponseEntity<>(jobAlertResponse, HttpStatus.OK);
-		}
-		
-		@PutMapping("/v2/updateAlertJobApi")
-		public ResponseEntity<JobAlertResponse> updateJob(@Valid @RequestBody UpdateJobRequest updateJobRequest) {
-		    JobAlertResponse updated = service.update(updateJobRequest);
-		    return ResponseEntity.status(HttpStatus.OK).body(updated);
-		}
-		
-		@GetMapping("/v2/getAllJobsApi")
-		public PageResponse<JobAlertResponse> getAllJobs(
-		    @RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
-		    @RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size,
-		    @RequestParam(name = "type", defaultValue = "JOB") JobType type
-		) {
-		    return service.getAllJobAlert(page, size, type);
-		}
-		
-		@GetMapping("/v2/getAllJobsAndIntershipApi")
-		public PageResponse<JobAlertResponse> getAllJobsAndIntership(
-		        @RequestParam(name = "page", required = false, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
-		        @RequestParam(name = "size", required = false, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
-		    return service.getAllJobsAndIntership(page, size);
-		}
-		
-		@DeleteMapping("/v2/deleteJobApi")
-		public ResponseEntity<ApiResponse> delete(@RequestParam("jobId") Integer jobId) {
-		    service.delete(jobId);
-		    return ResponseEntity.ok(
-		        new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK)
-		    );
-		}
-	
-		@GetMapping("/v2/searchJobApi")
-		public ResponseEntity<List<JobAlertResponse>> searchJobs(@RequestParam("field") String field,
-				@RequestParam("role") String role) {
-			List<JobAlertResponse> searchJob = service.searchJob(field, role);
 
-			return new ResponseEntity<>(searchJob, HttpStatus.OK);
-		}
+	// ===================================new updated
+	// apis=====================================//
+	@PostMapping("/v2/createJobApi")
+	public ResponseEntity<ApiResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
+		service.createJob(request);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));
+	}
+
+	@GetMapping("/v2/getJobApi")
+	public ResponseEntity<JobAlertResponse> getJob(@RequestParam("jobId") Integer jobId) {
+		JobAlertResponse job = service.getJob(jobId);
+		return new ResponseEntity<>(job, HttpStatus.OK);
+	}
+
+	@PutMapping("/v2/activeJobApi")
+	public ResponseEntity<JobAlertResponse> activeJob(@RequestParam("jobId") Integer jobId) {
+		JobAlertResponse jobAlertResponse = service.activeJob(jobId);
+		return new ResponseEntity<>(jobAlertResponse, HttpStatus.OK);
+	}
+
+	@PutMapping("/v2/updateAlertJobApi")
+	public ResponseEntity<JobAlertResponse> updateJob(@Valid @RequestBody UpdateJobRequest updateJobRequest) {
+		JobAlertResponse updated = service.update(updateJobRequest);
+		return ResponseEntity.status(HttpStatus.OK).body(updated);
+	}
+
+	@GetMapping("/v2/getAllJobsApi")
+	public PageResponse<JobAlertResponse> getAllJobs(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size,
+			@RequestParam(name = "type", defaultValue = "JOB") JobType type) {
+		return service.getAllJobAlert(page, size, type);
+	}
+
+	@GetMapping("/v2/getAllJobsAndIntershipApi")
+	public PageResponse<JobAlertResponse> getAllJobsAndIntership(
+			@RequestParam(name = "page", required = false, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", required = false, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+		return service.getAllJobsAndIntership(page, size);
+	}
+
+	@DeleteMapping("/v2/deleteJobApi")
+	public ResponseEntity<ApiResponse> delete(@RequestParam("jobId") Integer jobId) {
+		service.delete(jobId);
+		return ResponseEntity.ok(new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK));
+	}
+
+	@GetMapping("/v2/searchJobApi")
+	public ResponseEntity<List<JobAlertResponse>> searchJobs(@RequestParam("field") String field,
+			@RequestParam("role") String role) {
+		List<JobAlertResponse> searchJob = service.searchJob(field, role);
+
+		return new ResponseEntity<>(searchJob, HttpStatus.OK);
+	}
 }

@@ -345,4 +345,5 @@ public class StudentController {
 		Map<String, Object> studentData = studentService.getStudentData(studentId);
 		return new ResponseEntity<Map<String, Object>>(studentData, HttpStatus.OK);
 	}
+
 }

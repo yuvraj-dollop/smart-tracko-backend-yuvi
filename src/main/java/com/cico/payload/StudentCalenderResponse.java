@@ -17,4 +17,6 @@ public class StudentCalenderResponse {
 	List<Integer>earlyCheckOut = new ArrayList<>();
 	List<Integer>mispunch = new ArrayList<>();
 	Integer sundayCount = 0;
+	
+	
 }
