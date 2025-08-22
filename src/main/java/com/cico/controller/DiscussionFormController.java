@@ -117,4 +117,18 @@ public class DiscussionFormController {
 		return discussionFormService.addCommentReply(replyRequest);
 	}
 
+	@GetMapping("v2/getAllDiscussionForm")
+	public ResponseEntity<?> getAllDiscussionFormNew(
+			@RequestParam(name = AppConstants.STUDENT_ID, required = false) Integer studentId,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNo) {
+		return this.discussionFormService.getAllDiscussionFormNew(studentId, pageSize, pageNo);
+	}
+
+	@GetMapping("v2/searchingDiscussionFormByAllFields")
+	public ResponseEntity<?> searchingDiscussionFormByAllFields(
+			@RequestParam(name = AppConstants.SEARCH) String search) {
+		return this.discussionFormService.searchingDiscussionFormByAllFields(search);
+	}
+
 }

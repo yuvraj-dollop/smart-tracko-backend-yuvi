@@ -1141,6 +1141,7 @@ public class ExamServiceImpl implements IExamService {
 		Map<String, Object> response = new HashMap<>();
 		CourseExamResult examResult = courseExamResultRepo.findById(resultId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+		System.err.println("------------------------------->     " + examResult.getRandomQuestoinList());
 		List<QuestionResponse> questiosList = questionRepo
 				.findAllByIdAndIsDeletedFalse(examResult.getRandomQuestoinList()).stream()
 				.map(obj -> questionFilter(obj)).collect(Collectors.toList());
@@ -2129,7 +2130,7 @@ public class ExamServiceImpl implements IExamService {
 			LocalTime scheduleTestTime = r.getCourseExam().getExamStartTime();
 			String examName = r.getCourseExam().getExamName(); // make sure examName comes from CourseExam
 
-			testPerformances.add(new TestPerformanceResponse(r.getCourseExam().getExamId(), examName, "SUBJECT",
+			testPerformances.add(new TestPerformanceResponse(r.getCourseExam().getExamId(), examName, "COURSE",
 					examDate == null ? "" : examDate.toString(), total, obtained, percentage,
 					examTimer == null ? "" : examTimer.toString(),
 					scheduleTestTime == null ? "" : scheduleTestTime.toString(),
