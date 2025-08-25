@@ -130,4 +130,6 @@ public interface IStudentService {
 
 	public ResponseEntity<?> getStudentCheckInCheckOutHistoryNew(String startDate, String endDate, Integer offset,
 			Integer limit, String type);
+
+	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year);
 }

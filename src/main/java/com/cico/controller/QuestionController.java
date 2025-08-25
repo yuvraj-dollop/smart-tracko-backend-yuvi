@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.Question;
 import com.cico.service.IQuestionService;
+import com.cico.util.AppConstants;
 
 @RestController
 @RequestMapping("/question")
@@ -134,5 +135,20 @@ public class QuestionController {
 	public ResponseEntity<?> updateQuestionStatus(@RequestParam("questionId") Integer questionId) {
 		questionService.updateQuestionStatus(questionId);
 		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+//	================================= NEW APIs ====================================
+
+	// GET
+	@GetMapping("/v2/getAllCourseQuestionForTest")
+	public ResponseEntity<?> getAllCourseQuestionForTestNew(@RequestParam(AppConstants.EXAM_ID) Integer examId,
+			@RequestParam(AppConstants.STUDENT_ID) Integer studentId) {
+		return questionService.getAllCourseQuestionForTest(examId, studentId);
+	}
+
+	@GetMapping("/v2/getAllSubjectQuestionForTest")
+	public ResponseEntity<?> getAllSubjectQuestionForTestNew(@RequestParam("examId") Integer examId,
+			@RequestParam("studentId") Integer studentId) {
+		return questionService.getAllSubjectQuestionForTest(examId, studentId);
 	}
 }

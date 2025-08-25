@@ -1823,4 +1823,221 @@ public class ExamServiceImpl implements IExamService {
 		return questionResponse;
 	}
 
+	@Override
+	public Integer getRemainingQuestionCountForSubject(Integer subjectId) {
+		Subject subject = subjectRepository.findById(subjectId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND));
+		int subjectTotalQuestionsCount = subject.getQuestions().size();
+		int totalSubjectExamQuetions = subject.getExams().stream().mapToInt(se -> se.getTotalQuestionForTest()).sum();
+		Integer remainingQuestionCount = subjectTotalQuestionsCount - totalSubjectExamQuetions;
+		return remainingQuestionCount;
+	}
+
+	@Override
+	public Integer getRemainingQuestionCountForCourse(Integer courseId) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND));
+
+		int subjectsTotalQuestionsCount = course.getSubjects().stream().mapToInt(s -> s.getQuestions().size()).sum();
+
+		Integer totalQuestionsCountByCourseId = courseExamRepo.getTotalQuestionsByCourseId(courseId);
+
+		return subjectsTotalQuestionsCount - totalQuestionsCountByCourseId;
+	}
+// ==================================== NEW METHOD ===========================
+
+	// add check for questions available or not for this exam
+	@Override
+	public ResponseEntity<?> addCourseExamNew(AddExamRequest request) {
+		Integer remainingQuestionCountForCourse = getRemainingQuestionCountForCourse(request.getCourseId());
+
+		if (!(remainingQuestionCountForCourse >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForCourse);
+
+		}
+
+		Map<String, Object> response = new HashMap<>();
+
+		// 1. Validate course exists
+		Course course = courseRepository.findById(request.getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
+
+		// 2. Check for duplicate exam name in the same course
+		boolean examExists = courseExamRepo.existsByExamNameAndCourseId(request.getExamName().trim(),
+				request.getCourseId());
+
+		if (examExists) {
+			throw new ResourceAlreadyExistException("Exam with this name already exists in the course");
+		}
+
+		// 3. Create new exam
+		CourseExam exam = new CourseExam();
+		exam.setExamName(request.getExamName().trim());
+		exam.setPassingMarks(request.getPassingMarks());
+		exam.setTotalQuestionForTest(request.getTotalQuestionForTest());
+		exam.setExamTimer(request.getExamTimer());
+		exam.setCourse(course);
+
+		// Set technology stack image from course
+		if (course.getTechnologyStack() != null) {
+			exam.setExamImage(course.getTechnologyStack().getImageName());
+		}
+
+		// 4. Handle scheduled exam specific logic
+		if (request.getScheduleTestDate() != null) {
+			LocalDateTime scheduledDateTime = LocalDateTime.of(request.getScheduleTestDate(),
+					request.getExamStartTime());
+
+			// Validate future date
+			if (scheduledDateTime.isBefore(LocalDateTime.now())) {
+				response.put(AppConstants.MESSAGE, "Exam schedule must be in the future");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			// Check for scheduling conflicts
+			List<CourseExam> conflictingExams = courseExamRepo.findScheduledExamsByCourse(request.getCourseId(),
+					request.getScheduleTestDate(), request.getExamStartTime(), request.getExamTimer());
+
+			if (!conflictingExams.isEmpty()) {
+				CourseExam conflictingExam = conflictingExams.get(0);
+				LocalDateTime conflictEnd = LocalDateTime
+						.of(conflictingExam.getScheduleTestDate(), conflictingExam.getExamStartTime())
+						.plusMinutes(conflictingExam.getExamTimer());
+
+				Duration remaining = Duration.between(scheduledDateTime, conflictEnd);
+				String message = String.format(
+						"There's a scheduling conflict with '%s'. Please schedule after %d hours and %d minutes.",
+						conflictingExam.getExamName(), remaining.toHours(), remaining.toMinutesPart());
+
+				response.put(AppConstants.MESSAGE, message);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			exam.setScheduleTestDate(request.getScheduleTestDate());
+			exam.setExamStartTime(request.getExamStartTime());
+			exam.setExamType(ExamType.SCHEDULEEXAM);
+		} else {
+			exam.setExamType(ExamType.NORMALEXAM);
+		}
+
+		// 5. Set audit fields
+		exam.setCreatedDate(LocalDateTime.now());
+		exam.setUpdatedDate(LocalDateTime.now());
+		exam.setIsActive(true);
+		exam.setIsDeleted(false);
+
+		// 6. Save the exam
+		CourseExam savedExam = courseExamRepo.save(exam);
+
+		// 7. Prepare response
+		response.put("courseExam", mapCourseExamToResponse(savedExam));
+		response.put(AppConstants.MESSAGE, "Course exam created successfully");
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
+	@Override
+	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request) {
+		Integer remainingQuestionCountForSubject = getRemainingQuestionCountForSubject(request.getSubjectId());
+
+		if (!(remainingQuestionCountForSubject >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForSubject);
+
+		}
+
+		Map<String, Object> response = new HashMap<>();
+
+		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
+		SubjectExam exam = new SubjectExam();
+
+//		Optional<SubjectExam> isExamExist = subject.getExams().stream()
+//				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
+//
+//		// checking exam existance with the name;
+//		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
+//
+//		if (contains)
+//			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+
+		// UPDATE
+		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),
+				request.getExamName().trim());
+
+		if (existingExam.isPresent()) {
+			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+		}
+
+		// schedule exam case
+		if (request.getScheduleTestDate() != null) {
+			// checking the date must not be before or equals to current date time
+			LocalDateTime scheduledDateTime = changeIntoLocalDateTime(request.getScheduleTestDate(),
+					request.getExamStartTime());
+
+			LocalDateTime currentDateTime = LocalDateTime.now();
+			if (scheduledDateTime.isBefore(currentDateTime) || scheduledDateTime.isEqual(currentDateTime)) {
+				response.put(AppConstants.MESSAGE, "Exam date and time must be in the future");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			// ensuring!. checking exam time not under previous exam duration time
+			SubjectExam latestExam = subjectExamRepo.findLatestExam();
+
+			if (latestExam != null && subject.getExams().contains(latestExam)) {
+
+				LocalDateTime actuallatestExamTime = changeIntoLocalDateTime(latestExam.getScheduleTestDate(),
+						latestExam.getExamStartTime());
+				LocalDateTime latestExamTimeWithDuration = changeIntoLocalDateTime(latestExam.getScheduleTestDate(),
+						latestExam.getExamStartTime().plusMinutes(latestExam.getExamTimer()));
+
+				LocalDateTime requestDateTime = changeIntoLocalDateTime(request.getScheduleTestDate(),
+						request.getExamStartTime());
+
+				if (requestDateTime.isAfter(actuallatestExamTime)
+						&& requestDateTime.isBefore(latestExamTimeWithDuration)) {
+					Duration duration = Duration.between(requestDateTime, latestExamTimeWithDuration);
+
+					long hours = duration.toHours();
+					long minutes = duration.toMinutes() % 60;
+
+					String message = "";
+					if (hours != 0)
+						message = String.format(
+								"Please add the exam after %d hours and %d minutes from request date and time. An another exam is already scheduled during this time. or Add after this time",
+								hours, minutes);
+					else
+						message = String.format(
+								"Please add the exam after  %d minutes  from request date and time. An another exam is already scheduled during this time. or Add after this time",
+								minutes);
+
+					response.put(AppConstants.MESSAGE, message);
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+
+			}
+
+			exam.setScheduleTestDate(request.getScheduleTestDate());
+			exam.setExamStartTime(request.getExamStartTime());
+			exam.setExamType(ExamType.SCHEDULEEXAM);
+
+		} else {
+			exam.setExamType(ExamType.NORMALEXAM);
+		}
+
+		exam.setPassingMarks(request.getPassingMarks());
+		exam.setExamImage(subject.getTechnologyStack().getImageName());
+		exam.setExamName(request.getExamName().trim());
+		exam.setTotalQuestionForTest(request.getTotalQuestionForTest());
+		exam.setExamTimer(request.getExamTimer());
+		exam.setCreatedDate(LocalDateTime.now());
+		exam.setUpdatedDate(LocalDateTime.now());
+		SubjectExam savedExam = subjectExamRepo.save(exam);
+		subject.getExams().add(savedExam);
+		subjectRepository.save(subject);
+
+		response.put(AppConstants.SUBJECT_EXAM, subjectExamResponseFilter(savedExam));
+		response.put(AppConstants.MESSAGE, AppConstants.EXAM_ADDED_SUCCESSFULLY);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 }

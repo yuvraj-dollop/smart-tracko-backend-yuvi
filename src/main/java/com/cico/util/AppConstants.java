@@ -523,4 +523,6 @@ public class AppConstants {
 
 	public static final String HALF_DAY_TYPE_REQUIRED = "Half day type is required";
 
+	public static final String NOT_ENOUGH_QUETIONS = "Not enough questions available in this course. ";
+
 }

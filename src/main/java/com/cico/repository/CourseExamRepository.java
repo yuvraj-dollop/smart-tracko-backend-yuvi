@@ -121,4 +121,7 @@ public interface CourseExamRepository extends JpaRepository<CourseExam, Integer>
 			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
 			@Param("courseId") Integer courseId, @Param("studentId") Integer studentId);
 
+	@Query("SELECT COALESCE(SUM(e.totalQuestionForTest), 0) FROM CourseExam e WHERE e.course.courseId = :courseId")
+	Integer getTotalQuestionsByCourseId(@Param("courseId") Integer courseId);
+
 }

@@ -2468,6 +2468,50 @@ public class StudentServiceImpl implements IStudentService {
 		return ChronoUnit.DAYS.between(startOfWeek, endOfWeek) + 1; // 6 days (Mon-Sat)
 	}
 
+	@Override
+	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year) {
+		String token = util.getToken();
+		String username = util.getUsername(token);
+		Integer studentId = Integer.parseInt(util.getHeader(token, AppConstants.STUDENT_ID_KEY_FOR_TOKEN).toString());
+
+		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
+		Boolean validateToken = util.validateToken(token, username);
+
+		Map<String, Object> map = new HashMap<>();
+		List<CheckinCheckoutHistoryResponse> historyDto = new ArrayList<>();
+
+		if (validateToken) {
+			List<Attendance> findByStudentIdAndMonthNo = attendenceRepository.findAttendanceByMonthAndYear(studentId,
+					monthNo, year);
+
+			for (Attendance attendance : findByStudentIdAndMonthNo) {
+				StudentWorkReport stdWorkReport = workReportRepository.findByAttendanceId(attendance.getAttendanceId());
+				CheckinCheckoutHistoryResponse cicoHistoryObjDto = getCicoHistoryObjDto(attendance);
+				if (stdWorkReport != null) {
+					cicoHistoryObjDto.setWorkReport(stdWorkReport.getWorkReport());
+					cicoHistoryObjDto.setAttachment(stdWorkReport.getAttachment());
+				}
+				historyDto.add(cicoHistoryObjDto);
+			}
+
+			Collections.reverse(findByStudentIdAndMonthNo);
+
+			if (!findByStudentIdAndMonthNo.isEmpty()) {
+				map.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+
+				map.put("AttendanceData", historyDto);
+			} else {
+				map.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+
+				map.put("AttendanceData", findByStudentIdAndMonthNo);
+			}
+		} else {
+			map.put(AppConstants.MESSAGE, AppConstants.UNAUTHORIZED);
+
+		}
+		return map;
+	}
+
 	private long getTotalWorkingDaysOfCurrentMonth() {
 		YearMonth yearMonth = YearMonth.now();
 		LocalDate start = yearMonth.atDay(1);

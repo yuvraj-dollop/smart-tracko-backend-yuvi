@@ -3,10 +3,12 @@ package com.cico.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,5 +47,14 @@ public class AttendanceController {
 			@RequestParam(name = AppConstants.TYPE, required = false) String type) {
 
 		return studentService.getStudentCheckInCheckOutHistoryNew(startDate, endDate, pageNumber, pageSize, type);
+	}
+
+	@GetMapping("v2/studentAttendanceMonthFilter")
+	public ResponseEntity<Map<String, Object>> studentAttendanceMonthFilter(
+			@RequestHeader(name = AppConstants.AUTHORIZATION) HttpHeaders header,
+			@RequestParam("monthNo") Integer monthNo, @RequestParam("year") Integer year) {
+		Map<String, Object> studentAttendanceMonthFilter = studentService.studentAttendanceMonthFilter(header, monthNo,
+				year);
+		return ResponseEntity.ok(studentAttendanceMonthFilter);
 	}
 }
