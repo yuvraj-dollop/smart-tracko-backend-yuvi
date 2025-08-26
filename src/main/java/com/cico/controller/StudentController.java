@@ -34,8 +34,8 @@ import com.cico.util.AppConstants;
 @CrossOrigin("*")
 public class StudentController {
 
-//	@Autowired
-//	AuthenticationManager manager;
+	// @Autowired
+	// AuthenticationManager manager;
 
 	@Autowired
 	private IStudentService studentService;

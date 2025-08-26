@@ -64,7 +64,9 @@ import com.cico.payload.MockResponse;
 import com.cico.payload.NotificationInfo;
 import com.cico.payload.OnLeavesResponse;
 import com.cico.payload.PageResponse;
+import com.cico.payload.StatusCountDTO;
 import com.cico.payload.StudentCalenderResponse;
+import com.cico.payload.StudentCalenderResponseNew;
 import com.cico.payload.StudentLoginResponse;
 import com.cico.payload.StudentPresentAndEarlyCheckOut;
 import com.cico.payload.StudentReponseForWeb;
@@ -502,7 +504,8 @@ public class StudentServiceImpl implements IStudentService {
 			if (latitude != null && longitude != null && time != null && date != null && type != null && !type.isEmpty()
 					&& studentImage != null && studentImage.getOriginalFilename() != null) {
 				Integer studentId = Integer.parseInt(util
-						.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+						.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 				Attendance attendanceData = attendenceRepository.findByStudentIdAndCheckInDate(studentId,
 						LocalDate.parse(date));
 				if (type.equals(AppConstants.CHECK_IN)) {
@@ -647,7 +650,8 @@ public class StudentServiceImpl implements IStudentService {
 
 		String username = util.getUsername(header.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
 
 		StudentResponse studentResponseDto = new StudentResponse();
@@ -785,7 +789,8 @@ public class StudentServiceImpl implements IStudentService {
 		if (validateToken) {
 
 			Integer studentId = Integer.parseInt(
-					util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+					util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+							.toString());
 			if (time != null && date != null && workReport != null) {
 				Attendance attendanceData = attendenceRepository.findByStudentIdAndCheckInDate(studentId,
 						LocalDate.parse(date));
@@ -858,7 +863,8 @@ public class StudentServiceImpl implements IStudentService {
 		if (validateToken) {
 
 			Integer studentId = Integer.parseInt(
-					util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+					util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+							.toString());
 			LocalDate currentDate = LocalDate.now();
 			Student findByStudentId = studRepo.findByStudentId(studentId);
 			if (findByStudentId != null) {
@@ -922,7 +928,8 @@ public class StudentServiceImpl implements IStudentService {
 		CheckoutResponse checkoutResponseDto = new CheckoutResponse();
 		String username = util.getUsername(header.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
 		Boolean validateToken = util.validateToken(header.getFirst(AppConstants.AUTHORIZATION), student.getUserId());
 
@@ -1004,7 +1011,8 @@ public class StudentServiceImpl implements IStudentService {
 			Integer offset, Integer limit, String type) {
 		String username = util.getUsername(header.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		LocalDate localStartDate = LocalDate.parse(startDate);
 		boolean validateToken = util.validateToken(header.getFirst(AppConstants.AUTHORIZATION), username);
 		Map<String, Object> response = new HashMap<>();
@@ -1170,7 +1178,8 @@ public class StudentServiceImpl implements IStudentService {
 	public Map<String, Object> studentAttendanceMonthFilter(HttpHeaders header, Integer monthNo, Integer year) {
 		String username = util.getUsername(header.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
 		Boolean validateToken = util.validateToken(header.getFirst(AppConstants.AUTHORIZATION), student.getUserId());
 
@@ -2064,7 +2073,8 @@ public class StudentServiceImpl implements IStudentService {
 
 		String username = util.getUsername(header.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(header.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
 		Boolean validateToken = util.validateToken(header.getFirst(AppConstants.AUTHORIZATION), student.getUserId());
 
@@ -2165,4 +2175,354 @@ public class StudentServiceImpl implements IStudentService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	// ===================================== new
+	// methods==================================
+
+	@Override
+	public Map<String, Object> getCalenderDataNew(Integer id, Integer month, Integer year) { // working code
+		Map<String, Object> response = new HashMap<>();
+		Student student = studRepo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND + " with ID: " + id));
+
+		LocalDate joinDate = student.getJoinDate();
+
+		LocalDate requestedMonth = LocalDate.of(year, month, 1);
+
+		if (!requestedMonth.isBefore(joinDate.withDayOfMonth(1))
+				&& !requestedMonth.isAfter(LocalDate.now().withDayOfMonth(1))) {
+
+			List<Map<String, Object>> calenderData = new ArrayList<>();
+
+			// Get the first day of the month
+			LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+			YearMonth yearMonth = YearMonth.of(year, month);
+			int lastDay = yearMonth.lengthOfMonth();
+			LocalDate lastDayOfMonth = LocalDate.of(year, month, lastDay);
+			LocalDate currentDay = firstDayOfMonth;
+			StudentCalenderResponseNew data = new StudentCalenderResponseNew();
+			LocalDate currentDate = LocalDate.now();
+
+			int sundayCount = 0;
+			LocalDate tempDate = firstDayOfMonth;
+			while (!tempDate.isAfter(lastDayOfMonth)) {
+				if (tempDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+					sundayCount++;
+				}
+				tempDate = tempDate.plusDays(1);
+			}
+
+			if (LocalDate.now().getYear() != year || month <= LocalDate.now().getMonthValue()) {
+				// counting total leaves
+				List<Leaves> leavesData = leaveRepository.findAllByStudentIdForCurrentMonth(id, month, year);
+				for (Leaves list : leavesData) {
+					LocalDate startLeaveDate = list.getLeaveDate();
+					LocalDate endLeaveDate = list.getLeaveEndDate();
+
+					while (!startLeaveDate.isAfter(endLeaveDate)) {
+						calenderData.add(Map.of("date", startLeaveDate.getDayOfMonth(), "status", "leave"));
+						startLeaveDate = startLeaveDate.plusDays(1);
+					}
+				}
+
+				currentDay = firstDayOfMonth;
+
+				List<Attendance> studentAttendanceList = attendenceRepository.findByStudentIdForCurrentMonthNew(id,
+						month, year);
+				for (Attendance attendance : studentAttendanceList) {
+					LocalDate attendanceDate = attendance.getCheckInDate();
+					calenderData
+							.add(Map.of("date", attendanceDate.getDayOfMonth(), "checkIn", attendance.getCheckInTime(),
+									"checkOut", attendance.getCheckOutTime(), "status", "present"));
+				}
+
+				List<Attendance> obj1 = attendenceRepository.countTotalEarlyCheckOutForCurrent1New(id, month, year);
+				for (Attendance attendance : obj1) {
+					LocalDate attendanceDate = attendance.getCheckInDate();
+					calenderData
+							.add(Map.of("date", attendanceDate.getDayOfMonth(), "checkIn", attendance.getCheckInTime(),
+									"checkOut", attendance.getCheckOutTime(), "status", "earlyCheckOut"));
+				}
+
+				List<Attendance> obj2 = attendenceRepository.countTotalMishpunchForCurrentYear1(id, month, year);
+				for (Attendance attendance : obj2) {
+					LocalDate attendanceDate = attendance.getCheckInDate();
+					calenderData.add(Map.of("date", attendanceDate.getDayOfMonth(), "checkIn",
+							attendance.getCheckInTime(), "status", "mispunch"));
+				}
+
+				// getting total absent for current month and till today date
+				if (currentDate.getMonthValue() == month && LocalDate.now().getYear() == year) {
+					if (month == joinDate.getMonth().getValue() && (year == joinDate.getYear())) {
+						currentDay = joinDate;
+					}
+					while (currentDay.getDayOfMonth() <= currentDate.getDayOfMonth() - 1
+							&& !currentDay.isAfter(lastDayOfMonth)) {
+						LocalDate loopDate = currentDay; // make a final copy for lambda
+						boolean alreadyMarked = calenderData.stream()
+								.anyMatch(entry -> entry.get("date").equals(loopDate.getDayOfMonth()));
+						if (!alreadyMarked && currentDay.getDayOfWeek() != DayOfWeek.SUNDAY) {
+							calenderData.add(Map.of("date", currentDay.getDayOfMonth(), "status", "absent"));
+						}
+						currentDay = currentDay.plusDays(1);
+					}
+				} else {// getting absent for previous month from current month
+					if (month <= joinDate.getMonth().getValue() && (year <= joinDate.getYear())) {
+						currentDay = joinDate;
+					}
+					while (!currentDay.isAfter(lastDayOfMonth)) {
+						LocalDate loopDate = currentDay; // make a final copy for lambda
+						boolean alreadyMarked = calenderData.stream()
+								.anyMatch(entry -> entry.get("date").equals(loopDate.getDayOfMonth()));
+						if (!alreadyMarked && currentDay.getDayOfWeek() != DayOfWeek.SUNDAY) {
+							calenderData.add(Map.of("date", currentDay.getDayOfMonth(), "status", "absent"));
+						}
+						currentDay = currentDay.plusDays(1);
+					}
+				}
+			}
+			Map<String, Object> attendanceStats = this.getAttendanceStats(id, joinDate);
+
+			data.setAttendanceStats(attendanceStats);
+			data.setCalenderData(calenderData);
+			data.setSundayCount(sundayCount);
+			response.put("StudentCalenderData", data);
+			response.put(AppConstants.STATUS, true);
+		} else {
+
+			response.put("status", false);
+		}
+		return response;
+	}
+
+	public Map<String, Object> getAttendanceStats(Integer studentId, LocalDate joinDate) {
+		Map<String, Object> response = new HashMap<>();
+
+		LocalDate today = LocalDate.now();
+		LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
+		LocalDate endOfWeek = today.with(DayOfWeek.SATURDAY);
+		LocalDate yesterday = today.minusDays(1);
+
+		// Default values
+		long overallPresent = 0;
+		long totalOverallDays = 0;
+		double overallPercentage = 0.0;
+		double avgHours = 0.0;
+		long monthlyPresent = 0;
+		double monthlyPercentage = 0.0;
+		long weeklyPresent = 0;
+		double weeklyPercentage = 0.0;
+
+		long totalWeekDays = getTotalWeekDaysOfCurrentWeek();
+		long totalMonthDays = getTotalWorkingDaysOfCurrentMonth();
+
+		if (!joinDate.isAfter(yesterday)) {
+			// ---------------- WEEKLY STATS ----------------
+
+//			 attendenceRepository.countByStudentIdAndCheckOutStatusAndCheckInDateBetween(studentId,
+//					"present", startOfWeek, endOfWeek);
+
+			weeklyPresent = attendenceRepository
+					.countByStudentIdAndWorkingHourGreaterThanAndIsMispunchFalseAndCheckInDateBetween(studentId, 32400L,
+							startOfWeek, endOfWeek);
+			weeklyPercentage = (totalWeekDays > 0) ? (weeklyPresent * 100.0 / totalWeekDays) : 0;
+
+			// ---------------- MONTHLY STATS ----------------
+
+			monthlyPresent = attendenceRepository.countPresentStudentsForCurrentMonth(studentId);
+			monthlyPercentage = (totalMonthDays > 0) ? (monthlyPresent * 100.0 / totalMonthDays) : 0;
+
+			// ---------------- OVERALL STATS ----------------
+
+			overallPresent = attendenceRepository
+					.countByStudentIdAndWorkingHourGreaterThanAndIsMispunchFalseAndCheckInDateBetween(studentId, 32400L,
+							joinDate, yesterday);
+			totalOverallDays = getTotalWorkingDaysSinceJoining(studentId, joinDate);
+			overallPercentage = (totalOverallDays > 0) ? (overallPresent * 100.0 / totalOverallDays) : 0;
+
+			// ---------------- AVG HOURS (CURRENT MONTH) ----------------
+
+			avgHours = attendenceRepository.findAverageWorkingHoursForCurrentMonth(studentId);
+			avgHours = avgHours / 3600; // convert seconds → hours
+		}
+
+		// ---------------- BUILD RESPONSE ----------------
+		response.put("thisWeek",
+				Map.of("percentage", weeklyPercentage, "present", weeklyPresent, "total", totalWeekDays));
+		response.put("thisMonth",
+				Map.of("percentage", monthlyPercentage, "present", monthlyPresent, "total", totalMonthDays));
+		response.put("overall",
+				Map.of("percentage", overallPercentage, "present", overallPresent, "total", totalOverallDays));
+		response.put("avgHours", avgHours);
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> getAttendanceAnalytics(Integer id) {
+		Student student = studRepo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND + " with ID: " + id));
+
+		LocalDate joinDate = student.getJoinDate();
+		LocalDate yesterday = LocalDate.now().minusDays(1);
+
+		Map<String, Object> response = new HashMap<>();
+
+		// If student hasn't joined yet
+		if (joinDate.isAfter(yesterday)) {
+			response.put("attendanceStatusCounts", Collections.emptyMap());
+			response.put("totalOverallDays", 0L);
+			response.put("presentPercentage", 0.0);
+			return response;
+		}
+
+		// Fetch attendance counts (status -> count)
+		Map<String, Long> chartData = attendenceRepository.getAttendanceStatusCounts(id, joinDate, yesterday).stream()
+				.collect(Collectors.toMap(StatusCountDTO::getStatus, StatusCountDTO::getCount));
+
+		// Ensure all statuses exist with at least 0
+		chartData.putIfAbsent("present", 0L);
+		chartData.putIfAbsent("earlyCheckOut", 0L);
+		chartData.putIfAbsent("mispunch", 0L);
+
+		Long countTotalLeaves = leaveRepository.countTotalLeavesFromJoinedDateToYesteday(id, joinDate, yesterday);
+
+		chartData.put("leaves", countTotalLeaves);
+
+		long total = chartData.values().stream().mapToLong(Long::longValue).sum();
+
+		long totalOverallDays = getTotalWorkingDaysSinceJoining(id, joinDate);
+
+		chartData.put("absent", totalOverallDays - total);
+		double presentPercentage = totalOverallDays > 0
+				? (chartData.getOrDefault("present", 0L) * 100.0) / totalOverallDays
+				: 0.0;
+
+		response.put("attendanceStatusCounts", chartData);
+		response.put("totalOverallDays", totalOverallDays);
+		response.put("presentPercentage", presentPercentage);
+
+		return response;
+	}
+
+	@Override
+	public ResponseEntity<?> getStudentCheckInCheckOutHistoryNew(String startDate, String endDate, Integer offset,
+			Integer limit, String type) {
+		String token = util.getToken();
+		String username = util.getUsername(token);
+		Integer studentId = Integer.parseInt(util.getHeader(token, AppConstants.STUDENT_ID_KEY_FOR_TOKEN).toString());
+
+		LocalDate localStartDate = LocalDate.parse(startDate);
+		Boolean validateToken = util.validateToken(token, username);
+		Map<String, Object> response = new HashMap<>();
+
+		if (validateToken) {
+			System.err.println((Objects.nonNull(type)));
+			if (Objects.nonNull(type)) {
+				if (type.equalsIgnoreCase("ALL")) {
+					Student student = studRepo.findByUserId(username);
+					startDate = student.getJoinDate().toString();
+					localStartDate = (startDate != null) ? LocalDate.parse(startDate) : LocalDate.now().minusMonths(1);
+				}
+			}
+			List<Attendance> attendanceHistory = attendenceRepository.findAttendanceHistory(studentId, localStartDate,
+					LocalDate.parse(endDate), offset, limit);
+			Page<Attendance> pageData = attendenceRepository.findAttendanceHistory(studentId,
+					LocalDate.parse(startDate), LocalDate.parse(endDate), PageRequest.of(0, 10));
+			List<CheckinCheckoutHistoryResponse> historyDto = new ArrayList<>();
+			if (!attendanceHistory.isEmpty()) {
+				// List<Attendance> content = attendanceHistory.getContent();
+				for (Attendance attendance : attendanceHistory) {
+					StudentWorkReport stdWorkReport = workReportRepository
+							.findByAttendanceId(attendance.getAttendanceId());
+					CheckinCheckoutHistoryResponse cicoHistoryObjDto = getCicoHistoryObjDto(attendance);
+					if (stdWorkReport != null) {
+						cicoHistoryObjDto.setWorkReport(stdWorkReport.getWorkReport());
+						cicoHistoryObjDto.setAttachment(stdWorkReport.getAttachment());
+					}
+					historyDto.add(cicoHistoryObjDto);
+				}
+
+				Map<String, Object> map = new HashMap<>();
+				map.put("attendance", historyDto);
+//				map.put("totalPages", attendanceHistory.getTotalPages());
+				map.put("totalAttendance", pageData.getTotalElements());
+//				map.put("currentPage", attendanceHistory.getNumber());
+//				map.put("pageSize", attendanceHistory.getNumberOfElements());
+				response.put("response", map);
+				response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				response.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		}
+		response.put(AppConstants.MESSAGE, AppConstants.UNAUTHORIZED);
+		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+	}
+
+	// Helper methods
+	private long getTotalWeekDaysOfCurrentWeek() {
+		LocalDate today = LocalDate.now();
+		LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
+		LocalDate endOfWeek = today.with(DayOfWeek.SATURDAY);
+		return ChronoUnit.DAYS.between(startOfWeek, endOfWeek) + 1; // 6 days (Mon-Sat)
+	}
+
+	@Override
+	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year) {
+		String token = util.getToken();
+		String username = util.getUsername(token);
+		Integer studentId = Integer.parseInt(util.getHeader(token, AppConstants.STUDENT_ID_KEY_FOR_TOKEN).toString());
+
+		Student student = studRepo.findByUserIdAndIsActive(username, true).get();
+		Boolean validateToken = util.validateToken(token, username);
+
+		Map<String, Object> map = new HashMap<>();
+		List<CheckinCheckoutHistoryResponse> historyDto = new ArrayList<>();
+
+		if (validateToken) {
+			List<Attendance> findByStudentIdAndMonthNo = attendenceRepository.findAttendanceByMonthAndYear(studentId,
+					monthNo, year);
+
+			for (Attendance attendance : findByStudentIdAndMonthNo) {
+				StudentWorkReport stdWorkReport = workReportRepository.findByAttendanceId(attendance.getAttendanceId());
+				CheckinCheckoutHistoryResponse cicoHistoryObjDto = getCicoHistoryObjDto(attendance);
+				if (stdWorkReport != null) {
+					cicoHistoryObjDto.setWorkReport(stdWorkReport.getWorkReport());
+					cicoHistoryObjDto.setAttachment(stdWorkReport.getAttachment());
+				}
+				historyDto.add(cicoHistoryObjDto);
+			}
+
+			Collections.reverse(findByStudentIdAndMonthNo);
+
+			if (!findByStudentIdAndMonthNo.isEmpty()) {
+				map.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+
+				map.put("AttendanceData", historyDto);
+			} else {
+				map.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+
+				map.put("AttendanceData", findByStudentIdAndMonthNo);
+			}
+		} else {
+			map.put(AppConstants.MESSAGE, AppConstants.UNAUTHORIZED);
+
+		}
+		return map;
+	}
+
+	private long getTotalWorkingDaysOfCurrentMonth() {
+		YearMonth yearMonth = YearMonth.now();
+		LocalDate start = yearMonth.atDay(1);
+		LocalDate end = yearMonth.atEndOfMonth();
+
+		return start.datesUntil(end.plusDays(1)).filter(d -> d.getDayOfWeek() != DayOfWeek.SUNDAY).count();
+	}
+
+	private long getTotalWorkingDaysSinceJoining(Integer studentId, LocalDate joinDate) {
+		LocalDate yesterday = LocalDate.now().minusDays(1);
+
+		return joinDate.datesUntil(yesterday.plusDays(1)).filter(d -> d.getDayOfWeek() != DayOfWeek.SUNDAY).count();
+	}
 }

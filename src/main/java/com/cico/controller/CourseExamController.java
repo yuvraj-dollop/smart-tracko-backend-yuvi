@@ -23,62 +23,63 @@ import com.cico.util.AppConstants;
 @CrossOrigin("*")
 public class CourseExamController {
 
-    @Autowired
-    private IExamService examService;
+	@Autowired
+	private IExamService examService;
 
-    // =============== EXAM RESULT OPERATIONS ===============
-    @PostMapping("/addCourseExamResult")
-    public ResponseEntity<?> addCourseExamResult(@Valid @RequestBody ExamRequest request) {
-        return examService.addCourseExamResult(request);
-    }
+	// =============== EXAM RESULT OPERATIONS ===============
+	@PostMapping("/addCourseExamResult")
+	public ResponseEntity<?> addCourseExamResult(@Valid @RequestBody ExamRequest request) {
+		return examService.addCourseExamResult(request);
+	}
 
-    @GetMapping("/getCourseExamResult")
-    public ResponseEntity<?> getCourseExamResult(@RequestParam(name=AppConstants.RESULT_ID) Integer resultId) {
-        return examService.getCourseExamResult(resultId);
-    }
+	@GetMapping("/getCourseExamResult")
+	public ResponseEntity<?> getCourseExamResult(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getCourseExamResult(resultId);
+	}
 
-    @GetMapping("/getCourseExamResultsBExamId")
-    public ResponseEntity<?> getCourseExamResultsByExamId(@RequestParam(name=AppConstants.EXAM_ID) Integer examId) {
-        return examService.getCourseExamResultsByExamId(examId);
-    }
+	@GetMapping("/getCourseExamResultsBExamId")
+	public ResponseEntity<?> getCourseExamResultsByExamId(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.getCourseExamResultsByExamId(examId);
+	}
 
-    // =============== EXAM MANAGEMENT ===============
-    @PostMapping("/addCourseExam")
-    public ResponseEntity<?> addCourseExam(@Valid @RequestBody AddExamRequest request) {
-        return examService.addCourseExam(request);
-    }
+	// =============== EXAM MANAGEMENT ===============
+	// changes addCourseExam() to addCourseExamNew()
+	@PostMapping("/addCourseExam")
+	public ResponseEntity<?> addCourseExam(@Valid @RequestBody AddExamRequest request) {
+		return examService.addCourseExamNew(request);
+	}
 
-    @PutMapping("/updateCourseExam")
-    public ResponseEntity<?> updateCourseExam(@Valid @RequestBody AddExamRequest request) {
-        return examService.updateCourseExam(request);
-    }
+	@PutMapping("/updateCourseExam")
+	public ResponseEntity<?> updateCourseExam(@Valid @RequestBody AddExamRequest request) {
+		return examService.updateCourseExam(request);
+	}
 
-    @PutMapping("/deleteExamById")
-    public ResponseEntity<?> deleteExamById(@RequestParam(name=AppConstants.EXAM_ID) Integer examId) {
-        return examService.deleteExamById(examId);
-    }
+	@PutMapping("/deleteExamById")
+	public ResponseEntity<?> deleteExamById(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.deleteExamById(examId);
+	}
 
-    // =============== EXAM STATUS OPERATIONS ===============
-    @PutMapping("/setCourseExamStartStatus")
-    public ResponseEntity<?> setCourseExamStartStatus(@RequestParam(name=AppConstants.EXAM_ID) Integer examId) {
-        return examService.setCourseExamStartStatus(examId);
-    }
+	// =============== EXAM STATUS OPERATIONS ===============
+	@PutMapping("/setCourseExamStartStatus")
+	public ResponseEntity<?> setCourseExamStartStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.setCourseExamStartStatus(examId);
+	}
 
-    @PutMapping("/changeCourseExamStatus")
-    public ResponseEntity<?> changeCourseExamStatus(@RequestParam(name=AppConstants.EXAM_ID) Integer examId) {
-        return examService.changeCourseExamStatus(examId);
-    }
+	@PutMapping("/changeCourseExamStatus")
+	public ResponseEntity<?> changeCourseExamStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.changeCourseExamStatus(examId);
+	}
 
-    // =============== EXAM RETRIEVAL ===============
-    @GetMapping("/getAllCourseNormalAndScheduleExamForStudent")
-    public ResponseEntity<?> getAllCourseNormalAndScheduleExamForStudent(
-            @RequestParam(name=AppConstants.STUDENT_ID) Integer studentId) {
-        return examService.getAllCourseNormalAndScheduleExamForStudent(studentId);
-    }
+	// =============== EXAM RETRIEVAL ===============
+	@GetMapping("/getAllCourseNormalAndScheduleExamForStudent")
+	public ResponseEntity<?> getAllCourseNormalAndScheduleExamForStudent(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return examService.getAllCourseNormalAndScheduleExamForStudent(studentId);
+	}
 
-    @GetMapping("/getAllCourseNormalAndScheduleExam")
-    public ResponseEntity<?> getAllCourseNormalAndScheduleExam(
-            @RequestParam(name=AppConstants.COURSE_ID) Integer courseId) {
-        return examService.getAllCourseNormalAndScheduleExam(courseId);
-    }
+	@GetMapping("/getAllCourseNormalAndScheduleExam")
+	public ResponseEntity<?> getAllCourseNormalAndScheduleExam(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
+		return examService.getAllCourseNormalAndScheduleExam(courseId);
+	}
 }

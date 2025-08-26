@@ -1,5 +1,7 @@
 package com.cico.controller;
 
+import java.util.Map;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cico.payload.AddExamRequest;
 import com.cico.payload.ExamRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.TestFilterRequest;
 import com.cico.service.IExamService;
 import com.cico.util.AppConstants;
@@ -101,9 +104,10 @@ public class ExamController {
 	}
 
 	// POST
+	// changes addSubjectExam() to addSubjectExamNew()
 	@PostMapping("/addSubjectExam")
 	public ResponseEntity<?> addSubjectExam(@Valid @RequestBody AddExamRequest request) {
-		return examService.addSubjectExam(request);
+		return examService.addSubjectExamNew(request);
 	}
 
 	@PostMapping("/addSubjectExamResult")
@@ -196,7 +200,8 @@ public class ExamController {
 		return this.examService.addChapterExamResult(chapterExamResult);
 	}
 
-//................................................... New ......................................................
+	// ................................................... New
+	// ......................................................
 	@GetMapping("/v2/getPerformanceDataOfStudent")
 	public ResponseEntity<?> getResultCountsDataOfStudent(
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
@@ -218,4 +223,96 @@ public class ExamController {
 	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
 		return examService.getAllTestperformanceDataOfStudent(studentId);
 	}
+	// =========== TEST RELATED ===============
+
+	// for admin use
+	@GetMapping("/v2/getRemainingQuestionCountForSubject")
+	public ResponseEntity<?> getRemainingQuestionCountForSubject(
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
+		return ResponseEntity.ok(
+				Map.of("remainingQuestionCountForSubject", examService.getRemainingQuestionCountForSubject(subjectId)));
+	}
+
+	// for admin use
+	@GetMapping("/v2/getRemainingQuestionCountForCourse")
+	public ResponseEntity<?> getRemainingQuestionCountForCourse(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer course) {
+		return ResponseEntity
+				.ok(Map.of("remainingQuestionCountForCourse", examService.getRemainingQuestionCountForCourse(course)));
+	}
+
+	@GetMapping("/v2/getAllCourseExamsByExamTypes")
+	public ResponseEntity<?> filterCourseSubjectTestNew(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNumber) {
+
+		// create TestFilterRequest manually
+		TestFilterRequest request = new TestFilterRequest();
+		request.setCourseId(courseId);
+		request.setSubjectId(subjectId);
+		request.setStudentId(studentId);
+		request.setStatus(status);
+		request.setPaginationRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
+
+		return examService.filterCourseSubjectTest(examType, request);
+	}
+
+	// GET
+	@GetMapping("/v2/getCourseExamResult")
+	public ResponseEntity<?> getCourseExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getCourseExamResult(resultId);
+	}
+
+	// PUT
+	@PutMapping("/v2/setCourseExamStartStatus")
+	public ResponseEntity<?> setCourseExamStartStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.setCourseExamStartStatus(examId);
+	}
+
+	// POST
+	@PostMapping("/v2/addCourseExamResult")
+	public ResponseEntity<?> addCourseExamResultNew(@Valid @RequestBody ExamRequest courseExamResult) {
+		return this.examService.addCourseExamResult(courseExamResult);
+	}
+
+	@GetMapping("/v2/getSubjectExamResult")
+	public ResponseEntity<?> getSubjectExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getSubjectExamResult(resultId);
+	}
+
+	@PutMapping("/v2/setSubjectExamStartStatus")
+	public ResponseEntity<?> setSubjectExamStartStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.setSubjectExamStartStatus(examId);
+	}
+
+	@PostMapping("/v2/addSubjectExamResult")
+	public ResponseEntity<?> addSubjectExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
+		return this.examService.addSubjectExamResult(chapterExamResult);
+	}
+
+	@GetMapping("/v2/searchAllCourseExamsByExamTypes")
+	public ResponseEntity<?> searchCourseSubjectTestNew(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@RequestParam(name = AppConstants.SEARCH) String search,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNumber) {
+
+		// create TestFilterRequest manually
+		TestFilterRequest request = new TestFilterRequest();
+		request.setCourseId(courseId);
+		request.setSubjectId(subjectId);
+		request.setStudentId(studentId);
+		request.setStatus(status);
+		request.setPaginationRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
+
+		return examService.searchCourseSubjectTest(examType, request, search);
+	}
+
 }

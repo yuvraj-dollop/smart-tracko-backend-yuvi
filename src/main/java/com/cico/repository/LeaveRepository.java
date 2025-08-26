@@ -47,42 +47,43 @@ public interface LeaveRepository extends JpaRepository<Leaves, Integer> {
 	@Transactional
 	@Modifying
 	@Query("UPDATE Leaves  l SET l.leaveStatus=:status WHERE l.studentId =:studentId AND l.leaveId =:leaveId ")
-	public int updateStudentLeaves(@Param("studentId") Integer studentId,@Param("status") Integer status, @Param("leaveId") Integer leaveId );
-    
+	public int updateStudentLeaves(@Param("studentId") Integer studentId, @Param("status") Integer status,
+			@Param("leaveId") Integer leaveId);
+
 	public Leaves findByStudentId(Integer StudentId);
-	
+
 	@Query("SELECT l from Leaves l WHERE l.studentId=:studentId AND l.leaveStatus=:active")
-	public Page<Leaves> getStudentAllLeavesAndApproved(@Param("studentId") Integer studentId,@Param("active") Integer active, PageRequest pageRequest);
-	
+	public Page<Leaves> getStudentAllLeavesAndApproved(@Param("studentId") Integer studentId,
+			@Param("active") Integer active, PageRequest pageRequest);
+
 	@Query("SELECT COUNT(l) FROM Leaves l WHERE MONTH(l.leaveDate) = :month and DAY(l.leaveDate)!=7 and l.leaveDayType='Full Day'")
 	public Long countLeaveStudentsByMonth(@Param("month") Integer month);
 
 	@Query("SELECT MONTH(l.leaveDate) AS month, SUM(l.leaveDuration) AS total_leave_days  FROM  Leaves l WHERE YEAR(l.leaveDate) =:year AND l.studentId=:studentId AND l.leaveDayType='Full Day' AND l.leaveStatus=1 GROUP BY MONTH(l.leaveDate)")
-	public List<Object[]> getMonthWiseLeavesForYear(@Param("year") Integer year,@Param("studentId") Integer studentId);
+	public List<Object[]> getMonthWiseLeavesForYear(@Param("year") Integer year, @Param("studentId") Integer studentId);
 
 	@Query("SELECT l FROM Leaves l WHERE l.studentId =:studentId AND :startDate BETWEEN l.leaveDate AND l.leaveEndDate")
-	public Optional<Leaves> findByStudentIdAndLeaveStartDateAndEndDate(@Param("studentId") Integer studentId,@Param("startDate") LocalDate startDate);
-  
-	@Query("SELECT COUNT(l) FROM Leaves l " +
-		       "WHERE FUNCTION('MONTH', l.leaveDate) = FUNCTION('MONTH', CURRENT_DATE) " +
-		       "AND FUNCTION('YEAR', l.leaveDate) = FUNCTION('YEAR', CURRENT_DATE) " +
-		       "AND l.studentId = :studentId " +
-		       "AND l.leaveDayType = 'Full Day' " +
-		       "AND l.leaveStatus = 1 " +
-		       "GROUP BY FUNCTION('MONTH', l.leaveDate)")
-		public Long countTotalLeavesForCurrentMonth(@Param("studentId") Integer studentId);
+	public Optional<Leaves> findByStudentIdAndLeaveStartDateAndEndDate(@Param("studentId") Integer studentId,
+			@Param("startDate") LocalDate startDate);
 
-	
-	@Query("SELECT COUNT(l) FROM Leaves l " +
-		       "WHERE  YEAR(l.leaveDate)>= YEAR(:joinDate) AND l.leaveDate <= CURRENT_DATE()" +
-		       "AND l.studentId = :studentId " +
-		       "AND l.leaveDayType = 'Full Day' " +
-		       "AND l.leaveStatus = 1 ")
+	@Query("SELECT COUNT(l) FROM Leaves l " + "WHERE FUNCTION('MONTH', l.leaveDate) = FUNCTION('MONTH', CURRENT_DATE) "
+			+ "AND FUNCTION('YEAR', l.leaveDate) = FUNCTION('YEAR', CURRENT_DATE) " + "AND l.studentId = :studentId "
+			+ "AND l.leaveDayType = 'Full Day' " + "AND l.leaveStatus = 1 " + "GROUP BY FUNCTION('MONTH', l.leaveDate)")
+	public Long countTotalLeavesForCurrentMonth(@Param("studentId") Integer studentId);
+
+	@Query("SELECT COUNT(l) FROM Leaves l "
+			+ "WHERE  YEAR(l.leaveDate)>= YEAR(:joinDate) AND l.leaveDate <= CURRENT_DATE()"
+			+ "AND l.studentId = :studentId " + "AND l.leaveDayType = 'Full Day' " + "AND l.leaveStatus = 1 ")
 	public Long countTotalLeavesForCurrentYear(Integer studentId, LocalDate joinDate);
 
-	
-	
 	@Query("SELECT u FROM Leaves u where u.studentId =:id And u.leaveStatus = 1 AND MONTH(u.leaveDate)= :month  AND YEAR(u.leaveDate) =:year")
-	public List<Leaves> findAllByStudentIdForCurrentMonth(@Param("id") Integer id,@Param("month")Integer month,@Param("year") Integer year);
-	
+	public List<Leaves> findAllByStudentIdForCurrentMonth(@Param("id") Integer id, @Param("month") Integer month,
+			@Param("year") Integer year);
+
+//	================================ NEW  ==============================
+
+	@Query("SELECT COUNT(l) FROM Leaves l " + "WHERE l.leaveDate > :joinDate " + "AND l.leaveDate <= :yesterday "
+			+ "AND l.studentId = :studentId " + "AND l.leaveDayType = 'Full Day' " + "AND l.leaveStatus = 1 ")
+	public Long countTotalLeavesFromJoinedDateToYesteday(Integer studentId, LocalDate joinDate, LocalDate yesterday);
+
 }

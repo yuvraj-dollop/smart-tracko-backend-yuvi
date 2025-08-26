@@ -36,7 +36,7 @@ spring:
 
   credentials:
   username: root
-  password: raj7828
+  password: Sandeep@@@
   
   kafka:
     consumer:

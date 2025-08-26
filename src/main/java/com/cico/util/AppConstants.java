@@ -422,6 +422,8 @@ public class AppConstants {
 
 	public static final String MONTH = "month";
 
+	public static final String STUDENT_ID_KEY_FOR_TOKEN = "StudentId";
+
 	public static final String SUBJECT_NOT_FOUND = "Subject not found";
 
 	// === Discussion Form ===
@@ -496,5 +498,33 @@ public class AppConstants {
 
 	public static final String ANNOUNCEMENT_IDS_REQUIRED = "At least one announcement ID is required";
 	public static final String ANNOUNCEMENT_ID_NOT_NULL = "Announcement ID cannot be null";
+
+	public static final String LIMIT = "limit";
+
+	public static final String OFFSET = "offset";
+
+	// Leave Related
+
+	public static final String LEAVE_TYPE_ID = "leaveTypeId";
+
+	public static final String LEAVE_START_DATE = "leaveStartDate";
+
+	public static final String LEAVE_END_DATE = "leaveEndDate";
+
+	public static final String TYPE = "type";
+
+	public static final String LEAVE_TYPE_REQUIRED = "Leave type is required";
+
+	public static final String LEAVE_START_DATE_REQUIRED = "Leave start date is required";
+
+	public static final String LEAVE_END_DATE_REQUIRED = "Leave end date is required";
+
+	public static final String LEAVE_REASON_REQUIRED = "Leave reason is required";
+
+	public static final String LEAVE_DAY_TYPE_REQUIRED = "Leave day type is required";
+
+	public static final String HALF_DAY_TYPE_REQUIRED = "Half day type is required";
+
+	public static final String NOT_ENOUGH_QUETIONS = "Not enough questions available in this course. ";
 
 }
