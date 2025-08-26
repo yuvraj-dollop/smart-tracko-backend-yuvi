@@ -13,6 +13,7 @@ import com.cico.payload.CounsellingResponse;
 import com.cico.payload.MockResponse;
 import com.cico.payload.PageResponse;
 import com.cico.payload.StudentReponseForWeb;
+import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 
 public interface IStudentService {
@@ -39,7 +40,7 @@ public interface IStudentService {
 			MultipartFile attachment);
 
 	public ResponseEntity<?> getStudentCheckInCheckOutHistory(HttpHeaders header, String startDate, String endDate,
-			Integer offset, Integer limit,String type);
+			Integer offset, Integer limit, String type);
 
 	public ResponseEntity<?> studentChangePassword(HttpHeaders header, String oldPassword, String newPassword);
 
@@ -48,7 +49,7 @@ public interface IStudentService {
 
 	public Map<String, Object> getTodayAttendance(Integer studentId);
 
-	public Map<String, Object> studentAttendanceMonthFilter(HttpHeaders header, Integer monthNo,Integer year);
+	public Map<String, Object> studentAttendanceMonthFilter(HttpHeaders header, Integer monthNo, Integer year);
 
 	public Map<String, Object> getCalenderData(Integer id, Integer month, Integer year);
 
@@ -57,25 +58,25 @@ public interface IStudentService {
 	public ResponseEntity<?> getTotalTodayAbsentStudent(Integer pageSise, Integer pageNumber);
 
 	public ResponseEntity<?> getTotalStudentInLeaves(Integer pageSise, Integer pageNumber);
-	
-	public  ResponseEntity<?>  getTotalTodaysLeavesRequest(Integer pageSise, Integer pageNumber);
 
-	public Boolean approveStudentLeaveReqeust(Integer studentId,Integer leaveId, String status);
+	public ResponseEntity<?> getTotalTodaysLeavesRequest(Integer pageSise, Integer pageNumber);
+
+	public Boolean approveStudentLeaveReqeust(Integer studentId, Integer leaveId, String status);
 
 	public PageResponse<StudentReponseForWeb> getAllStudentData(Integer page, Integer size);
 
-	public PageResponse<StudentReponseForWeb> searchStudentByName(String fullName, Integer pageNumber, Integer pageSize);
+	public PageResponse<StudentReponseForWeb> searchStudentByName(String fullName, Integer pageNumber,
+			Integer pageSize);
 
 	public StudentResponse getStudentById(Integer studentId);
 
-	public ResponseEntity<?> registerStudent(Student student);
+	public ResponseEntity<?> registerStudent(StudentRequest student);
 
 	public ResponseEntity<?> getStudentProfileForWeb(Integer studentId);
 
 	public ResponseEntity<?> updateStudent(Student student);
 
 	public ResponseEntity<?> getStudentOverAllAttendanceData(Integer studentId, Integer pageSise, Integer pageNumber);
-
 
 	public ResponseEntity<?> getTodaysPresentsAndEarlyCheckouts(String key);
 
@@ -89,19 +90,19 @@ public interface IStudentService {
 
 	public ResponseEntity<?> allStudent();
 
-	public ResponseEntity<?> deleteTodayAttendance(Integer id);	
-	
+	public ResponseEntity<?> deleteTodayAttendance(Integer id);
+
 	public ResponseEntity<?> getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeaves();
 
 	public AttendenceOfMonth currentMonthAttendenceForDashBoard(Integer studentId, String status);
-	
+
 	public void fetchRandomStudentForMockInterview();
-	
+
 	public void fetchRandomStudentForCounselling();
-	
-	public void  checkMockIsCompleteOrNot();
-	
-	public void  checkCounsellingkIsCompleteOrNot();
+
+	public void checkMockIsCompleteOrNot();
+
+	public void checkCounsellingkIsCompleteOrNot();
 
 	MockResponse checkMockForStudent(Integer studentId);
 
@@ -118,9 +119,17 @@ public interface IStudentService {
 	public ResponseEntity<?> updateFcmId(HttpHeaders header, String fcmId);
 
 	public ResponseEntity<?> getTaskStatics(Integer studentId);
-	
+
 	public ResponseEntity<?> getCurrentStudent(String token);
 
 	public ResponseEntity<?> webStudentLogin(String email, String password);
 
+	public Map<String, Object> getCalenderDataNew(Integer id, Integer month, Integer year);
+
+	public Map<String, Object> getAttendanceAnalytics(Integer id);
+
+	public ResponseEntity<?> getStudentCheckInCheckOutHistoryNew(String startDate, String endDate, Integer offset,
+			Integer limit, String type);
+
+	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year);
 }

@@ -22,6 +22,7 @@ import com.cico.payload.ApiResponse;
 import com.cico.payload.BatchRequest;
 import com.cico.payload.BatchResponse;
 import com.cico.service.IBatchService;
+import com.cico.util.AppConstants;
 
 @RestController
 @RequestMapping("/batch")
@@ -32,46 +33,36 @@ public class BatchController {
 	IBatchService batchService;
 
 	@PostMapping("/createBatch")
-	public ResponseEntity<?> createBatch(@RequestBody @Valid  BatchRequest request) {
+	public ResponseEntity<?> createBatch(@RequestBody @Valid BatchRequest request) {
 		System.out.println(request);
 		ApiResponse createBatch = batchService.createBatch(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createBatch);
 
 	}
 
-//	@PutMapping("/updateBatch")
-//	public ResponseEntity<?> updateBatch(@RequestBody Batch batch) {
-//
-//		ApiResponse updateBatch = batchService.updateBatch(batch);
-//		return ResponseEntity.ok(updateBatch);
-//
-//	}
-	
-	//===================updated=============
-	@PutMapping("/v2/updateBatch")
-	public ResponseEntity<?> updateBatch(@RequestBody BatchRequest batch) {
+	@PutMapping("/updateBatch")
+	public ResponseEntity<?> updateBatch(@RequestBody Batch batch) {
 
 		ApiResponse updateBatch = batchService.updateBatch(batch);
 		return ResponseEntity.ok(updateBatch);
 
 	}
 
-
 	@PutMapping("/deleteBatch/{batchId}")
-	public ResponseEntity<ApiResponse> deleteBatch(@PathVariable("batchId") Integer batchId) {
+	public ResponseEntity<ApiResponse> deleteBatch(@PathVariable(name = AppConstants.BATCH_ID) Integer batchId) {
 		ApiResponse response = batchService.deleteBatch(batchId);
 		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/getBatchById/{batchId}")
-	public ResponseEntity<?> getBatchById(@PathVariable("batchId") Integer batchId) {
+	public ResponseEntity<?> getBatchById(@PathVariable(name = AppConstants.BATCH_ID) Integer batchId) {
 		BatchResponse batchResponse = batchService.getBatchById(batchId);
 		return ResponseEntity.ok(batchResponse);
 
 	}
 
 	@GetMapping("/getAllBatches")
-	public ResponseEntity<?> getAllBatches(@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> getAllBatches(@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		List<BatchResponse> batches = batchService.getAllBatches(studentId);
 		return ResponseEntity.ok(batches);
 
@@ -85,7 +76,7 @@ public class BatchController {
 	}
 
 	@PutMapping("/updateBatchStatus/{batchId}")
-	public ResponseEntity<ApiResponse> updateBatchStatus(@PathVariable("batchId") Integer batchId) {
+	public ResponseEntity<ApiResponse> updateBatchStatus(@PathVariable(name = AppConstants.BATCH_ID) Integer batchId) {
 		ApiResponse response = batchService.updateBatchStatus(batchId);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -94,6 +85,15 @@ public class BatchController {
 	@GetMapping("/firstUpcomingBatchOfCurrentCourse/{courseName}")
 	public ResponseEntity<?> firstUpcomingBatchOfCurrentCourse(@PathVariable String courseName) {
 		return new ResponseEntity<>(batchService.getFirstUpcomingBatchOfCurrentCourse(courseName), HttpStatus.OK);
+	}
+	
+	//================================= New Methods =====================================================
+
+	@GetMapping("/v2/getUpcomingBatches")
+	public ResponseEntity<List<BatchResponse>> getUpcomingBatchesNew() {
+		List<BatchResponse> batches = batchService.getUpcomingBatchesNew();
+		return ResponseEntity.status(HttpStatus.OK).body(batches);
+
 	}
 
 }

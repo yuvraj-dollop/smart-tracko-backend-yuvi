@@ -27,4 +27,9 @@ public interface ChapterRepository extends JpaRepository<Chapter, Integer> {
 	@Query(nativeQuery = true, value = "SELECT * FROM chapter as c WHERE c.chapter_name =:chapterName AND c.is_deleted =:b AND c.subject_id = :subjectId")
 	Chapter findByChapterNameAndSubjectIdAndIsDeleted(String chapterName, Integer subjectId, boolean b);
 
+	// ............. NEW QUERIES ...................
+
+	@Query("SELECT s.subjectId FROM Subject s JOIN s.chapters c WHERE c.chapterId = :chapterId AND c.isDeleted = false")
+	Integer findSubjectIdByChapterId(@Param("chapterId") Integer chapterId);
+
 }

@@ -15,4 +15,5 @@ public class AnnouncementStudentResponse {
 	private String title;
 	private String message;
 	private LocalDateTime date;
+	private Boolean isSeen;
 }

@@ -146,4 +146,7 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 	boolean validateStudentCourse(Integer courseId, Integer studentId);
 
 	// END FCM ID'S //
+	Long countByCourse_CourseId(Integer courseId);
+
+	List<Student> findByCourse_CourseId(Integer id);
 }

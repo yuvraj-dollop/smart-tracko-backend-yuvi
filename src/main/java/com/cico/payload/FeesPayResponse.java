@@ -6,12 +6,14 @@ import java.time.LocalDateTime;
 import com.cico.model.Fees;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class FeesPayResponse {
 
 	private Integer payId;

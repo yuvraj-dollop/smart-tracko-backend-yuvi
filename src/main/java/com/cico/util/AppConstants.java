@@ -34,7 +34,7 @@ public class AppConstants {
 
 	public static final String FAILED = "FAILED";
 
-	public static final String STUDENT_ID = "StudentId";
+	public static final String STUDENT_ID = "studentId";
 
 	public static final String ADMIN_ID = "adminId";
 
@@ -163,6 +163,7 @@ public class AppConstants {
 	public static final String ATTACHMENT_ADDED_SUCCESSFULLY = "Attachment added successfully!!";
 
 // ===========================YUVI================================
+	// FOR ANNOUNCEMET REQUEST
 
 	public static final String TITLE_REQUIRED = "Title is required";
 
@@ -172,6 +173,9 @@ public class AppConstants {
 
 	public static final String COURSE_ID_REQUIRED = "At least one course ID must be provided";
 
+	public static final String DURATION_POSITIVE_REQUIRED = "Duration must be a positive number greater than 0";
+
+	// FOR COURSE REQUEST
 	public static final String COURSE_NAME_REQUIRED = "Course name is required";
 
 	public static final String COURSE_FEES_REQUIRED = "Course fees must not be blank";
@@ -190,16 +194,19 @@ public class AppConstants {
 
 	public static final String STARTER_COURSE_NOT_DETERMINED = "Starter course YES/NO must be provided";
 
+	// FOR ASSIGNMET REQUEST
 	public static final String TITLE_SIZE_VALIDATION = "Title must be between 3 and 100 characters";
 
 	public static final String SUBJECT_ID_REQUIRED = "Subject ID is required";
 
+	// TASK REQUESTS
 	public static final String TASK_NAME_REQUIRED = "Task name is required";
 
 	public static final String COURSE_NOT_NULL = "Course must not be null";
 
 	public static final String SUJECT_NOT_NULL = "Subject must not be null";
 
+	// BATCH REQUESTS
 	public static final String BATCH_NAME_REQUIRED = "Batch name is required";
 
 	public static final String BATCH_START_DATE_REQUIRED = "Batch start date is required";
@@ -212,10 +219,12 @@ public class AppConstants {
 
 	public static final String BATCH_DETAIL_MAX_SIZE = "Batch details must not exceed 500 characters";
 
+	// FOR OTP VERIFICATIOS
 	public static final String OTP_REQUIRED = "OTP must not be blank";
 
 	public static final String OTP_LENGHT_VALIDATION = "OTP must be a 6-digit number";
 
+	// FOR LOGIN REQUEST
 	public static final String USER_ID_REQUIRED = "User ID must not be blank";
 
 	public static final String PASSWORD_REQUIRED = "Password must not be blank";
@@ -270,7 +279,7 @@ public class AppConstants {
 
 	public static final String OTP_SENT_FOR_LOGIN = "OTP sent to your registered email. Please verify.";
 
-	public static final String ADMIN_NOT_FOUND = "Admin not found.";
+	// public static final String ADMIN_NOT_FOUND = "Admin not found.";
 
 	public static final String INVALID_ROLE_TYPE = "Invalid role in token.";
 
@@ -294,20 +303,228 @@ public class AppConstants {
 
 	public static final String BATCH_UPDATE_SUCCESS = "Batch Update Successfully";
 
-	public static final String COURSE_NOT_FOUND = "Course Not Found";
+	// public static final String COURSE_NOT_FOUND = "Course Not Found";
 
-	public static final String BATCH_ALREADY_EXIST = "Batch already exist";
+	// public static final String BATCH_ALREADY_EXIST = "Batch already exist";
 
-	public static final String SUBJECT_NOT_FOUND = "Subject not found";
-	public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details are required";
-	public static final String PAGE_SIZE = "pageSize";
-	public static final String PAGE_NUMBER = "pageNumber";
-	public static final String KEY = "key";
+	// public static final String SUBJECT_NOT_FOUND = "Subject not found";
+	// public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details
+	// are required";
+	// public static final String PAGE_SIZE = "pageSize";
+	// public static final String PAGE_NUMBER = "pageNumber";
+	// public static final String KEY = "key";
 
-	public static final String MONTH = "month";
-	public static final String YEAR = "year";
+	// public static final String MONTH = "month";
+	// public static final String YEAR = "year";
+
+	// public static final String ID = "id";
+
+	// public static final String STUDENT_ID_REQUIRED = "Student id is required";
+	// === STUDENT REQUEST VALIDATION ===
+	public static final String FULL_NAME_REQUIRED = "Full name is required";
+	public static final String DOB_REQUIRED = "Date of birth is required";
+	public static final String DOB_INVALID = "Date of birth must be in the past";
+	public static final String FATHERS_NAME_REQUIRED = "Father's name is required";
+	public static final String CONTACT_FATHER_REQUIRED = "Father's contact is required";
+	public static final String CONTACT_FATHER_INVALID = "Father's contact must be a valid 10-digit Indian number";
+	public static final String CONTACT_MOTHER_INVALID = "Mother's contact must be a valid 10-digit Indian number";
+	public static final String MOBILE_REQUIRED = "Mobile number is required";
+	public static final String MOBILE_INVALID = "Mobile number must be a valid 10-digit Indian number";
+	public static final String EMAIL_REQUIRED = "Email is required";
+	public static final String EMAIL_INVALID = "Email must be valid";
+	public static final String COURSE_REQUIRED = "Course is required";
+	public static final String JOIN_DATE_REQUIRED = "Join date is required";
+	public static final String COLLEGE_REQUIRED = "College name is required";
+	public static final String PERMANENT_ADDRESS_REQUIRED = "Permanent address is required";
+
+	public static final String REFRESH_TOKEN_REQUIRED = "Refresh Token is required";
+	public static final String ACCESS_TOKEN_REQUIRED = "Access Token is required";
+	public static final String STUDENT_NOT_FOUND = "Student not found";
+	public static final String ADMIN_NOT_FOUND = "Admin not found";
+
+	public static final String NEW_TOKEN_GENERATED = "New access token generated.";
+
+	public static final String STUDENT_ALREDY_EXISTS_MESSAGE = "Student already exists with this email and mobile.";
+
+	public static final String COURSE_NOT_FOUND = "Course not found";
+
+	// Add & Update Assignment Question
+	public static final String QUESTION_ID_REQUIRED = "Question ID is required";
+	public static final String ASSIGNMENT_ID_REQUIRED = "Assignment ID is required";
+	public static final String QUESTION_REQUIRED = "Question is required";
+	public static final String VIDEO_URL_REQUIRED = "Video URL is required";
+
+	// Add & Update Chapter
+	public static final String CHAPTER_NAME_REQUIRED = "Chapter name is required";
+	public static final String CHAPTER_ID_REQUIRED = "Chapter ID is required";
+	public static final String CHAPTER_ALREDY_EXISTS = "Chapter already present with name..";
+	public static final String CHAPTER_NOT_FOUND = "Chapter not found";
+
+	// Add Content in Chapter
+	public static final String CHAPTER_CONTENT_TITLE_REQUIRED = "Title is required";
+	public static final String CHAPTER_CONTENT_SUBTITLE_REQUIRED = "Sub-title is required";
+	public static final String CHAPTER_CONTENT_BODY_REQUIRED = "Content body is required";
+
+	public static final String ANNOUNCEMENT_ID = "announcementId";
+	public static final String ANNOUNCEMENT_IDS = "announcementIds";
+
+	public static final String SUBMISSION_ID = "submissionId";
+
+	public static final String SUBJECT_ID = "subjectId";
+
+	public static final String ASSIGNMENT_ID = "assignmentId";
+
+	public static final String ATTACHMENET = "attachment";
+
+	public static final String FILE = "file";
+
+	public static final String CHAPTER_CONTENT_ID = "chapterContentId";
+
+	public static final String QUESTION_ID = "questionId";
+
+	public static final String BATCH_ID = "batchId";
+
+	public static final String CHAPTER_ID = "chapterId";
+
+	public static final String COURSE_ID = "courseId";
+
+	public static final String CONTENT_ID = "contentId";
 
 	public static final String ID = "id";
 
-	public static final String STUDENT_ID_REQUIRED = "Student id is required";
+	public static final String DISCUSSION_FORM_ID = "discussionFormId";
+
+	public static final String COMMENTS_ID = "commentsId";
+
+	public static final String COMMENT_REPLY_ID = "commentReplyId";
+
+	public static final String SEARCH = "search";
+
+	public static final String RESULT_ID = "resultId";
+
+	public static final String EXAM_ID = "examId";
+
+	public static final String EXAM_TYPE = "examType";
+
+	public static final String FEES_ID = "feesId";
+
+	public static final String FULL_NAME = "fullName";
+
+	public static final String START_DATE = "startDate";
+
+	public static final String END_DATE = "endDate";
+
+	public static final String YEAR = "year";
+
+	public static final String PAY_ID = "payId";
+
+	public static final String KEY = "key";
+
+	public static final String MONTH = "month";
+
+	public static final String STUDENT_ID_KEY_FOR_TOKEN = "StudentId";
+
+	public static final String SUBJECT_NOT_FOUND = "Subject not found";
+
+	// === Discussion Form ===
+	public static final String STUDENT_ID_REQUIRED = "Student ID is required";
+	public static final String CONTENT_REQUIRED = "Content is required";
+	public static final String DISCUSSION_FORM_ID_REQUIRED = "Discussion Form ID is required";
+
+	public static final String DATE_REQUIRED = "Date is required";
+
+	// Fees Realted
+	public static final String FEES_REQUIRED = "Final fees must be provided";
+	public static final String FEES_NOT_FOUND = "Fees Not found for given Id!!";
+	public static final String FEES_NOT_FOUND_FOR_DATES = "Fees is not found from given Dates";
+	public static final String FEES_ID_REQUIRED = "Fees ID must not be null";
+	public static final String FEES_AMOUNT_REQUIRED = "Fees pay amount must not be null";
+	public static final String FEES_AMOUNT_POSITIVE = "Fees pay amount must be greater than 0";
+	public static final String PAY_DATE_REQUIRED = "Pay date must not be blank";
+	public static final String RECEIPT_NO_REQUIRED = "Receipt number must not be blank";
+	public static final String DESCRIPTION_REQUIRED = "Description must not be blank";
+	public static final String FEES_AMOUNT_EXCEEDS_REMAINING = "Fees Amount Is Greater than Remaining Fees Amount";
+
+	public static final String PAY_FEES_NOT_FOUND = "Fees Pay not found from given Id";
+
+	// UpdateFeesPayRequest Validation Messages
+	public static final String PAY_ID_REQUIRED = "Pay ID is required";
+	public static final String FEES_PAY_AMOUNT_REQUIRED = "Fees Pay Amount is required";
+//	public static final String FEES_PAY_AMOUNT_MIN = "Fees Pay Amount must be greater than 0";
+
+	// TASK RELATED
+	public static final String TASK_ID_REQUIRED = "Task ID is required.";
+	public static final String TASK_DESCRIPTION_REQUIRED = "Task description cannot be blank.";
+
+	public static final String QUESTION_NOT_FOUND = "Task question not found with this ID";
+	public static final String TASK_ALREADY_SUBMITTED = "Task already submitted";
+	public static final String FILE_REQUIRED = "File is required for this task question";
+	public static final String CODE_REQUIRED = "Code submission is required for this task question";
+	public static final String CODE_NOT_ALLOWED = "Code submission is not allowed for this task question";
+	public static final String ATTACHMENT_STATUS_REQUIRED = "Attachment status is required";
+	public static final String TASK_QUESTION_NOT_FOUND = "Task question not found with the given task and question ID";
+	public static final String ATTACHMENT_NOT_FOUND = "Attachment file is missing";
+
+	public static final String SUBMISSION_ID_REQUIRED = "Submission ID is required";
+	public static final String SUBMISSION_STATUS_REQUIRED = "Status is required";
+	public static final String REVIEW_REQUIRED = "Review is required";
+
+	public static final String TASK_SUBMISSION_NOT_FOUND = "Task submission not found with given ID";
+	public static final String INVALID_SUBMISSION_STATUS = "Invalid status provided for submission";
+	public static final String TASK_ALREADY_SUBMITTED_CANNOT_UPDATE_QUESTION = "Task already has submissions, cannot update the question.";
+
+	// DISCUSSION FORM RELATED
+
+	public static final String COMMENT_ID_REQUIRED = "Comment ID is required";
+	public static final String COMMENT_CONTENT_REQUIRED = "Reply content is required";
+
+	// Pagination Related
+	public static final String PAGINATION_REQUEST_REQUIRED = "Pagination details are required";
+	public static final String PAGE_SIZE = "pageSize";
+	public static final String PAGE_NUMBER = "pageNumber";
+
+	public static final String QUESTION_ALREDY_EXISTS = "Question already exist";
+
+	public static final String OPTION_ALREDY_EXISTS = "Options must be unique and not repeated.";
+	public static final String INVALID_FILE_TYPE = "Invalid file type";
+
+	public static final String ALL_ANNOUNCEMENTS_ALREADY_CLEARED = "All selected announcements are already cleared by the student.";
+
+	public static final String ANNOUNCEMENTS_CLEARED_SUCCESSFULLY = "Selected announcements cleared for student.";
+
+	public static final String ALL_ANNOUNCEMENTS_ALREADY_SEEN = "All selected announcements already seen by the student.";
+
+	public static final String STUDENT_ID_POSITIVE = "Student ID must be a positive integer";
+
+	public static final String ANNOUNCEMENT_IDS_REQUIRED = "At least one announcement ID is required";
+	public static final String ANNOUNCEMENT_ID_NOT_NULL = "Announcement ID cannot be null";
+
+	public static final String LIMIT = "limit";
+
+	public static final String OFFSET = "offset";
+
+	// Leave Related
+
+	public static final String LEAVE_TYPE_ID = "leaveTypeId";
+
+	public static final String LEAVE_START_DATE = "leaveStartDate";
+
+	public static final String LEAVE_END_DATE = "leaveEndDate";
+
+	public static final String TYPE = "type";
+
+	public static final String LEAVE_TYPE_REQUIRED = "Leave type is required";
+
+	public static final String LEAVE_START_DATE_REQUIRED = "Leave start date is required";
+
+	public static final String LEAVE_END_DATE_REQUIRED = "Leave end date is required";
+
+	public static final String LEAVE_REASON_REQUIRED = "Leave reason is required";
+
+	public static final String LEAVE_DAY_TYPE_REQUIRED = "Leave day type is required";
+
+	public static final String HALF_DAY_TYPE_REQUIRED = "Half day type is required";
+
+	public static final String NOT_ENOUGH_QUETIONS = "Not enough questions available in this course. ";
+
 }

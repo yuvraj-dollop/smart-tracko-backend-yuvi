@@ -1,7 +1,9 @@
 package com.cico.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +16,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.cico.exception.ResourceAlreadyExistException;
+import com.cico.exception.ResourceNotFoundException;
 import com.cico.kafkaServices.KafkaProducerService;
 import com.cico.model.Announcement;
+import com.cico.model.ClearedAnnouncement;
 import com.cico.model.Course;
 import com.cico.model.MessageSeenBy;
 import com.cico.model.Student;
+import com.cico.payload.AnnouncementActionRequest;
 import com.cico.payload.AnnouncementRequest;
 import com.cico.payload.AnnouncementResponseForAdmin;
 import com.cico.payload.AnnouncementStudentResponse;
 import com.cico.payload.NotificationInfo;
 import com.cico.payload.PageResponse;
 import com.cico.repository.AnnouncementRepository;
+import com.cico.repository.ClearedAnnouncementRepository;
 import com.cico.repository.CourseRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.service.IAnnouncementService;
+import com.cico.util.AppConstants;
 import com.cico.util.NotificationConstant;
 
 @Service
@@ -44,6 +51,8 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 
 	@Autowired
 	private KafkaProducerService kafkaProducerService;
+	@Autowired
+	private ClearedAnnouncementRepository clearedAnnouncementRepository;
 
 	@Override
 	public ResponseEntity<?> publishAnnouncement(AnnouncementRequest announcementRequest) {
@@ -121,7 +130,7 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 	public ResponseEntity<?> countUnseenNotificationForStudent(Integer studentId) {
 		Student student = studentRepository.findById(studentId).get();
 		Long announcements = announcementRepository.countUnseenNotificationForStudent(student.getCourse(), student);
-		return new ResponseEntity<>(announcements, HttpStatus.OK);
+		return new ResponseEntity<>(Map.of("announcementCount", announcements), HttpStatus.OK);
 	}
 
 	public AnnouncementStudentResponse announcementFilter(Announcement response) {
@@ -142,6 +151,108 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 		res.setSeenBy(response.getSeenBy());
 		res.setCourseName(response.getCourse().stream().map(obj -> obj.getCourseName()).collect(Collectors.toList()));
 		return res;
+	}
+
+	// ...................... NEW METHODS ..................
+
+	@Override
+	public ResponseEntity<?> getAnnouncementForStudentNew(Integer studentId) {
+
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new RuntimeException(AppConstants.STUDENT_NOT_FOUND));
+
+		List<AnnouncementStudentResponse> collect = announcementRepository
+				.getAnnouncementForStudentByCourseNew(student.getCourse(), student).stream()
+				.map(announcement -> announcementFilter(announcement, student)).toList();
+
+		return new ResponseEntity<>(collect, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> markAnnouncementsAsSeen(AnnouncementActionRequest request) {
+		Student student = studentRepository.findByStudentId(request.getStudentId());
+		if (student == null)
+			throw new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND);
+
+		List<Announcement> announcements = announcementRepository.findAllById(request.getAnnouncementIds());
+		List<AnnouncementStudentResponse> newlySeenAnnouncements = new ArrayList<>();
+
+		for (Announcement announcement : announcements) {
+			if (!announcement.getStudents().contains(student)) {
+				announcement.getStudents().add(student);
+
+				MessageSeenBy seenBy = announcement.getSeenBy();
+				if (seenBy == null) {
+					seenBy = new MessageSeenBy();
+					seenBy.setSeenBy(1L);
+					announcement.setSeenBy(seenBy);
+				} else {
+					seenBy.setSeenBy(seenBy.getSeenBy() == null ? 1L : seenBy.getSeenBy() + 1);
+				}
+
+				announcementRepository.save(announcement);
+				newlySeenAnnouncements.add(announcementFilter(announcement, student)); // only unseen ones processed
+			}
+		}
+
+		if (newlySeenAnnouncements.isEmpty()) {
+			throw new ResourceAlreadyExistException(AppConstants.ALL_ANNOUNCEMENTS_ALREADY_SEEN);
+		}
+
+		return new ResponseEntity<>(newlySeenAnnouncements, HttpStatus.CREATED);
+	}
+
+	public AnnouncementStudentResponse announcementFilter(Announcement response, Student student) {
+		AnnouncementStudentResponse res = new AnnouncementStudentResponse();
+		res.setAnnouncementId(response.getAnnouncementId());
+		res.setDate(response.getDate());
+		res.setMessage(response.getMessage());
+		res.setTitle(response.getTitle());
+		res.setIsSeen(response.getStudents().contains(student));
+		return res;
+	}
+
+	@Override
+	public ResponseEntity<?> clearNotificationForStudent(AnnouncementActionRequest clearAnnouncementRequest) {
+		Student student = studentRepository.findByStudentId(clearAnnouncementRequest.getStudentId());
+		if (student == null)
+			throw new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND);
+
+		List<Announcement> announcements = announcementRepository
+				.findAllById(clearAnnouncementRequest.getAnnouncementIds());
+
+		List<ClearedAnnouncement> toBeCleared = new ArrayList<>();
+
+		for (Announcement announcement : announcements) {
+
+			// Mark as seen if not already
+			if (!announcement.getStudents().contains(student)) {
+				announcement.getStudents().add(student);
+			}
+
+			// Check if already cleared
+			boolean alreadyCleared = clearedAnnouncementRepository.existsByStudentAndAnnouncement(student,
+					announcement);
+			if (!alreadyCleared) {
+				ClearedAnnouncement cleared = new ClearedAnnouncement();
+				cleared.setStudent(student);
+				cleared.setAnnouncement(announcement);
+				toBeCleared.add(cleared);
+			}
+		}
+
+		// Save updated announcement (seen status)
+		announcementRepository.saveAll(announcements);
+
+		// If all were already cleared
+		if (toBeCleared.isEmpty()) {
+			return new ResponseEntity<>(AppConstants.ALL_ANNOUNCEMENTS_ALREADY_CLEARED, HttpStatus.OK);
+		}
+
+		// Save cleared announcements
+		clearedAnnouncementRepository.saveAll(toBeCleared);
+
+		return new ResponseEntity<>(AppConstants.ANNOUNCEMENTS_CLEARED_SUCCESSFULLY, HttpStatus.OK);
 	}
 
 }

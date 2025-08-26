@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +16,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.cico.service.ITokenManagementService;
 import com.cico.service.impl.CustomUserDetailsServiceImpl;
 import com.cico.util.AppConstants;
 
@@ -27,15 +27,20 @@ public class SecurityFilter extends OncePerRequestFilter {
 
 	@Autowired
 	private CustomUserDetailsServiceImpl detailsServiceImpl;
+//	@Autowired
+//	private ITokenManagementService tokenManagementService;
 	@Autowired
-	private ITokenManagementService tokenManagementService;
+	private InvalidUserAuthenticationEntryPoint authenticationEntryPoint;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		String token = request.getHeader(AppConstants.AUTHORIZATION);
-		System.out.println("Request URL :: " + request.getRequestURL());
 		
+		String uri = request.getRequestURI();
+		System.out.println("Request URL :: " + request.getRequestURL());
+		System.out.println("TOKEN :: " + token);
+
 //		String clientSource = request.getHeader("X-Client-Source");
 //		System.err.println("==========client or device type " + clientSource);
 //		
@@ -43,20 +48,19 @@ public class SecurityFilter extends OncePerRequestFilter {
 //			    header -> System.out.println("Header: " + header + " => " + request.getHeader(header))
 //			);
 //		System.out.println("Request URL :: " + request.getRequestURL());
-		
+
 		if (token != null) {
 			System.err.println(",,,,,,,,,,,,,,,,");
 
-			if (token.startsWith("Bearer ")) {
-				token = token.substring(7);
-			}
-			String uri = request.getRequestURI();
-			 
-			boolean isOtpFlow = uri.equals("/api/auth/v2/refresh-token") || uri.equals("/api/auth/v2/verify-otp")
-					|| uri.equals("/api/auth/v2/resend-otp") || uri.equals("/api/auth/v2/reset-password");
+//			if (token.startsWith("Bearer ")) {
+//				token = token.substring(7);
+//			}
+//			 
+//			boolean isOtpFlow = uri.equals("/api/auth/v2/refresh-token") || uri.equals("/api/auth/v2/verify-otp")
+//					|| uri.equals("/api/auth/v2/resend-otp") || uri.equals("/api/auth/v2/reset-password");
 
-			if (isOtpFlow||tokenManagementService.existsByToken(token)) {
-				
+//			if (isOtpFlow||tokenManagementService.existsByToken(token)) {
+
 //				String tokenPlatform = String.valueOf(util.getClaims(token).get("platform"));
 //				if (tokenPlatform == null || clientSource == null || !tokenPlatform.equalsIgnoreCase(clientSource)) {
 //					response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
@@ -64,6 +68,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 //					return;
 //				}
 
+			try {
 				String username = util.getUsername(token);
 				if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 					UserDetails user = detailsServiceImpl.DataLoadByUsername(username, util.getRole(token));
@@ -72,13 +77,24 @@ public class SecurityFilter extends OncePerRequestFilter {
 					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 					SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 				}
-			} else {
-				// ❌ Invalid token — respond with 401 Unauthorized
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+			} catch (Exception e) {
+				request.setAttribute("exception", e);
+
+				request.setAttribute("exception", e);
+				SecurityContextHolder.clearContext();
+
+				// Call Commence Method
+				authenticationEntryPoint.commence(request, response, new BadCredentialsException("Invalid JWT", e));
 				return;
 			}
+//			} else {
+//				// ❌ Invalid token — respond with 401 Unauthorized
+//				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+//				return;
+//			}
 		}
-
 		filterChain.doFilter(request, response);
+		
 	}
+
 }

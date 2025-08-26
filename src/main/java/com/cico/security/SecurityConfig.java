@@ -56,7 +56,31 @@ public class SecurityConfig {
 			"/student/studentAttendanceMonthFilter", "/student/updateFcmId", "/qr/getLinkedDevice",
 			"/qr/getLinkedDeviceByUuid", "/qr/webLogout", "/leave/getLeavesType", "/leave/addStudentLeave",
 			"/leave/getStudentLeaves", "/leave/getStudentLeavesById", "/leave/deleteStudentLeave",
-			"/leave/retractStudentLeave", "/leave/studentLeaveMonthFilterById", "/leave/studentLeaveMonthFilter" };
+			"/leave/retractStudentLeave", "/leave/studentLeaveMonthFilterById", "/leave/studentLeaveMonthFilter"
+
+			// ......... NEW STUDENT PATH ...................
+			// DASHBOARD
+			, "/dashboard/v2/getStudentCalenderData", "/dashboard/v2/getTodayAttendance/**",
+			"/dashboard/v2/getAllUpcomingScheduleExams", "/dashboard/v2/getCountOfAssignmentAndTask/**"
+			// STUDENT
+			, "/student//v2/getStudentData/**"
+			// CHAPTER
+			, "/chapter/v2/getChapterDetails/**", "/chapter/v2/getChapterContentListByChapterId/**"
+			// ASSIGNMENT
+			, "/assignment/v2/getSubmitedAssignmetByStudentId", "/assignment/v2/getAllLockedAndUnlockedAssignment",
+			"/assignment/v2/getAssignmentQuesSubmissionStatus", "/assignment/v2/getAssignmentQuesById/**",
+			"/assignment/v2/getAssignmentQuestionDetails", "/assignment/v2/submitAssignment"
+			// ANNOUNCEMENT
+			, "/announcement/v2/getAnnouncementForStudent", "/announcement/v2/seenAnnouncement",
+			"/announcement/v2/clearNotificationForStudent"
+			// EXAM
+			, "/exam/v2/checkExamCompleteOrNot", "/exam/v2/getChapterExamResult/**",
+			"/exam/v2/setChapterExamStartStatus/**", "/exam/v2/getChapterExam/**", "/exam/v2/addChapterExam"
+			// TASK
+			, "/task/v2/studentTaskSubmittion", "/task/v2/getAllTaskOfStudent/{studentId}",
+			"/task/v2/getSubmittedTaskQuestionForStudent"
+
+	};
 	String adminPaths[] = { "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/v3/api-docs",
 			"/v2/api-docs", "/webjars/**", "/announcement/publishAnnouncement", "/announcement/getAllAnnouncement",
 			"/assignment/createAssignment", "/assignment/addAssignment", "/assignment/addQuestionInAssignment",
@@ -111,54 +135,46 @@ public class SecurityConfig {
 //	};
 
 	String apiPaths[] = { "/file/**", "/resources/**", "/qr/qrGenerator", "/socket/**", "/queue/**",
-			"/student/studentLoginApi", "/admin/adminLoginApi", "/qr/qrlogin/{qrKey}/{token}" };
+			"/student/studentLoginApi", "/admin/adminLoginApi", "/qr/qrlogin/{qrKey}/{token}"
+			// NEW PATH
+			, "/api/auth/v2/student/login" };
+
 	@Bean
 	SecurityFilterChain chain(HttpSecurity security) throws Exception {
-        security
-                .csrf(csrf -> csrf.disable())
-                .authorizeRequests(requests -> requests
-                        .antMatchers("/**", "/api/auth").permitAll()
-                        .antMatchers(adminPaths).hasAuthority("ADMIN")
-                        .antMatchers(studentPath).hasAuthority("STUDENT"))
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(entryPoint))
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-	    return security.build();
+		security.csrf(csrf -> csrf.disable())
+				.authorizeRequests(requests -> requests.antMatchers("/**", "/api/auth").permitAll()
+						.antMatchers(adminPaths).hasAuthority("ADMIN").antMatchers(studentPath).hasAuthority("STUDENT"))
+				.exceptionHandling(handling -> handling.authenticationEntryPoint(entryPoint))
+				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+		return security.build();
 	}
 
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
-	    CorsConfiguration config = new CorsConfiguration();
+		CorsConfiguration config = new CorsConfiguration();
 
-	    // ✅ Correct and allow your exact frontend URLs
-	    config.setAllowedOriginPatterns(Arrays.asList(
-	        "https://cico.dollopinfotech.com",
-	        "https://cico.dollopinfotech.com/","*"
-	    ));
+		// Correct and allow your exact frontend URLs
+		config.setAllowedOriginPatterns(
+				Arrays.asList("https://cico.dollopinfotech.com", "https://cico.dollopinfotech.com/", "*"));
 
-	    // ✅ Recommended standard methods
-	    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+		// Recommended standard methods
+		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
-	    // ✅ Include standard headers Angular or fetch sends
-	    config.setAllowedHeaders(Arrays.asList(
-	        "Authorization",
-	        "Content-Type",
-	        "X-Requested-With",
-	        "X-Client-Source",
-	        "Accept",
-	        "Origin"
-	    ));
+		// Include standard headers Angular or fetch sends
+		config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "X-Client-Source",
+				"Accept", "Origin"));
 
-	    // ✅ If you're using cookies or Authorization header, this should be true
-	    config.setAllowCredentials(true);
+		// If you're using cookies or Authorization header, this should be true
+		config.setAllowCredentials(true);
 
-	    // ✅ Optional: allow exposed headers
-	    config.setExposedHeaders(Arrays.asList("Authorization"));
+		// Optional: allow exposed headers
+		config.setExposedHeaders(Arrays.asList("Authorization"));
 
-	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-	    source.registerCorsConfiguration("/**", config);
-	    return source;
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+		return source;
 	}
 
 }

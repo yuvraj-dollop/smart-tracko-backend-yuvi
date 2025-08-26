@@ -6,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @JsonInclude(value = Include.NON_NULL)
 public class CourseResponse {
 	private Integer courseId;
@@ -19,6 +21,7 @@ public class CourseResponse {
 	private String courseFees;
 	private Long subjectCount;
 	private Long batchesCount;
+	private Long totalEnrolledStudents;
 //	private String technologyImage;
 	private String duration;
 	private String sortDescription;

@@ -1,8 +1,10 @@
 package com.cico.service.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,13 +28,21 @@ import com.cico.repository.CourseRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
 import com.cico.service.IBatchService;
+import com.cico.service.ISubjectService;
 import com.cico.util.AppConstants;
 
 @Service
 public class BatchServiceImpl implements IBatchService {
 
+	public static final String BATCH_NOT_FOUND = "BATCH NOT FOUND";
+	public static final String BATCH_NOT_AVAILABLE = "No Upcoming Batch Available";
+	public static final String BATCH_ADD_SUCCESS = "Batch Created Successfully";
+	public static final String BATCH_UPDATE_SUCCESS = "Batch Update Successfully";
+	public static final String COURSE_NOT_FOUND = "Course Not Found";
 	@Autowired
 	private BatchRepository batchRepository;
+	@Autowired
+	private ISubjectService subjectService;
 	@Autowired
 	private CourseRepository courseRepository;
 
@@ -41,36 +51,35 @@ public class BatchServiceImpl implements IBatchService {
 	@Autowired
 	private StudentRepository studentRepository;
 
-//	@Override
-//	public ApiResponse createBatch(BatchRequest request) {
-//		
-//		
-//		Batch isPresent = batchRepository.findByBatchNameAndIsDeletedFalse(request.getBatchName());
-//		if(isPresent!=null) {
-//			throw new ResourceAlreadyExistException(AppConstants.BATCH_ALREADY_EXIST);
-//		}
-//		
-//		Course course = courseRepository.findById(request.getCourseId())
-//				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
-//		Batch batch = new Batch(request.getBatchName(), request.getBatchStartDate(), request.getBatchTiming(),
-//				request.getBatchDetails());
-//		batch.setSubject(subjectRepository.findBySubjectIdAndIsDeleted(request.getSubjectId()).get());
-//
-//		List<Batch> batches = course.getBatches();
-//		batches.add(batch);
-//		course.setBatches(batches);
-//		System.err.println(request);
-//		Course course2 = courseRepository.save(course);
-//		if (Objects.nonNull(course2))
-//			return new ApiResponse(Boolean.TRUE,AppConstants.BATCH_ADD_SUCCESS, HttpStatus.CREATED);
-//		return new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK);
-//
-//	}
+	@Override
+	public ApiResponse createBatch(BatchRequest request) {
+
+		Batch isPresent = batchRepository.findByBatchNameAndIsDeletedFalse(request.getBatchName());
+		if (isPresent != null) {
+			throw new ResourceAlreadyExistException("Batch already exist");
+		}
+
+		Course course = courseRepository.findById(request.getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+		Batch batch = new Batch(request.getBatchName(), request.getBatchStartDate(), request.getBatchTiming(),
+				request.getBatchDetails());
+		batch.setSubject(subjectRepository.findBySubjectIdAndIsDeleted(request.getSubjectId()).get());
+
+		List<Batch> batches = course.getBatches();
+		batches.add(batch);
+		course.setBatches(batches);
+		System.err.println(request);
+		Course course2 = courseRepository.save(course);
+		if (Objects.nonNull(course2))
+			return new ApiResponse(Boolean.TRUE, BATCH_ADD_SUCCESS, HttpStatus.CREATED);
+		return new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK);
+
+	}
 
 	@Override
 	public ApiResponse deleteBatch(Integer batchId) {
 		Batch batch = batchRepository.findById(batchId)
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.BATCH_NOT_FOUND));
+				.orElseThrow(() -> new ResourceNotFoundException(BATCH_NOT_FOUND));
 		batch.setDeleted(true);
 		batchRepository.save(batch);
 		return new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK);
@@ -80,9 +89,9 @@ public class BatchServiceImpl implements IBatchService {
 	public BatchResponse getBatchById(Integer batchId) {
 		Batch obj = batchRepository.findByBatchIdAndIsDeleted(batchId, false);
 		System.out.println(obj.getSubject());
-		
+
 		if (Objects.isNull(obj)) {
-			throw new ResourceNotFoundException(AppConstants.BATCH_NOT_FOUND);
+			throw new ResourceNotFoundException(BATCH_NOT_FOUND);
 		}
 		BatchResponse batchResponse = new BatchResponse();
 
@@ -102,10 +111,10 @@ public class BatchServiceImpl implements IBatchService {
 		stackResponse.setImageName(obj.getSubject().getTechnologyStack().getImageName());
 		stackResponse.setTechnologyName(obj.getSubject().getTechnologyStack().getTechnologyName());
 
-		response.setTechnologyStack(stackResponse); 
-		
+		response.setTechnologyStack(stackResponse);
+
 		batchResponse.setSubject(response);
-		
+
 		return batchResponse;
 	}
 
@@ -119,7 +128,7 @@ public class BatchServiceImpl implements IBatchService {
 				.collect(Collectors.toList());
 
 		if (batches.isEmpty()) {
-			throw new ResourceNotFoundException(AppConstants.BATCH_NOT_FOUND);
+			throw new ResourceNotFoundException(BATCH_NOT_FOUND);
 		}
 
 		List<BatchResponse> batchResponses = new ArrayList<>();
@@ -167,7 +176,7 @@ public class BatchServiceImpl implements IBatchService {
 
 		Batch batch = batchRepository.findByBatchIdAndIsDeleted(batchId, false);
 		if (Objects.isNull(batch)) {
-			throw new ResourceNotFoundException(AppConstants.BATCH_NOT_FOUND);
+			throw new ResourceNotFoundException(BATCH_NOT_FOUND);
 		}
 		if (batch.isActive() == true)
 			batch.setActive(false);
@@ -179,104 +188,73 @@ public class BatchServiceImpl implements IBatchService {
 		return new ApiResponse(Boolean.TRUE, AppConstants.SUCCESS, HttpStatus.OK);
 
 	}
+
 	@Override
-	public ApiResponse updateBatch(BatchRequest request) {
+	public ApiResponse updateBatch(Batch batch) {
 
-	    Optional<Batch> optionalBatch = batchRepository.findById(request.getBatchId());
-	    if (!optionalBatch.isPresent()) {
-	        throw new ResourceNotFoundException(AppConstants.BATCH_NOT_FOUND);
-	    }
+		Optional<Batch> batches = batchRepository.findById(batch.getBatchId());
+		if (!batches.isPresent()) {
+			throw new ResourceNotFoundException("Batch not found.");
+		}
 
-	    Batch existingBatch = optionalBatch.get();
+		Batch isPresent = batchRepository.findByBatchNameAndIsDeletedFalse(batch.getBatchName());
 
-	    // Check if another batch with the same name exists
-	    Batch batchWithSameName = batchRepository.findByBatchNameAndIsDeletedFalse(request.getBatchName());
-	    if (batchWithSameName != null && !Objects.equals(batchWithSameName.getBatchId(), existingBatch.getBatchId())) {
-	        throw new ResourceAlreadyExistException(AppConstants.BATCH_ALREADY_EXIST);
-	    }
+		if (isPresent != null && isPresent.getBatchId() != batches.get().getBatchId()) {
+			throw new ResourceAlreadyExistException("Batch already exist");
+		}
 
-	    // Update fields from request
-	    existingBatch.setBatchName(request.getBatchName());
-	    existingBatch.setBatchStartDate(request.getBatchStartDate());
-	    existingBatch.setBatchTiming(request.getBatchTiming());
-	    existingBatch.setBatchDetails(request.getBatchDetails());
+		Batch save = batchRepository.save(batch);
 
-	    // Update subject reference
-	    existingBatch.setSubject(
-	        subjectRepository.findBySubjectIdAndIsDeleted(request.getSubjectId())
-	            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"))
-	    );
+		if (Objects.nonNull(save))
+			return new ApiResponse(Boolean.TRUE, BATCH_UPDATE_SUCCESS, HttpStatus.CREATED);
 
-	    // Save updated batch
-	    Batch saved = batchRepository.save(existingBatch);
-	    if (Objects.nonNull(saved)) {
-	        return new ApiResponse(Boolean.TRUE, AppConstants.BATCH_UPDATE_SUCCESS, HttpStatus.CREATED);
-	    }
-	    return new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK);
+		return new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK);
 	}
 
 	@Override
 	public Batch getFirstUpcomingBatchOfCurrentCourse(String courseName) {
-		
+
 		Course course = courseRepository.findByCourseNameAndIsDeletedFalse(courseName.trim());
-		if(course==null)
+		if (course == null)
 			throw new ResourceNotFoundException("Course not found");
 
-		return batchRepository.findByCourseId(course.getCourseId())
-				.orElse(null);
+		return batchRepository.findByCourseId(course.getCourseId()).orElse(null);
 	}
-	
-	
-	//=======================================updated methods========================================//
-	
+	 // Convert List<Batch> → List<BatchResponse>
 	@Override
-	public ApiResponse createBatch(BatchRequest request) {
+    public List<BatchResponse> batchToBatchResponse(List<Batch> batches) {
+        return batches.stream()
+                .map(this::batchToBatchResponse) // reuse single converter
+                .collect(Collectors.toList());
+    }
+
+    // Convert Batch → BatchResponse
+    @Override
+    public BatchResponse batchToBatchResponse(Batch batch) {
+        if (batch == null) {
+            return null;
+        }
+
+        return BatchResponse.builder()
+                .batchId(batch.getBatchId())
+                .batchName(batch.getBatchName())
+                .batchStartDate(batch.getBatchStartDate())
+                .batchTiming(batch.getBatchTiming())
+                .batchDetails(batch.getBatchDetails())
+                .isDeleted(batch.isDeleted())
+                .isActive(batch.isActive())
+                .subject(batch.getSubject() != null ? subjectService.toResponse(batch.getSubject()):null)
+                .build();
+    }
+
+	// =====================================New Methods
+	// ===================================
+	@Override
+	public List<BatchResponse> getUpcomingBatchesNew() {
+		List<Batch> batches = batchRepository.findAllByBatchStartDate(LocalDate.now());
 		
-		Batch isPresent = batchRepository.findByBatchNameAndIsDeletedFalse(request.getBatchName());
-		if(isPresent!=null) {
-			throw new ResourceAlreadyExistException(AppConstants.BATCH_ALREADY_EXIST);
-		}
 		
-		Course course = courseRepository.findById(request.getCourseId())
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
-		Batch batch = mapToBatchEntity(request);
-
-		
-		batch.setSubject(
-			    subjectRepository.findBySubjectIdAndIsDeleted(request.getSubjectId())
-			        .orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND))
-			);
-
-//		List<Batch> batches = course.getBatches();
-		List<Batch> batches = course.getBatches() != null ? course.getBatches() : new ArrayList<>();
-
-		batches.add(batch);
-		course.setBatches(batches);
-		System.err.println(request);
-		Course course2 = courseRepository.save(course);
-		if (Objects.nonNull(course2))
-			return new ApiResponse(Boolean.TRUE,AppConstants.BATCH_ADD_SUCCESS, HttpStatus.CREATED);
-		return new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK);
-
+		return batchToBatchResponse(batches);
 	}
-	
-	
-	
-	//===================================utility method=================================//
-	
-	private Batch mapToBatchEntity(BatchRequest request) {
-	    Batch batch = new Batch(
-	        request.getBatchName(),
-	        request.getBatchStartDate(),
-	        request.getBatchTiming(),
-	        request.getBatchDetails()
-	    );
-	    batch.setSubject(
-	        subjectRepository.findBySubjectIdAndIsDeleted(request.getSubjectId())
-	            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"))
-	    );
-	    return batch;
-	}
-
 
 }

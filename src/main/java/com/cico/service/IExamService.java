@@ -1,9 +1,12 @@
 package com.cico.service;
 
+import java.time.LocalDate;
+
 import org.springframework.http.ResponseEntity;
 
 import com.cico.payload.AddExamRequest;
 import com.cico.payload.ExamRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.TestFilterRequest;
 import com.cico.util.ExamType;
 
@@ -82,4 +85,34 @@ public interface IExamService {
 
 	// ==================== GENERAL EXAM METHODS ====================
 	ResponseEntity<?> deleteExamById(Integer examId);
+
+	// .................. NEW METHOD'S ................................
+
+	public ResponseEntity<?> getAllUpcomingExams(Integer studentId, LocalDate startDate, LocalDate endDate,
+			PaginationRequest request);
+
+	public ResponseEntity<?> getChapterExamNew(Integer chapterId);
+
+	public ResponseEntity<?> getChapterExamResultNew(Integer id);
+
+	ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId);
+
+	ResponseEntity<?> getperformanceDataMonthaly(Integer studentId);
+
+	ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId);
+
+	ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId);
+
+	public Integer getRemainingQuestionCountForSubject(Integer subjectId);
+
+	public Integer getRemainingQuestionCountForCourse(Integer courseId);
+
+	// ===================== NEW ============================
+
+	public ResponseEntity<?> addCourseExamNew(AddExamRequest request);
+
+	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request);
+
+	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search);
+
 }

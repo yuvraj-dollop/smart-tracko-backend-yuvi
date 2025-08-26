@@ -24,11 +24,14 @@ public interface IBatchService {
 
 	ApiResponse createBatch(BatchRequest request);
 
-//	ApiResponse updateBatch(Batch batch);
-	
-	//========new method =============	
-	public ApiResponse updateBatch(BatchRequest request);
+	ApiResponse updateBatch(Batch batch);
 	
 	Batch getFirstUpcomingBatchOfCurrentCourse(String course);
+
+	List<BatchResponse> batchToBatchResponse(List<Batch> batches);
+
+	BatchResponse batchToBatchResponse(Batch batch);
+
+	List<BatchResponse> getUpcomingBatchesNew();
 
 }

@@ -37,5 +37,10 @@ public interface QuestionRepo extends JpaRepository<Question, Integer> {
 	Page<Question> findAllByChapterId(Integer chapterId, PageRequest of);
 
 	@Query("SELECT q FROM Question q WHERE q.isDeleted = false AND q.isActive = true AND q.questionId IN :randomQuestoinList")
-	Optional<Question> findAllByIdAndIsDeletedFalse(List<Integer> randomQuestoinList);
+	List<Question> findAllByIdAndIsDeletedFalse(List<Integer> randomQuestoinList);
+
+	// ........... NEW QUESRIES ...................
+
+	@Query("SELECT q FROM Chapter c JOIN c.exam e JOIN e.questions q WHERE q.questionContent = :content AND q.isDeleted = false AND e.examId = :examId")
+	Optional<Question> findByContentAndExam(@Param("content") String content, @Param("examId") Integer examId);
 }

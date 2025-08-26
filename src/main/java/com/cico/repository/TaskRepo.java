@@ -119,10 +119,12 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			    SELECT new com.cico.payload.TaskResponse(
 			        t.taskId,
 			        t.taskName,
+
 			        CASE
 			            WHEN COUNT(DISTINCT tq.questionId) = COUNT(DISTINCT ts.question.questionId)
 			            THEN true ELSE false
 			        END
+			        ,  t.createdDate
 			    )
 			    FROM Student st
 			    JOIN st.course c
@@ -132,8 +134,8 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			    LEFT JOIN TaskSubmission ts ON ts.question.questionId = tq.questionId
 			        AND ts.student.studentId = :studentId
 			    WHERE st.studentId = :studentId
-			      AND tq.isDeleted = false 
-			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive
+			      AND tq.isDeleted = false
+			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive,t.createdDate
 			    HAVING (
 			        (t.isActive = true)
 			        OR ((t.isDeleted = true OR t.isActive = false) AND COUNT(ts) > 0)
@@ -147,7 +149,6 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			""")
 	Page<TaskResponse> getAllTaskOfStudent(@Param("studentId") Integer studentId, @Param("status") String status,
 			Pageable pageRequest);
-
 
 	@Query("  SELECT new com.cico.payload.TaskResponse(t.taskId,t.taskName,COUNT(tq),t.isActive)  FROM Task t"
 			+ " LEFT JOIN t.taskQuestion tq " + "" + " WHERE"
@@ -173,5 +174,48 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			GROUP BY tq.title, tq.questionId
 			""")
 	List<AssignmentAndTaskSubmission> getAllTaskQuestionWithSubmissionCountByTaskId(Long taskId);
+
+	// ................. NEW QUERIES ..........................
+
+//	@Query(value = """
+//			SELECT COUNT(*) FROM (
+//			    SELECT t.task_id
+//			    FROM students st
+//			    JOIN courses c ON c.course_id = st.course_course_id
+//			    JOIN subject s ON s.technology_stack_id = c.course_id
+//			    JOIN task t ON t.subject_id = s.subject_id
+//			    JOIN task_question tq ON tq.task_id = t.task_id
+//			    LEFT JOIN task_submission ts ON ts.question_id = tq.question_id
+//			        AND ts.student_student_id = :studentId
+//			    WHERE st.student_id = :studentId
+//			      AND tq.is_deleted = false
+//			    GROUP BY t.task_id, t.task_name, t.is_deleted, t.is_active
+//			    HAVING (
+//			        t.is_active = true
+//			        OR ((t.is_deleted = true OR t.is_active = false) AND COUNT(ts.question_id) > 0)
+//			    )
+//			) AS result
+//			""", nativeQuery = true)
+//	Long countAllTaskOfStudent(@Param("studentId") Integer studentId);
+
+	@Query("""
+			    SELECT COUNT(t)
+			    FROM Student st
+			    JOIN st.course c
+			    JOIN c.subjects s
+			    JOIN Task t ON t.subject.subjectId = s.subjectId
+			    JOIN t.taskQuestion tq
+			    LEFT JOIN TaskSubmission ts
+			        ON ts.question.questionId = tq.questionId
+			       AND ts.student.studentId = :studentId
+			    WHERE st.studentId = :studentId
+			      AND tq.isDeleted = false
+			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive
+			    HAVING (
+			        t.isActive = true
+			        OR ((t.isDeleted = true OR t.isActive = false) AND COUNT(ts) > 0)
+			    )
+			""")
+	Long countAllTaskOfStudent(@Param("studentId") Integer studentId);
 
 }

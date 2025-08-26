@@ -1,10 +1,15 @@
 package com.cico.controller;
 
+import java.util.Map;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,8 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cico.payload.AddExamRequest;
 import com.cico.payload.ExamRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.TestFilterRequest;
 import com.cico.service.IExamService;
+import com.cico.util.AppConstants;
 import com.cico.util.ExamType;
 
 @RestController
@@ -29,133 +36,283 @@ public class ExamController {
 	// ==================== CHAPTER EXAM METHODS ====================
 	// GET
 	@GetMapping("/getChapterExamResult")
-	public ResponseEntity<?> getChapterExamResult(@RequestParam("resultId") Integer id) {
+	public ResponseEntity<?> getChapterExamResult(@RequestParam(name = AppConstants.RESULT_ID) Integer id) {
 		return examService.getChapterExamResult(id);
 	}
 
 	@GetMapping("/getALLChapterExamResultesByChapterIdApi")
-	public ResponseEntity<?> getChapterExamResultes(@RequestParam("chapterId") Integer chapterId) {
+	public ResponseEntity<?> getChapterExamResultes(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return examService.getChapterExamResultByChaterId(chapterId);
 	}
 
 	@GetMapping("/checkExamCompleteOrNot")
-	public ResponseEntity<?> checkExamCompletedOrNot(@RequestParam("chapterId") Integer chapterId,
+	public ResponseEntity<?> checkExamCompletedOrNot(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId,
 			@RequestParam("studentId") Integer studentId) {
 		return examService.getChapterExamIsCompleteOrNot(chapterId, studentId);
 	}
 
 	@GetMapping("/getChapterExam")
-	public ResponseEntity<?> getChapterExam(@RequestParam("chapterId") Integer chapterId) {
+	public ResponseEntity<?> getChapterExam(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return examService.getChapterExam(chapterId);
 	}
 
 	// POST
 	@PostMapping("/addChapterExam")
-	public ResponseEntity<?> addChapterExamResult(@RequestBody ExamRequest chapterExamResult) {
+	public ResponseEntity<?> addChapterExamResult(@Valid @RequestBody ExamRequest chapterExamResult) {
 		return this.examService.addChapterExamResult(chapterExamResult);
 	}
 
 	// PUT
 	@PutMapping("/changeChapterExamStatus")
-	public ResponseEntity<?> changeChapterExamStatus(@RequestParam Integer examId) {
+	public ResponseEntity<?> changeChapterExamStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.changeChapterExamStatus(examId);
 	}
 
 	@PutMapping("/setChapterExamStartStatus")
-	public ResponseEntity<?> setChapterExamStartStatus(@RequestParam Integer chapterId) {
+	public ResponseEntity<?> setChapterExamStartStatus(
+			@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return examService.setChapterExamStartStatus(chapterId);
 	}
 
 	// ==================== SUBJECT EXAM METHODS ====================
 	// GET
 	@GetMapping("/getALLSubjectExamResultesBySubjectId")
-	public ResponseEntity<?> getSubjectExamResultes(@RequestParam("examId") Integer examId) {
+	public ResponseEntity<?> getSubjectExamResultes(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.getSubjectExamResultesBySubjectId(examId);
 	}
 
 	@GetMapping("/getSubjectExamResult")
-	public ResponseEntity<?> getSubjectExamResult(@RequestParam("resultId") Integer resultId) {
+	public ResponseEntity<?> getSubjectExamResult(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
 		return examService.getSubjectExamResult(resultId);
 	}
 
 	@GetMapping("/getAllSubjectNormalAndScheduleExam")
-	public ResponseEntity<?> getAllSubjectNormalAndScheduleExam(@RequestParam("subjectId") Integer subjectId) {
+	public ResponseEntity<?> getAllSubjectNormalAndScheduleExam(
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
 		return examService.getAllSubjectNormalAndScheduleExam(subjectId);
 	}
 
 	@GetMapping("/getAllSubjectNormalAndScheduleExamForStudent")
 	public ResponseEntity<?> getAllSubjectNormalAndScheduleExamForStudent(
-			@RequestParam("studentId") Integer studentId) {
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return examService.getAllSubjectNormalAndScheduleExamForStudent(studentId);
 	}
 
 	@GetMapping("/getSubjectExamCount")
-	public ResponseEntity<?> getSubjectExamCount(@RequestParam("studentId") Integer studentId) {
+	public ResponseEntity<?> getSubjectExamCount(@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return examService.getSubjectExamCount(studentId);
 	}
 
 	// POST
+	// changes addSubjectExam() to addSubjectExamNew()
 	@PostMapping("/addSubjectExam")
-	public ResponseEntity<?> addSubjectExam(@RequestBody AddExamRequest request) {
-		return examService.addSubjectExam(request);
+	public ResponseEntity<?> addSubjectExam(@Valid @RequestBody AddExamRequest request) {
+		return examService.addSubjectExamNew(request);
 	}
 
 	@PostMapping("/addSubjectExamResult")
-	public ResponseEntity<?> addSubjectExamResult(@RequestBody ExamRequest chapterExamResult) {
+	public ResponseEntity<?> addSubjectExamResult(@Valid @RequestBody ExamRequest chapterExamResult) {
 		return this.examService.addSubjectExamResult(chapterExamResult);
 	}
 
 	// PUT
 	@PutMapping("/updateSubjectExam")
-	public ResponseEntity<?> updateSubjectExam(@RequestBody AddExamRequest request) {
+	public ResponseEntity<?> updateSubjectExam(@Valid @RequestBody AddExamRequest request) {
 		return examService.updateSubjectExam(request);
 	}
 
 	@PutMapping("/changeSubjectExamStatus")
-	public ResponseEntity<?> changeSubjectExamStatus(@RequestParam Integer examId) {
+	public ResponseEntity<?> changeSubjectExamStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.changeSubjectExamStatus(examId);
 	}
 
 	@PutMapping("/setSubjectExamStartStatus")
-	public ResponseEntity<?> setSubjectExamStartStatus(@RequestParam Integer examId) {
+	public ResponseEntity<?> setSubjectExamStartStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.setSubjectExamStartStatus(examId);
 	}
 
 	// DELETE
 	@DeleteMapping("/deleteSubjectExam")
-	public ResponseEntity<?> deleteSubjectExam(@RequestParam("examId") Integer examId) {
+	public ResponseEntity<?> deleteSubjectExam(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.deleteSubjectExam(examId);
 	}
 
 	// ==================== COURSE EXAM METHODS ====================
 	// GET
 	@GetMapping("/getCourseExamResult")
-	public ResponseEntity<?> getCourseExamResult(@RequestParam("resultId") Integer resultId) {
+	public ResponseEntity<?> getCourseExamResult(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
 		return examService.getCourseExamResult(resultId);
 	}
 
 	// POST
 	@PostMapping("/addCourseExamResult")
-	public ResponseEntity<?> addCourseExamResult(@RequestBody ExamRequest courseExamResult) {
+	public ResponseEntity<?> addCourseExamResult(@Valid @RequestBody ExamRequest courseExamResult) {
 		return this.examService.addCourseExamResult(courseExamResult);
 	}
 
 	@PostMapping("/getAllCourseExamsByExamTypes")
-	public ResponseEntity<?> filterCourseSubjectTest(@RequestParam("examType") ExamType examType,
-			@RequestBody TestFilterRequest request) {
+	public ResponseEntity<?> filterCourseSubjectTest(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@Valid @RequestBody TestFilterRequest request) {
 		return examService.filterCourseSubjectTest(examType, request);
 	}
 
 	// PUT
 	@PutMapping("/setCourseExamStartStatus")
-	public ResponseEntity<?> setCourseExamStartStatus(@RequestParam Integer examId) {
+	public ResponseEntity<?> setCourseExamStartStatus(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.setCourseExamStartStatus(examId);
 	}
 
 	// ==================== GENERAL EXAM METHODS ====================
 	// PUT
 	@PutMapping("/deleteExamById")
-	public ResponseEntity<?> deleteExamById(@RequestParam("examId") Integer examId) {
+	public ResponseEntity<?> deleteExamById(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
 		return examService.deleteExamById(examId);
 	}
+
+	// ......................... NEW API'S ..............................
+
+	@GetMapping("/v2/checkExamCompleteOrNot")
+	public ResponseEntity<?> checkExamCompletedOrNotNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return examService.getChapterExamIsCompleteOrNot(chapterId, studentId);
+	}
+
+	@GetMapping("/v2/getChapterExamResult")
+	public ResponseEntity<?> getChapterExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getChapterExamResultNew(resultId);
+	}
+
+	@PutMapping("/v2/setChapterExamStartStatus/{chapterId}")
+	public ResponseEntity<?> setChapterExamStartStatusNew(
+			@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+		return examService.setChapterExamStartStatus(chapterId);
+	}
+
+	@GetMapping("/v2/getChapterExam")
+	public ResponseEntity<?> getChapterExamNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+		return examService.getChapterExamNew(chapterId);
+	}
+
+	// POST
+	@PostMapping("/v2/addChapterExam")
+	public ResponseEntity<?> addChapterExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
+		System.err.println(" ------------- >chapterExamResult => " + chapterExamResult);
+		return this.examService.addChapterExamResult(chapterExamResult);
+	}
+
+	// ................................................... New
+	// ......................................................
+	@GetMapping("/v2/getPerformanceDataOfStudent")
+	public ResponseEntity<?> getResultCountsDataOfStudent(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+
+		return examService.getOverallResultOfStudentByCourse(studentId);
+	}
+
+	@GetMapping("/v2/getperformanceDataMonthaly")
+	public ResponseEntity<?> getperformanceDataMonthaly(Integer studentId) {
+		return examService.getperformanceDataMonthaly(studentId);
+	}
+
+	@GetMapping("/v2/getAllSubjectPerformanceData")
+	public ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId) {
+		return examService.getAllSubjectPerformanceData(studentId);
+	}
+
+	@GetMapping("/v2/getAllTestperformanceDataOfStudent")
+	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
+		return examService.getAllTestperformanceDataOfStudent(studentId);
+	}
+	// =========== TEST RELATED ===============
+
+	// for admin use
+	@GetMapping("/v2/getRemainingQuestionCountForSubject")
+	public ResponseEntity<?> getRemainingQuestionCountForSubject(
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
+		return ResponseEntity.ok(
+				Map.of("remainingQuestionCountForSubject", examService.getRemainingQuestionCountForSubject(subjectId)));
+	}
+
+	// for admin use
+	@GetMapping("/v2/getRemainingQuestionCountForCourse")
+	public ResponseEntity<?> getRemainingQuestionCountForCourse(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer course) {
+		return ResponseEntity
+				.ok(Map.of("remainingQuestionCountForCourse", examService.getRemainingQuestionCountForCourse(course)));
+	}
+
+	@GetMapping("/v2/getAllCourseExamsByExamTypes")
+	public ResponseEntity<?> filterCourseSubjectTestNew(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNumber) {
+
+		// create TestFilterRequest manually
+		TestFilterRequest request = new TestFilterRequest();
+		request.setCourseId(courseId);
+		request.setSubjectId(subjectId);
+		request.setStudentId(studentId);
+		request.setStatus(status);
+		request.setPaginationRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
+
+		return examService.filterCourseSubjectTest(examType, request);
+	}
+
+	// GET
+	@GetMapping("/v2/getCourseExamResult")
+	public ResponseEntity<?> getCourseExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getCourseExamResult(resultId);
+	}
+
+	// PUT
+	@PutMapping("/v2/setCourseExamStartStatus")
+	public ResponseEntity<?> setCourseExamStartStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.setCourseExamStartStatus(examId);
+	}
+
+	// POST
+	@PostMapping("/v2/addCourseExamResult")
+	public ResponseEntity<?> addCourseExamResultNew(@Valid @RequestBody ExamRequest courseExamResult) {
+		return this.examService.addCourseExamResult(courseExamResult);
+	}
+
+	@GetMapping("/v2/getSubjectExamResult")
+	public ResponseEntity<?> getSubjectExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
+		return examService.getSubjectExamResult(resultId);
+	}
+
+	@PutMapping("/v2/setSubjectExamStartStatus")
+	public ResponseEntity<?> setSubjectExamStartStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.setSubjectExamStartStatus(examId);
+	}
+
+	@PostMapping("/v2/addSubjectExamResult")
+	public ResponseEntity<?> addSubjectExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
+		return this.examService.addSubjectExamResult(chapterExamResult);
+	}
+
+	@GetMapping("/v2/searchAllCourseExamsByExamTypes")
+	public ResponseEntity<?> searchCourseSubjectTestNew(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@RequestParam(name = AppConstants.SEARCH) String search,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNumber) {
+
+		// create TestFilterRequest manually
+		TestFilterRequest request = new TestFilterRequest();
+		request.setCourseId(courseId);
+		request.setSubjectId(subjectId);
+		request.setStudentId(studentId);
+		request.setStatus(status);
+		request.setPaginationRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
+
+		return examService.searchCourseSubjectTest(examType, request, search);
+	}
+
 }

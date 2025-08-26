@@ -2,11 +2,14 @@ package com.cico.service;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 
 import com.cico.model.Fees;
 import com.cico.payload.FeesResponse;
 import com.cico.payload.PageResponse;
+import com.cico.payload.StudentFeesRequest;
 
 public interface IFeesService {
 
@@ -29,6 +32,11 @@ public interface IFeesService {
 	ResponseEntity<?> getFeesCollectionMonthAndYearWise(int year);
 
 	public ResponseEntity<?> getTotalfeesCollection();
+
+	
+	
+	//............................ NEW METHOD'S ..............................
+	public FeesResponse createStudentFees(@Valid StudentFeesRequest feesRequest);
 
 	
 

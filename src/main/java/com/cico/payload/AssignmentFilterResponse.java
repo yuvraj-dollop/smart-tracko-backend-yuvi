@@ -13,4 +13,5 @@ public class AssignmentFilterResponse {
 	private List<AssignmentTaskFilterReponse> taskQuestion;
 	private Integer totalTaskCompleted;
 	private Boolean status;
+	private Boolean isLocked;
 }

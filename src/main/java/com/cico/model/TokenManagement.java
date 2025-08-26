@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TokenManagement {
-
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer id;
 
-	@Column(length = 1000, nullable = false, unique = true)
-	private String token;
+    @Column(length = 1000, nullable = false, unique = true)
+    private String token;
 
 }

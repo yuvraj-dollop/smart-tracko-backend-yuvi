@@ -3,13 +3,13 @@ package com.cico.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,16 +20,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.BadRequestException;
+import com.cico.exception.InvalidFileTypeException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.kafkaServices.KafkaProducerService;
 import com.cico.model.Assignment;
 import com.cico.model.AssignmentSubmission;
 import com.cico.model.AssignmentTaskQuestion;
+import com.cico.model.Course;
 import com.cico.model.Student;
+import com.cico.model.Subject;
 import com.cico.payload.AssignmentAndTaskSubmission;
 import com.cico.payload.AssignmentFilter;
 import com.cico.payload.AssignmentFilterResponse;
+import com.cico.payload.AssignmentQuestionRequest;
 import com.cico.payload.AssignmentRequest;
 import com.cico.payload.AssignmentResponse;
 import com.cico.payload.AssignmentSubmissionRequest;
@@ -42,6 +47,8 @@ import com.cico.payload.NotificationInfo;
 import com.cico.payload.SubjectResponse;
 import com.cico.payload.TaskQuestionResponse;
 import com.cico.payload.TaskStatusSummary;
+import com.cico.payload.TechnologyStackResponse;
+import com.cico.payload.UpdateAssignmentQuestionRequest;
 import com.cico.repository.AssignmentRepository;
 import com.cico.repository.AssignmentSubmissionRepository;
 import com.cico.repository.AssignmentTaskQuestionRepository;
@@ -49,6 +56,7 @@ import com.cico.repository.CourseRepository;
 import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
 import com.cico.service.IAssignmentService;
+import com.cico.service.ITaskService;
 import com.cico.util.AppConstants;
 import com.cico.util.NotificationConstant;
 import com.cico.util.SubmissionStatus;
@@ -81,6 +89,9 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	@Autowired
 	private KafkaProducerService kafkaProducerService;
+
+	@Autowired
+	private ITaskService taskService;
 
 	AssignmentServiceImpl(LeaveServiceImpl leaveServiceImpl) {
 		this.leaveServiceImpl = leaveServiceImpl;
@@ -138,12 +149,13 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAssignmentQuesById(Long questionId) { ///
+	public ResponseEntity<?> getAssignmentQuesById(Long questionId) {
 		Map<String, Object> response = new HashMap<>();
 		AssignmentTaskQuestion assignmentTaskQuestion = assignmentTaskQuestionRepository.findByQuestionId(questionId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
 
 		AssignmentTaskFilterReponse obj = new AssignmentTaskFilterReponse();
+		obj.setTitle(assignmentTaskQuestion.getTitle());
 		obj.setQuestion(assignmentTaskQuestion.getQuestion());
 		obj.setQuestionId(assignmentTaskQuestion.getQuestionId());
 		obj.setVideoUrl(assignmentTaskQuestion.getVideoUrl());
@@ -157,11 +169,28 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	}
 
 	@Override
-	public ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue) ////
-	{
+	public ResponseEntity<?> submitAssignment(MultipartFile file, AssignmentSubmissionRequest readValue) {
+		System.err.println("AAAAAAAAAAAAAAAAA ==> " + readValue);
 		Optional<AssignmentTaskQuestion> obj = assignmentTaskQuestionRepository.findByQuestionId(readValue.getTaskId());
-		boolean anyMatch = obj.get().getAssignmentSubmissions().parallelStream()
-				.anyMatch(obj2 -> obj2.getStudent().getStudentId() == readValue.getStudentId());
+//		boolean anyMatch = obj.get().getAssignmentSubmissions().parallelStream()
+//				.anyMatch(obj2 -> obj2.getStudent().getStudentId() == readValue.getStudentId());
+
+		boolean anyMatch = obj.get().getAssignmentSubmissions().stream()
+				.anyMatch(obj2 -> obj2.getStudent().getStudentId().equals(readValue.getStudentId()));
+
+		if (file != null && !file.isEmpty()) {
+			String contentType = file.getContentType();
+			String originalFilename = file.getOriginalFilename();
+			Boolean isPdf = contentType.equals("application/pdf") || originalFilename.endsWith(".pdf");
+			Boolean isZip = contentType.equals("application/zip")
+					|| originalFilename.equalsIgnoreCase("application/x-zip-compressed")
+					|| originalFilename.endsWith(".zip");
+			if (!isPdf && !isZip) {
+				throw new InvalidFileTypeException("Only PDF or ZIP files are allowed for submission.");
+			}
+
+		}
+		System.err.println("ANY MATCH IF ASSIGNMENT ALREDY SUBMITTED ==> " + anyMatch);
 
 		if (!anyMatch) {
 			AssignmentSubmission submission = new AssignmentSubmission();
@@ -177,6 +206,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			obj.get().getAssignmentSubmissions().add(save);
 			assignmentTaskQuestionRepository.save(obj.get());
 
+			System.err.println("FOR DEBUG ===> " + save);
 			// .....firebase notification .....//
 
 //			NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(readValue.getStudentId());
@@ -185,7 +215,11 @@ public class AssignmentServiceImpl implements IAssignmentService {
 //			fcmIds.setTitle("Submission updates!");
 //			kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
 			// .....firebase notification .....//
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			Map<String, Object> res = new HashMap<>();
+			res.put("response", "Assignment Submitted");
+			res.put("questionId", readValue.getTaskId());
+			System.err.println("RESPONSE FOR DEBUG ==> " + res);
+			return ResponseEntity.ok(res);
 		} else {
 			throw new ResourceAlreadyExistException("ALREADY THIS ASSIGNMENT TASK SUBMITED!!");
 		}
@@ -664,6 +698,9 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			obj.setAssignmentQuestion(obj.getAssignmentQuestion().parallelStream().filter(obj1 -> !obj1.getIsDeleted())
 					.collect(Collectors.toList()));
 		});
+		for (Assignment assignment : list) {
+			System.err.println(" ----------------- Assignment => " + assignment.getTitle());
+		}
 		return list;
 	}
 
@@ -780,7 +817,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	public TaskQuestionResponse taskquestionResponseFilter(AssignmentTaskQuestion obj) {
 		TaskQuestionResponse taskQuestionResponse = new TaskQuestionResponse(obj.getQuestionId(), obj.getQuestion(),
-				obj.getQuestionImages(), obj.getVideoUrl());
+				obj.getQuestionImages(), obj.getVideoUrl(), obj.getTitle());
 
 		taskQuestionResponse.setIsActive(obj.getIsActive());
 
@@ -968,170 +1005,298 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		response.put(AppConstants.MESSAGE, "Assignment status changed successfully");
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-	
+
 	// ......................... NEW METHOD'S ............................
 
-		@Override
-		public ResponseEntity<?> getAllLockedAndUnlockedAssignment(Integer studentId, Integer pageSize,
-				Integer pageNumber) {
-			Map<String, Object> response = new HashMap<>();
-			List<Assignment> lockedAssignment = new ArrayList<>();
-			List<Assignment> unLockedAssignment = new ArrayList<>();
+	@Override
+	public ResponseEntity<?> getAllLockedAndUnlockedAssignment(Integer studentId, Integer pageSize,
+			Integer pageNumber) {
+		Map<String, Object> response = new HashMap<>();
+		List<Assignment> lockedAssignment = new ArrayList<>();
+		List<Assignment> unLockedAssignment = new ArrayList<>();
 
-			try {
-				Optional<Student> optionalStudent = studentRepository.findById(studentId);
-				if (optionalStudent.isEmpty()) {
-					response.put(AppConstants.MESSAGE, "Student not found");
-					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-				}
+		try {
+			Optional<Student> optionalStudent = studentRepository.findById(studentId);
+			if (optionalStudent.isEmpty()) {
+				response.put(AppConstants.MESSAGE, AppConstants.STUDENT_NOT_FOUND);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
 
-				Student student = optionalStudent.get();
-				if (student.getCourse() == null) {
-					response.put(AppConstants.MESSAGE, "Student course not found");
-					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-				}
+			Student student = optionalStudent.get();
+			if (student.getCourse() == null) {
+				response.put(AppConstants.MESSAGE, AppConstants.COURSE_NOT_FOUND);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
 
-				List<Assignment> allAssignment = assignmentRepository.findAll(student.getCourse().getCourseId());
+			List<Assignment> allAssignment = assignmentRepository.findAll(student.getCourse().getCourseId());
 
-				if (allAssignment == null || allAssignment.isEmpty()) {
-					response.put(AppConstants.MESSAGE, AppConstants.ASSIGNMENT_NOT_FOUND);
-					return new ResponseEntity<>(response, HttpStatus.OK);
-				}
-
-				allAssignment = AllAssignmentTemp(allAssignment, studentId);
-
-				if (!allAssignment.isEmpty()) {
-					unLockedAssignment.add(allAssignment.get(0));
-				}
-
-				for (int i = 0; i < allAssignment.size(); i++) {
-					Assignment assignment = allAssignment.get(i);
-					if (assignment.getAssignmentQuestion() == null)
-						continue;
-
-					List<AssignmentSubmission> submittedAssignment = getSubmittedAssignments(assignment, studentId);
-
-					long taskCount = submittedAssignment.stream()
-							.filter(submission -> submission.getStatus() != null
-									&& List.of("Accepted", "Rejected", "Reviewing").contains(submission.getStatus().name()))
-							.count();
-
-					if (assignment.getAssignmentQuestion().size() == taskCount) {
-						if (i < allAssignment.size() - 1) {
-							unLockedAssignment.add(allAssignment.get(i + 1));
-						}
-					} else {
-						for (int j = i + 1; j < allAssignment.size(); j++) {
-							lockedAssignment.add(allAssignment.get(j));
-						}
-						break;
-					}
-				}
-
-				handleUnlockConditions(allAssignment, unLockedAssignment, lockedAssignment, studentId);
-
-				List<AssignmentFilterResponse> assignmentFilterResponses = unLockedAssignment.stream().map(obj -> {
-					AssignmentFilterResponse res = new AssignmentFilterResponse();
-					res.setId(obj.getId());
-					res.setTitle(obj.getTitle());
-					res.setStatus(obj.getIsActive());
-					res.setTaskQuestion(obj.getAssignmentQuestion() == null ? new ArrayList<>()
-							: obj.getAssignmentQuestion().stream().filter(q -> {
-								// Always show active and not deleted
-								if (Boolean.TRUE.equals(q.getIsActive()) && Boolean.FALSE.equals(q.getIsDeleted())) {
-									return true;
-								}
-
-								// If question is inactive or deleted, check if student submitted it
-								if ((Boolean.FALSE.equals(q.getIsActive()) || Boolean.TRUE.equals(q.getIsDeleted()))
-										&& q.getAssignmentSubmissions() != null) {
-									return q.getAssignmentSubmissions().stream()
-											.anyMatch(sub -> sub != null && sub.getStudent() != null
-													&& sub.getStudent().getStudentId().equals(studentId));
-								}
-
-								return false;
-							}).map(q -> new AssignmentTaskFilterReponse(q, studentId, q.getTaskNumber()))
-									.collect(Collectors.toList()));
-
-					int totalTaskCompleted = obj
-							.getAssignmentQuestion() == null
-									? 0
-									: (int) obj.getAssignmentQuestion().stream()
-											.flatMap(obj2 -> obj2.getAssignmentSubmissions() == null ? Stream.empty()
-													: obj2.getAssignmentSubmissions().stream()
-															.filter(obj3 -> obj3 != null && obj3.getStudent() != null
-																	&& obj3.getStudent().getStudentId() == studentId))
-											.count();
-
-					res.setTotalTaskCompleted(totalTaskCompleted);
-					return res;
-				}).collect(Collectors.toList());
-
-				// Add manual pagination
-				int start = Math.min(pageNumber * pageSize, assignmentFilterResponses.size());
-				int end = Math.min(start + pageSize, assignmentFilterResponses.size());
-				List<AssignmentFilterResponse> paginatedList = assignmentFilterResponses.subList(start, end);
-
-				// Wrap paginated list as a Page
-				Pageable pageable = PageRequest.of(pageNumber, pageSize);
-				Page<AssignmentFilterResponse> pageResult = new PageImpl<>(paginatedList, pageable,
-						assignmentFilterResponses.size());
-
-				// Prepare response map
-				response.put("unLockedAssignment", pageResult);
-				response.put("lockedAssignment", lockedAssignment.size());
-
+			if (allAssignment == null || allAssignment.isEmpty()) {
+				response.put(AppConstants.MESSAGE, AppConstants.ASSIGNMENT_NOT_FOUND);
 				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
 
-			} catch (Exception e) {
-				e.printStackTrace(); // You can replace with a logger
-				response.put(AppConstants.MESSAGE, "An error occurred while processing the assignments");
-				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			allAssignment = AllAssignmentTemp(allAssignment, studentId);
+
+			if (!allAssignment.isEmpty()) {
+				unLockedAssignment.add(allAssignment.get(0));
+			}
+
+			for (int i = 0; i < allAssignment.size(); i++) {
+				Assignment assignment = allAssignment.get(i);
+				if (assignment.getAssignmentQuestion() == null)
+					continue;
+
+				List<AssignmentSubmission> submittedAssignment = getSubmittedAssignments(assignment, studentId);
+
+				long taskCount = submittedAssignment.stream()
+						.filter(submission -> submission.getStatus() != null
+								&& List.of("Accepted", "Rejected", "Reviewing").contains(submission.getStatus().name()))
+						.count();
+
+				if (assignment.getAssignmentQuestion().size() == taskCount) {
+					if (i < allAssignment.size() - 1) {
+						unLockedAssignment.add(allAssignment.get(i + 1));
+					}
+				} else {
+					for (int j = i + 1; j < allAssignment.size(); j++) {
+						lockedAssignment.add(allAssignment.get(j));
+					}
+					break;
+				}
+			}
+
+			handleUnlockConditions(allAssignment, unLockedAssignment, lockedAssignment, studentId);
+
+			List<AssignmentFilterResponse> assignmentFilterResponses = new ArrayList<>();
+
+			for (Assignment assignment : unLockedAssignment) {
+				assignmentFilterResponses.add(mapToAssignmentResponse(assignment, studentId, false));
+
+			}
+
+			for (Assignment assignment : lockedAssignment) {
+				assignmentFilterResponses.add(mapToAssignmentResponse(assignment, studentId, true));
+			}
+
+			// Add manual pagination
+			int start = Math.min(pageNumber * pageSize, assignmentFilterResponses.size());
+			int end = Math.min(start + pageSize, assignmentFilterResponses.size());
+			List<AssignmentFilterResponse> paginatedList = assignmentFilterResponses.subList(start, end);
+
+			// Wrap paginated list as a Page
+			Pageable pageable = PageRequest.of(pageNumber, pageSize);
+			Page<AssignmentFilterResponse> pageResult = new PageImpl<>(paginatedList, pageable,
+					assignmentFilterResponses.size());
+
+			// Prepare response map
+			response.put("assignments", pageResult);
+
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
+		} catch (Exception e) {
+//			e.printStackTrace(); // You can replace with a logger
+			response.put(AppConstants.MESSAGE, "An error occurred while processing the assignments");
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private AssignmentFilterResponse mapToAssignmentResponse(Assignment obj, Integer studentId, Boolean isLocked) {
+		AssignmentFilterResponse res = new AssignmentFilterResponse();
+		res.setId(obj.getId());
+		res.setTitle(obj.getTitle());
+		res.setStatus(obj.getIsActive());
+
+		List<AssignmentTaskFilterReponse> questions = obj.getAssignmentQuestion() == null ? new ArrayList<>()
+				: obj.getAssignmentQuestion().stream().filter(q -> {
+					if (Boolean.TRUE.equals(q.getIsActive()) && Boolean.FALSE.equals(q.getIsDeleted())) {
+						return true;
+					}
+					if ((Boolean.FALSE.equals(q.getIsActive()) || Boolean.TRUE.equals(q.getIsDeleted()))
+							&& q.getAssignmentSubmissions() != null) {
+						return q.getAssignmentSubmissions().stream().anyMatch(sub -> sub != null
+								&& sub.getStudent() != null && sub.getStudent().getStudentId().equals(studentId));
+					}
+					return false;
+				}).map(q -> new AssignmentTaskFilterReponse(q, studentId, q.getTaskNumber()))
+						.collect(Collectors.toList());
+
+		res.setTaskQuestion(questions);
+
+		int totalTaskCompleted = obj.getAssignmentQuestion() == null ? 0
+				: (int) obj.getAssignmentQuestion().stream().flatMap(obj2 -> obj2.getAssignmentSubmissions() == null
+						? Stream.empty()
+						: obj2.getAssignmentSubmissions().stream().filter(obj3 -> obj3 != null
+								&& obj3.getStudent() != null && obj3.getStudent().getStudentId().equals(studentId)))
+						.count();
+
+		res.setTotalTaskCompleted(totalTaskCompleted);
+		res.setIsLocked(isLocked);
+		return res;
+	}
+
+	private List<AssignmentSubmission> getSubmittedAssignments(Assignment assignment, Integer studentId) {
+		return assignment.getAssignmentQuestion().stream().filter(Objects::nonNull)
+				.flatMap(q -> q.getAssignmentSubmissions() == null ? Stream.empty()
+						: q.getAssignmentSubmissions().stream()
+								.filter(sub -> sub != null && sub.getStudent() != null
+										&& sub.getStudent().getStudentId().equals(studentId)))
+				.collect(Collectors.toList());
+	}
+
+	private void handleUnlockConditions(List<Assignment> allAssignment, List<Assignment> unLockedAssignment,
+			List<Assignment> lockedAssignment, Integer studentId) {
+
+		// Loop through unlocked assignments
+		for (int i = 0; i < unLockedAssignment.size(); i++) {
+			Assignment current = unLockedAssignment.get(i);
+
+			if (current.getAssignmentQuestion() == null)
+				continue;
+
+			List<AssignmentSubmission> submissions = getSubmittedAssignments(current, studentId);
+
+			boolean allSubmitted = submissions.size() == current.getAssignmentQuestion().size();
+
+			// If current assignment is fully submitted, try to unlock the next one
+			if (allSubmitted && unLockedAssignment.size() < allAssignment.size()) {
+				int nextIndex = allAssignment.indexOf(current) + 1;
+
+				if (nextIndex < allAssignment.size()) {
+					Assignment nextAssignment = allAssignment.get(nextIndex);
+
+					if (lockedAssignment.remove(nextAssignment)) {
+						unLockedAssignment.add(nextAssignment);
+					}
+				}
 			}
 		}
+	}
 
-		private List<AssignmentSubmission> getSubmittedAssignments(Assignment assignment, Integer studentId) {
-			return assignment.getAssignmentQuestion().stream().filter(Objects::nonNull)
-					.flatMap(q -> q.getAssignmentSubmissions() == null ? Stream.empty()
-							: q.getAssignmentSubmissions().stream()
-									.filter(sub -> sub != null && sub.getStudent() != null
-											&& sub.getStudent().getStudentId().equals(studentId)))
+	@Override
+	public ResponseEntity<?> addQuestionInAssignment(AssignmentQuestionRequest request) {
+
+		Assignment assignment = checkIsPresent(request.getAssignmentId());
+		AssignmentTaskQuestion assignmentTaskQuestion = new AssignmentTaskQuestion();
+		assignmentTaskQuestion.setTitle(request.getTitle());
+		assignmentTaskQuestion.setQuestion(request.getQuestion());
+		assignmentTaskQuestion.setVideoUrl(request.getVideoUrl());
+		assignmentTaskQuestion.setIsDeleted(false);
+		assignmentTaskQuestion.setIsActive(true);
+		assignmentTaskQuestion.setTaskNumber(assignment.getAssignmentQuestion().size() + 1);
+		if (Objects.nonNull(request.getQuestionImages())) {
+			List<String> fileNames = request.getQuestionImages().stream()
+					.map(file -> fileServiceImpl.uploadFileInFolder(file, AppConstants.TASK_ASSIGNMENT_FILES))
 					.collect(Collectors.toList());
+			assignmentTaskQuestion.setQuestionImages(fileNames);
+		}
+		assignmentTaskQuestion.setAssignment(assignment);
+		AssignmentTaskQuestion newQuestion = assignmentTaskQuestionRepository.save(assignmentTaskQuestion);
+		assignment.getAssignmentQuestion().add(newQuestion);
+
+		assignmentRepository.save(assignment);
+		return new ResponseEntity<>(taskquestionResponseFilter(newQuestion), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> updateAssignmentQuestion(UpdateAssignmentQuestionRequest request) {
+		Map<String, Object> response = new HashMap<>();
+		AssignmentTaskQuestion assignmentTaskQuestion = assignmentTaskQuestionRepository
+				.findByQuestionId(request.getQuestionId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+
+		assignmentTaskQuestion.setTitle(request.getTitle());
+		assignmentTaskQuestion.setQuestion(request.getQuestion());
+		assignmentTaskQuestion.setVideoUrl(request.getVideoUrl());
+		if (Objects.isNull(request.getQuestionImages())) {
+			assignmentTaskQuestion.setQuestionImages(new ArrayList<String>());
+		} else {
+			assignmentTaskQuestion.setQuestionImages(request.getQuestionImages());
+		}
+		if (Objects.nonNull(request.getNewImages()) && request.getNewImages().size() > 0) {
+
+			List<String> fileNames = request.getNewImages().stream()
+					.map(file -> fileServiceImpl.uploadFileInFolder(file, AppConstants.TASK_ASSIGNMENT_FILES))
+					.collect(Collectors.toList());
+			assignmentTaskQuestion.getQuestionImages().addAll(fileNames);
 		}
 
-		private void handleUnlockConditions(List<Assignment> allAssignment, List<Assignment> unLockedAssignment,
-				List<Assignment> lockedAssignment, Integer studentId) {
-			int count = 0;
+		assignmentTaskQuestionRepository.save(assignmentTaskQuestion);
 
-			if (unLockedAssignment.size() == 1 && lockedAssignment.size() > 1 && allAssignment.size() > 1) {
-				Assignment firstUnlocked = unLockedAssignment.get(0);
-				if (firstUnlocked.getAssignmentQuestion() != null) {
-					List<AssignmentSubmission> submissions = getSubmittedAssignments(firstUnlocked, studentId);
-					if (submissions.size() == firstUnlocked.getAssignmentQuestion().size()) {
-						unLockedAssignment.add(allAssignment.get(1));
-					}
-				}
-			} else if (allAssignment.size() > 2) {
-				int startIndex = Math.max(0, unLockedAssignment.size() - 2);
-				for (int i = startIndex; i < unLockedAssignment.size(); i++) {
-					Assignment unlocked = unLockedAssignment.get(i);
-					if (unlocked.getAssignmentQuestion() == null)
-						continue;
+		response.put(AppConstants.MESSAGE, AppConstants.UPDATE_SUCCESSFULLY);
+		response.put("id", assignmentTaskQuestion.getAssignment().getId());
+		return new ResponseEntity<>(response, HttpStatus.OK);
 
-					List<AssignmentSubmission> submissions = getSubmittedAssignments(unlocked, studentId);
-					boolean hasUnreviewed = submissions.stream()
-							.anyMatch(sub -> sub.getStatus() != null && "Unreviewed".equals(sub.getStatus().name()));
+	}
 
-					if (submissions.size() == unlocked.getAssignmentQuestion().size() && hasUnreviewed) {
-						count++;
-					}
-				}
+	@Override
+	public Long countSubmittedAssignmentByStudentId(Integer studentId) {
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> {
+			throw new ResourceNotFoundException("Student not found");
+		});
 
-				if (count == 1 && !lockedAssignment.isEmpty()) {
-					unLockedAssignment.add(lockedAssignment.remove(0));
-				}
-			}
+		if (student.getCourse() == null) {
+			throw new ResourceNotFoundException("Student course not found");
 		}
+		return assignmentRepository.countByCourseIdAndIsDeletedFalse(student.getCourse().getCourseId());
+	}
+
+	@Override
+	public Long countAssignmentOfStudent(Integer studentId) {
+		return submissionRepository.countSubmittedAssignmentsByStudentId(studentId);
+	}
+
+	@Override
+	public ResponseEntity<?> getAssignmentQuestionDetails(Long questionId, Integer studentId) {
+		Map<String, Object> response = new HashMap<>();
+		AssignmentTaskQuestion assignmentTaskQuestion = assignmentTaskQuestionRepository.findByQuestionId(questionId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+
+		AssignmentTaskFilterReponse obj = new AssignmentTaskFilterReponse();
+		obj.setTitle(assignmentTaskQuestion.getTitle());
+		obj.setQuestion(assignmentTaskQuestion.getQuestion());
+		obj.setQuestionId(assignmentTaskQuestion.getQuestionId());
+		obj.setVideoUrl(assignmentTaskQuestion.getVideoUrl());
+		obj.setQuestionImages(assignmentTaskQuestion.getQuestionImages());
+
+		// setting assignment attachament
+		obj.setAssignmentAttachement(assignmentTaskQuestion.getAssignment().getTaskAttachment());
+		response.put("question", obj);
+		response.put("assignmentId", assignmentTaskQuestion.getAssignment().getId());
+
+		AssignmentSubmissionResponse submittedAssignment = submissionRepository
+				.getSubmitAssignmentQuestionByStudentId(studentId, questionId, null);
+		System.err.println(submittedAssignment + " <<<-----------------");
+		if (submittedAssignment != null) {
+			submittedAssignment
+					.setOriginalFileName(extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
+		System.err.println("extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()) => "
+				+ extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
+		response.put("submittedAssignment", submittedAssignment);
+		}
+
+		return ResponseEntity.ok(response);
+	}
+
+	private String extractOriginalFileNameFromUrl(String url) {
+	    if (url == null || url.isBlank() || !url.contains("/")) {
+	        return null;
+	    }
+
+	    // Get the last segment (file name) after last '/'
+	    String fileName = url.substring(url.lastIndexOf("/") + 1); // e.g., 29a9af80-xyz_Submit My File.zip
+
+	    int underscoreIndex = fileName.indexOf("_");
+	    int dotIndex = fileName.lastIndexOf(".");
+
+	    // Ensure underscore is before dot (correct format) and both exist
+	    if (underscoreIndex != -1 && dotIndex != -1 && underscoreIndex < dotIndex) {
+	        String originalFileName = fileName.substring(underscoreIndex + 1, dotIndex); // e.g., Submit My File
+	        return originalFileName.trim(); // Removes any extra spaces if present
+	    }
+
+	    // Fallback: return default name
+	    return "SubmittedFile";
+	}
+
 
 }

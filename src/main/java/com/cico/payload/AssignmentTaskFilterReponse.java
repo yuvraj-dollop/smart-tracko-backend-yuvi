@@ -19,6 +19,7 @@ public class AssignmentTaskFilterReponse {
 
 	private Long questionId;
 	private String question;
+	private String title;
 	private String videoUrl;
 	private List<String> questionImages;
 	private LocalDateTime submissionDate;
@@ -38,6 +39,8 @@ public class AssignmentTaskFilterReponse {
 	public AssignmentTaskFilterReponse(AssignmentTaskQuestion question, Integer studentId,Long taskNumber) {
 		super();
 		this.questionId = question.getQuestionId();
+		this.title = question.getTitle();
+		this.videoUrl = question.getVideoUrl();
 		Optional<AssignmentSubmission> findFirst = question.getAssignmentSubmissions().parallelStream()
 				.filter(obj -> obj.getStudent().getStudentId() == studentId).findFirst();
 		// this.submissionDate = submissionDate;

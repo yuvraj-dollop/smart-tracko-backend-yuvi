@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.gson.Gson;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @JsonInclude(value = Include.NON_NULL)
 @ToString
+@Builder
 public class CommentReplyResponse {
 	private Integer id;
 	public LocalDateTime createdDate;

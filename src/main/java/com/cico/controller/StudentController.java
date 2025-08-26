@@ -24,6 +24,7 @@ import com.cico.exception.UnauthorizeException;
 import com.cico.model.Student;
 import com.cico.payload.PageResponse;
 import com.cico.payload.StudentReponseForWeb;
+import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 import com.cico.service.IStudentService;
 import com.cico.util.AppConstants;
@@ -33,8 +34,8 @@ import com.cico.util.AppConstants;
 @CrossOrigin("*")
 public class StudentController {
 
-//	@Autowired
-//	AuthenticationManager manager;
+	// @Autowired
+	// AuthenticationManager manager;
 
 	@Autowired
 	private IStudentService studentService;
@@ -56,7 +57,7 @@ public class StudentController {
 	}
 
 	@PostMapping("/registerStudent")
-	public ResponseEntity<?> registerStudent(@RequestBody Student student) {
+	public ResponseEntity<?> registerStudent(@RequestBody StudentRequest student) {
 		return studentService.registerStudent(student);
 
 	}
@@ -345,18 +346,9 @@ public class StudentController {
 		return new ResponseEntity<Map<String, Object>>(studentData, HttpStatus.OK);
 	}
 
-	@GetMapping("/v2/getStudentCalenderData")
-	public ResponseEntity<Map<String, Object>> getStudentCalenderData(@RequestParam(name = AppConstants.ID) Integer id,
-			@RequestParam(name = AppConstants.MONTH) Integer month,
-			@RequestParam(name = AppConstants.YEAR) Integer year) {
-		Map<String, Object> response = studentService.getCalenderData(id, month, year);
-		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-	}
+	@GetMapping("/v2/getStudentByIdForWeb")
+	public ResponseEntity<?> getStudentByIdForWebNew(@RequestParam(name = "studentId") Integer studentId) {
+		return studentService.getStudentByIdForWeb(studentId);
 
-	@GetMapping("/v2/getTodayAttendance/{studentId}")
-	public ResponseEntity<Map<String, Object>> getTodayAttendanceNew(@PathVariable Integer studentId) {
-		Map<String, Object> todayAttendance = studentService.getTodayAttendance(studentId);
-		return ResponseEntity.ok(todayAttendance);
 	}
-
 }

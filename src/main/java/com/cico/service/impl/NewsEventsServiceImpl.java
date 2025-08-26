@@ -1,6 +1,8 @@
 package com.cico.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.NewsEvents;
+import com.cico.payload.NewsEventsResponse;
 import com.cico.payload.PageResponse;
 import com.cico.repository.NewsEventsRepository;
 import com.cico.service.IFileService;
@@ -109,7 +112,7 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
 
 		int check = newsEventsRepository.updateActiveAndInActiveNewsAndEvent(!newsEvents.getIsActive(), id);
-		return check!=0?true:false;
+		return check != 0 ? true : false;
 	}
 
 	@Override
@@ -124,6 +127,40 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 
 		return new PageResponse<>(pageData.getContent(), pageData.getNumber(), pageData.getSize(),
 				pageData.getTotalElements(), pageData.getTotalPages(), pageData.isLast());
+	}
+
+	// ================================ NEW METHOD's
+	// =====================================
+
+	@Override
+	public PageResponse<NewsEventsResponse> getAllNewsEventsIsActiveNew(Integer page, Integer size) {
+		Page<NewsEvents> pageData = newsEventsRepository.findAllByIsDeletedAndIsActive(false, true,
+				PageRequest.of(page, size, Sort.by(Direction.DESC, "id")));
+
+		List<NewsEventsResponse> newsEventsToNewsEventsResponse = newsEventsToNewsEventsResponse(pageData.getContent());
+		return new PageResponse<>(newsEventsToNewsEventsResponse, pageData.getNumber(), pageData.getSize(),
+				pageData.getTotalElements(), pageData.getTotalPages(), pageData.isLast());
+	}
+
+	@Override
+	public NewsEventsResponse getNewsEventsNew(Integer id) {
+		NewsEvents newsEvents = newsEventsRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+
+		return newsEventsToNewsEventsResponse(newsEvents);
+	}
+
+	@Override
+	public List<NewsEventsResponse> newsEventsToNewsEventsResponse(List<NewsEvents> newsEvents) {
+		return newsEvents.stream().map(this::newsEventsToNewsEventsResponse).collect(Collectors.toList());
+	}
+
+	@Override
+	public NewsEventsResponse newsEventsToNewsEventsResponse(NewsEvents newsEvent) {
+		return NewsEventsResponse.builder().shortDescription(newsEvent.getShortDescription())
+				.briefDescription(newsEvent.getBriefDescription()).image(newsEvent.getImage())
+				.title(newsEvent.getTitle()).createdDate(newsEvent.getCreatedDate()).isActive(newsEvent.getIsActive())
+				.isDeleted(newsEvent.getIsDeleted()).build();
 	}
 
 }

@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ExamResultResponse {
 
 	private Integer id;
@@ -18,5 +18,20 @@ public class ExamResultResponse {
 	private String studentName;
 	private Integer scoreGet;
 	public Integer totalQuestion;
+	private Integer percentile;
+
+	public ExamResultResponse(Integer id, Integer correcteQuestions, Integer wrongQuestions,
+			Integer notSelectedQuestions, String profilePic, Integer studentId, String studentName, Integer scoreGet,
+			Integer totalQuestion) {
+		this.id = id;
+		this.correcteQuestions = correcteQuestions;
+		this.wrongQuestions = wrongQuestions;
+		this.notSelectedQuestions = notSelectedQuestions;
+		this.profilePic = profilePic;
+		this.studentId = studentId;
+		this.studentName = studentName;
+		this.scoreGet = scoreGet;
+		this.totalQuestion = totalQuestion;
+	}
 
 }

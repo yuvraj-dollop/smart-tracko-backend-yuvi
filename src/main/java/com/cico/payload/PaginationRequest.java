@@ -2,9 +2,12 @@ package com.cico.payload;
 
 import javax.validation.constraints.NotBlank;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+
+@Builder
 public class PaginationRequest {
 
 	@NotBlank(message = "Page size cannot be null")

@@ -2,6 +2,7 @@ package com.cico.service;
 
 import org.springframework.http.ResponseEntity;
 
+import com.cico.payload.AnnouncementActionRequest;
 import com.cico.payload.AnnouncementRequest;
 
 public interface IAnnouncementService {
@@ -15,5 +16,12 @@ public interface IAnnouncementService {
 	ResponseEntity<?> getAnnouncementForStudent(Integer studentId);
 
 	ResponseEntity<?> countUnseenNotificationForStudent(Integer studentId);
+	
+	
+	//................. NEW METHODS ................................
+	
+	ResponseEntity<?> getAnnouncementForStudentNew(Integer studentId);
+	ResponseEntity<?> markAnnouncementsAsSeen(AnnouncementActionRequest request);
+	ResponseEntity<?> clearNotificationForStudent(AnnouncementActionRequest request);
 
 }

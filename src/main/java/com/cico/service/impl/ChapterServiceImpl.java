@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +20,23 @@ import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Chapter;
 import com.cico.model.ChapterContent;
+import com.cico.model.ChapterExamResult;
 import com.cico.model.Exam;
 import com.cico.model.Question;
+import com.cico.model.Student;
 import com.cico.model.Subject;
+import com.cico.payload.AddChapterContentRequest;
+import com.cico.payload.AddChapterRequest;
 import com.cico.payload.ChapterContentResponse;
 import com.cico.payload.ChapterResponse;
 import com.cico.payload.QuestionResponse;
+import com.cico.payload.UpdateChapterRequest;
 import com.cico.repository.ChapterContentRepository;
+import com.cico.repository.ChapterExamResultRepo;
 import com.cico.repository.ChapterRepository;
 import com.cico.repository.ExamRepo;
 import com.cico.repository.QuestionRepo;
+import com.cico.repository.StudentRepository;
 import com.cico.repository.SubjectRepository;
 import com.cico.service.IChapterService;
 import com.cico.util.AppConstants;
@@ -46,6 +54,11 @@ public class ChapterServiceImpl implements IChapterService {
 	SubjectRepository subjectRepo;
 	@Autowired
 	ChapterContentRepository chapterContentRepository;
+	@Autowired
+	private ChapterExamResultRepo chapterExamResultRepo;
+
+	@Autowired
+	private StudentRepository studentRepository;
 
 	@Autowired
 	FileServiceImpl fileServiceImpl;
@@ -325,6 +338,7 @@ public class ChapterServiceImpl implements IChapterService {
 	public ResponseEntity<?> getChapterExamQuestionsWithPagination(Integer chapterId, Integer pageNumber,
 			Integer pageSize) {
 		Page<Question> qestionsPage = questionRepo.findAllByChapterId(chapterId, PageRequest.of(pageNumber, pageSize));
+//		System.err.println("*************** getChapterExamQuestionsWithPagination => " + qestionsPage.getContent());
 		return new ResponseEntity<>(qestionsPage, HttpStatus.OK);
 	}
 
@@ -343,6 +357,7 @@ public class ChapterServiceImpl implements IChapterService {
 		response.put("totalPages", chapterContentPage.getTotalPages());
 		response.put("currentPage", chapterContentPage.getNumber());
 		response.put("last", chapterContentPage.isLast());
+		response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
 		response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -365,4 +380,142 @@ public class ChapterServiceImpl implements IChapterService {
 		chapterResponse.setChapterName(chapter.getChapterName());
 		return chapterResponse;
 	}
+
+	// .................... NEW METHOD'S ..................................
+
+	@Override
+	public ResponseEntity<?> addChapter(AddChapterRequest chapterRequest) {
+		String chapterName = chapterRequest.getChapterName().trim();
+		Chapter ch = chapterRepo.findByChapterNameAndSubjectIdAndIsDeleted(chapterName, chapterRequest.getSubjectId(),
+				false);
+		if (ch != null)
+			throw new ResourceAlreadyExistException(AppConstants.CHAPTER_ALREDY_EXISTS);
+		Map<String, Object> response = new HashMap<>();
+
+		Subject subject = subjectRepo.findById(chapterRequest.getSubjectId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND));
+
+		Chapter chapter = new Chapter();
+		chapter.setChapterName(chapterName);
+		chapter.setIsCompleted(false);
+
+		Exam exam = new Exam();
+		exam.setIsDeleted(false);
+		Exam exam1 = examRepo.save(exam);
+		chapter.setExam(exam1);
+		Chapter obj1 = chapterRepo.save(chapter);
+		subject.getChapters().add(obj1);
+		subjectRepo.save(subject);
+
+		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		response.put("chapter", mapToChapterResponse(chapter, subject));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private ChapterResponse mapToChapterResponse(Chapter chapter, Subject subject) {
+		return ChapterResponse.builder().chapterId(chapter.getChapterId()).chapterName(chapter.getChapterName())
+				.subjectName(subject.getSubjectName()).chapterImage(subject.getTechnologyStack().getImageName())
+				.build();
+	}
+
+	@Override
+	public ResponseEntity<?> updateChapter(UpdateChapterRequest chapterRequest) {
+		Map<String, Object> response = new HashMap<>();
+		Integer chapterId = chapterRequest.getChapterId();
+		String chapterName = chapterRequest.getChapterName().trim();
+		Chapter chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.CHAPTER_NOT_FOUND));
+
+		Chapter ch = chapterRepo.findByChapterNameAndSubjectIdAndIsDeleted(chapterName, chapterRequest.getSubjectId(),
+				false);
+		if (ch != null && ch.getChapterId() != chapterId)
+			throw new ResourceAlreadyExistException(AppConstants.CHAPTER_ALREDY_EXISTS);
+
+		chapter.setChapterName(chapterName);
+		chapterRepo.save(chapter);
+
+		response.put(AppConstants.MESSAGE, AppConstants.UPDATE_SUCCESSFULLY);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> addContentToChapter(AddChapterContentRequest chapterContentRequest) {
+		Chapter chapter = chapterRepo.findById(chapterContentRequest.getChapterId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.CHAPTER_NOT_FOUND));
+		List<ChapterContent> chapters = chapter.getChapterContent();
+		ChapterContent chapterContent = new ChapterContent();
+		chapterContent.setContent(chapterContentRequest.getContent());
+		chapterContent.setSubTitle(chapterContentRequest.getSubTitle());
+		chapterContent.setTitle(chapterContentRequest.getTitle());
+		chapterContent.setIsDeleted(false);
+		ChapterContent savedContent = chapterContentRepository.save(chapterContent);
+		chapters.add(savedContent);
+		chapter.setChapterContent(chapters);
+		chapterRepo.save(chapter);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put(AppConstants.MESSAGE, AppConstants.CREATE_SUCCESS);
+		response.put("chapterContent", mapToChapterContentResponse(savedContent, chapter.getChapterName()));
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private ChapterContentResponse mapToChapterContentResponse(ChapterContent chapterContent, String chapterName) {
+		return ChapterContentResponse.builder().id(chapterContent.getId()).title(chapterContent.getTitle())
+				.subTitle(chapterContent.getSubTitle()).content(chapterContent.getContent())
+				.isDeleted(chapterContent.getIsDeleted()).chapterName(chapterName).build();
+	}
+
+	@Override
+	public ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer studentId, Integer pageNumber,
+			Integer pageSize) {
+		Map<String, Object> response = new HashMap<>();
+		Page<ChapterContent> chapterContentPage = chapterContentRepository.findAllByChapterId(chapterId,
+				PageRequest.of(pageNumber, pageSize));
+		if (chapterContentPage.isEmpty()) {
+			response.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		List<ChapterContentResponse> contentList = chapterContentPage.getContent().stream()
+				.map(this::chapterContentResponse).collect(Collectors.toList());
+
+		// Fetch Chapter and Exam
+		Optional<Chapter> chapterOpt = chapterRepo.findById(chapterId);
+		boolean isExamAvailable = false;
+
+		if (chapterOpt.isPresent()) {
+			Exam exam = chapterOpt.get().getExam();
+			if (exam != null && Boolean.TRUE.equals(exam.getIsActive()) && exam.getQuestions() != null
+					&& exam.getQuestions().stream().anyMatch(q -> !Boolean.TRUE.equals(q.getIsDeleted()))) {
+				isExamAvailable = true;
+			}
+		}
+
+		response.put("chapterContents", contentList);
+		response.put("totalPages", chapterContentPage.getTotalPages());
+		response.put("currentPage", chapterContentPage.getNumber());
+		response.put("last", chapterContentPage.isLast());
+		response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+		response.put("resultId", getChapterExamResultId(chapterId, studentId));
+		response.put("isExamAvailable", isExamAvailable);
+		response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private Integer getChapterExamResultId(Integer chapterId, Integer studentId) {
+		Optional<Chapter> chapterOpt = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+		if (chapterOpt.isEmpty())
+			return null;
+
+		Chapter chapter = chapterOpt.get();
+		if (chapter.getExam() == null)
+			return null;
+
+		Student student = studentRepository.findByStudentId(studentId);
+		if (student == null)
+			return null;
+
+		return chapterExamResultRepo.findByChapterAndStudent(chapter, student).map(ChapterExamResult::getId)
+				.orElse(null);
+	}
+
 }

@@ -4,10 +4,13 @@ import javax.validation.constraints.NotNull;
 
 import com.cico.util.AppConstants;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class StudentTaskFilterRequest {
+	
 	@NotNull(message = AppConstants.STUDENT_ID_REQUIRED)
 	private Integer studentId; // Use Long for nullability
 	

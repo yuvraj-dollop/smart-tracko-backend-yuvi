@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.FileSizeExceededException;
 import com.cico.service.IFileService;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
@@ -44,30 +45,48 @@ public class FileServiceImpl implements IFileService {
 	private Cloudinary cloudinary;
 
 	public String uploadFileInFolder(MultipartFile file, String destinationPath) {
-	    String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-	    String randomId = UUID.randomUUID().toString();
-	    String randomName = randomId.concat(originalFilename.substring(originalFilename.lastIndexOf(".")));
+//	    String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+//	    String randomId = UUID.randomUUID().toString();
+//	    String randomName = randomId.concat(originalFilename.substring(originalFilename.lastIndexOf(".")));
 
-	    try {
-	        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-	                "public_id", randomName,
-	                "resource_type", "auto",  // auto-detect resource type
-	                "folder", destinationPath,  // specify the folder
-	                "overwrite", true,  // overwrite if file with the same name exists
-	                "invalidate", true, // invalidate CDN cache
-	                "use_filename", true, // use the specified filename
-	                "unique_filename", false, // ensure a unique filename
-	                "eager", Arrays.asList(new Transformation().width(100).height(100).crop("fill").gravity("face")) // specify eager transformations if needed
-	        ));
+		String originalFilename = StringUtils.cleanPath(file.getOriginalFilename()).trim();
+		String randomId = UUID.randomUUID().toString();
 
-	        System.err.println(uploadResult);
-	        return (String) uploadResult.get("secure_url");
+		// Final file name With RandomId_OrginalFileName.extenstion
+		String randomName = randomId + "_" + originalFilename.substring(0, originalFilename.lastIndexOf("."))
+				+ originalFilename.substring(originalFilename.lastIndexOf("."));
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+		System.out.println("Generated Random Name: " + randomName);
+		long maxSizeInBytes = 10 * 1024 * 1024; // 10 MB
+		if (file.getSize() > maxSizeInBytes) {
+			throw new FileSizeExceededException("File size exceeds 10 MB limit.");
+		}
 
-	    return null;
+
+		try {
+			Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+					ObjectUtils.asMap("public_id", randomName, "resource_type", "auto", // auto-detect resource type
+							"folder", destinationPath, // specify the folder
+							"overwrite", true, // overwrite if file with the same name exists
+							"invalidate", true, // invalidate CDN cache
+							"use_filename", true, // use the specified filename
+							"unique_filename", false, // ensure a unique filename
+							"eager",
+							Arrays.asList(new Transformation().width(100).height(100).crop("fill").gravity("face")) // specify
+																													// eager
+																													// transformations
+																													// if
+																													// needed
+					));
+
+			System.err.println(uploadResult);
+			return (String) uploadResult.get("secure_url");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 //	public String uploadFileInFolder(MultipartFile file,String dir) {

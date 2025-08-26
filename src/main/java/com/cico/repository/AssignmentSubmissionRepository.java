@@ -52,6 +52,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.cico.model.AssignmentSubmission;
+import com.cico.model.AssignmentTaskQuestion;
 import com.cico.payload.AssignmentSubmissionResponse;
 import com.cico.util.SubmissionStatus;
 
@@ -72,5 +73,35 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
 
 	@Query("SELECT a FROM AssignmentSubmission a WHERE  a.submissionId =:submissionId")
 	Optional<AssignmentSubmission> findBySubmissionId(Long submissionId);
+
+//	@Query("SELECT COUNT(a) FROM Assignment a JOIN a.AssignmentQuestion aq ON aq.isDeleted = 0 JOIN aq.assignmentSubmissions s WHERE s.student.studentId = :studentId")
+//	Long countSubmittedAssignmentsByStudentId(@Param("studentId") Integer studentId);
+
+	@Query("SELECT COUNT(DISTINCT a) FROM Assignment a " + "JOIN a.AssignmentQuestion aq "
+			+ "JOIN aq.assignmentSubmissions s " + "WHERE aq.isDeleted = 0 AND aq.isActive = 1"
+			+ "AND s.student.studentId = :studentId")
+	Long countSubmittedAssignmentsByStudentId(@Param("studentId") Integer studentId);
+
+	@Query("""
+			    SELECT NEW com.cico.payload.AssignmentSubmissionResponse(
+			        s.review,
+			        s.status,
+			        s.submissionDate,
+			        s.submitFile,
+			        s.description,
+			        a.title,
+			        s.submissionId,
+			        aq.taskNumber
+			    )
+			    FROM Assignment a
+			    JOIN a.AssignmentQuestion aq ON aq.isDeleted = false
+			    JOIN aq.assignmentSubmissions s
+			    WHERE s.student.studentId = :studentId
+			      AND aq.questionId = :questionId
+			      AND (:status IS NULL OR s.status = :status OR :status = 'NOT_CHECKED_WITH_IT')
+			    ORDER BY s.submissionDate DESC
+			""")
+	AssignmentSubmissionResponse getSubmitAssignmentQuestionByStudentId(@Param("studentId") Integer studentId,
+			@Param("questionId") Long questionId, @Param("status") SubmissionStatus status);
 
 }

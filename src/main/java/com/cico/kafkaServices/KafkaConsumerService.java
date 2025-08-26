@@ -20,14 +20,13 @@ public class KafkaConsumerService {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-
-	@Autowired
-	private EmailService emailService;
 
 	@Autowired
 	private FirebaseNotificationService notificationService;
 
+	
+	@Autowired
+	EmailService emailService;
 	// sending announcement notification for all the specific course students
 	
 	@KafkaListener(topics = NotificationConstant.ANNOUNCEMENT_TOPIC, groupId = NotificationConstant.NOTIFICATION_GROUP_ID)

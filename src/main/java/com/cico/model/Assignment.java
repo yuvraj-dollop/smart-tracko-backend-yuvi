@@ -36,7 +36,7 @@ public class Assignment {
     private Subject subject;
 
     private Boolean isDeleted = Boolean.FALSE;
-    private Boolean isActive = Boolean.TRUE;
+    private Boolean isActive = Boolean.FALSE;
 
     private LocalDateTime createdDate;
     private Boolean isNotificatioSend;

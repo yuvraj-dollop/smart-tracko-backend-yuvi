@@ -196,8 +196,12 @@ public class SubjectServiceImpl implements ISubjectService {
 
 		Course course = studentRepository.findById(studentId).get().getCourse();
 
-		List<Subject> subjects = courseRepository.findByCourseId(course.getCourseId()).get().getSubjects();
-		List<Subject> list = subjects.parallelStream().filter(obj ->!obj.getIsDeleted()).toList();
+//		List<Subject> subjects = courseRepository.findByCourseId(course.getCourseId()).get().getSubjects();
+		Course courseEntity = courseRepository.findByCourseId(course.getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND));
+
+		List<Subject> subjects = courseEntity.getSubjects();
+		List<Subject> list = subjects.parallelStream().filter(obj -> !obj.getIsDeleted()).toList();
 		if (list.isEmpty())
 			new ResourceNotFoundException("No subject available");
 
@@ -206,7 +210,8 @@ public class SubjectServiceImpl implements ISubjectService {
 		for (Subject s : list) {
 
 			SubjectResponse response = new SubjectResponse();
-			response.setChapterCount((long) (s.getChapters().stream().filter(obj ->!obj.getIsDeleted())).toList().size());
+			response.setChapterCount(
+					(long) (s.getChapters().stream().filter(obj -> !obj.getIsDeleted())).toList().size());
 			TechnologyStackResponse stackResponse = new TechnologyStackResponse();
 			stackResponse.setId(s.getTechnologyStack().getId());
 			stackResponse.setImageName(s.getTechnologyStack().getImageName());
@@ -254,6 +259,7 @@ public class SubjectServiceImpl implements ISubjectService {
 
 	@Override
 	public ResponseEntity<?> getAllSubjectsByCourseId(Integer courseId) {
+		System.err.println("======================= course id==>>  " + courseId);
 		List<SubjectResponse> list = subRepo.getAllSubjectByCourseId(courseId);
 		Map<String, Object> response = new HashMap<>();
 		if (list.isEmpty()) {
@@ -273,11 +279,14 @@ public class SubjectServiceImpl implements ISubjectService {
 		if (!allChapterWithSubjectId.isEmpty() && allChapterWithSubjectId.get(0)[3] != null) {
 			List<ChapterResponse> chapterResponses = new ArrayList<>();
 			for (Object[] row : allChapterWithSubjectId) {
+				Integer chapterId = (Integer) row[3];
 				ChapterResponse chapterResponse = new ChapterResponse();
-				chapterResponse.setChapterId((Integer) row[3]);
+				chapterResponse.setChapterId(chapterId);
 				chapterResponse.setChapterName((String) row[4]);
 				chapterResponse.setChapterImage((String) row[1]);
 				chapterResponse.setScoreGet((Integer) row[5]);
+				chapterResponse.setIsCompleted(
+						chapterCompletedRepository.isQuizCompletedByStudent(chapterId, subjectId, studentId));
 				chapterResponses.add(chapterResponse);
 			}
 			response.put(AppConstants.MESSAGE, AppConstants.DATA_FOUND);
@@ -285,11 +294,43 @@ public class SubjectServiceImpl implements ISubjectService {
 		}
 		if (!allChapterWithSubjectId.isEmpty())
 			response.put("subjectName", (String) allChapterWithSubjectId.get(0)[2]);
+
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	public Subject checkSubjectIsPresent(Integer subjectId) {
 		return subRepo.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found!!"));
+	}
+
+	@Override
+	public SubjectResponse toResponse(Subject subject) {
+		if (subject == null) {
+			return null;
+		}
+
+		// Build TechnologyStackResponse if available
+		TechnologyStackResponse ts = null;
+		if (subject.getTechnologyStack() != null) {
+			ts = TechnologyStackResponse.builder().id(subject.getTechnologyStack().getId())
+					.technologyName(subject.getTechnologyStack().getTechnologyName())
+					.imageName(subject.getTechnologyStack().getImageName()).build();
+		}
+
+		// Chapter counts
+		long chapterCount = 0;
+		long chapterCompleted = 0;
+		if (subject.getChapters() != null) {
+			chapterCount = subject.getChapters().size();
+			chapterCompleted = subject.getChapters().stream().filter(Chapter::getIsCompleted) // assuming Chapter has
+																								// getIsCompleted()
+					.count();
+		}
+
+		// ✅ Build SubjectResponse using Lombok @Builder
+		return SubjectResponse.builder().subjectId(subject.getSubjectId()).subjectName(subject.getSubjectName())
+				.isDeleted(subject.getIsDeleted()).isActive(subject.getIsActive()).chapterCount(chapterCount)
+				.chapterCompleted(chapterCompleted).technologyStack(ts) // can be null, handled by @JsonInclude
+				.build();
 	}
 
 }

@@ -2,14 +2,21 @@ package com.cico.service;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.AttachmentStatus;
 import com.cico.model.Task;
+import com.cico.payload.AddQuestionInTaskRequest;
+import com.cico.payload.AddTaskQuestionAttachmentRequest;
 import com.cico.payload.StudentTaskFilterRequest;
 import com.cico.payload.TaskFilterRequest;
 import com.cico.payload.TaskRequest;
+import com.cico.payload.TaskSubmissionRequest;
+import com.cico.payload.UpdateTaskQuestionRequest;
+import com.cico.payload.UpdateTaskSubmissionStatusRequest;
 import com.cico.util.SubmissionStatus;
 
 public interface ITaskService {
@@ -19,20 +26,23 @@ public interface ITaskService {
 	List<Task> getFilteredTasks(TaskFilterRequest taskFilter);
 
 	ResponseEntity<?> getTaskById(Long taskId);
-	
-	ResponseEntity<?> studentTaskSubmittion(Long questionId, Long taskId, Integer studentId, MultipartFile file, String taskDescription, String codeSubmission);
 
-	ResponseEntity<?> addQuestionInTask(String title,String question, String videoUrl, List<MultipartFile> questionImages,
-			Long taskId, MultipartFile attachment, AttachmentStatus status, Boolean codeSubmisionStatus);
+	ResponseEntity<?> studentTaskSubmittion(Long questionId, Long taskId, Integer studentId, MultipartFile file,
+			String taskDescription, String codeSubmission);
+
+	ResponseEntity<?> addQuestionInTask(String title, String question, String videoUrl,
+			List<MultipartFile> questionImages, Long taskId, MultipartFile attachment, AttachmentStatus status,
+			Boolean codeSubmisionStatus);
 
 //	ResponseEntity<?> addTaskAttachment(Long taskId, MultipartFile attachment);
 
-	ResponseEntity<?> deleteTaskQuestion( Long questionId);
+	ResponseEntity<?> deleteTaskQuestion(Long questionId);
 
-	ResponseEntity<?> getAllSubmitedTasks(Integer courseId, Integer subjectId, SubmissionStatus status, Integer pageNumber, Integer pageSise);
+	ResponseEntity<?> getAllSubmitedTasks(Integer courseId, Integer subjectId, SubmissionStatus status,
+			Integer pageNumber, Integer pageSise);
 
-
-	ResponseEntity<?> getSubmittedTaskQuestionForStudent(Integer studentId, Integer pageNumber, Integer pageSise, SubmissionStatus status);
+	ResponseEntity<?> getSubmittedTaskQuestionForStudent(Integer studentId, Integer pageNumber, Integer pageSise,
+			SubmissionStatus status);
 
 	ResponseEntity<?> updateSubmitedTaskStatus(Long submissionId, String status, String review);
 
@@ -60,8 +70,6 @@ public interface ITaskService {
 
 	ResponseEntity<?> isTaskSubmitted(Long taskId);
 
-
-
 	ResponseEntity<?> isTaskQuestionSubmittedByStudentId(Long questionId, Integer studentId);
 
 	ResponseEntity<?> getTaskQuestionsByTaskIdForStudent(Long taskId, Integer studentId);
@@ -79,4 +87,19 @@ public interface ITaskService {
 
 	ResponseEntity<?> getAllTaskQuestionWithSubmissionCount(Long taskId);
 
+	// .........................NEW METHOD'S ...............................
+
+	ResponseEntity<?> studentTaskSubmittion(TaskSubmissionRequest submissionRequest);
+
+	ResponseEntity<?> addQuestionInTask(AddQuestionInTaskRequest addQuestionInTaskRequest);
+
+	ResponseEntity<?> addTaskQuestionAttachment(AddTaskQuestionAttachmentRequest attachmentRequest);
+
+	ResponseEntity<?> updateSubmitedTaskStatus(UpdateTaskSubmissionStatusRequest statusRequest);
+
+	ResponseEntity<?> updateTaskQuestion(UpdateTaskQuestionRequest taskQuestionRequest);
+
+	public Long countSubmittedTasksByStudentId(Integer studentId);
+
+	public Long countTaskOfStudent(Integer studentId);
 }

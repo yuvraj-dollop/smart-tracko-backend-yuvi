@@ -4,19 +4,21 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.payload.AdminRequest;
 import com.cico.payload.AdminResponse;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.JwtResponse;
+import com.cico.payload.UpdateAdminRequest;
 
 public interface IAdminService {
 	
 	public JwtResponse adminLogin(String adminId, String password);
 
-	public ApiResponse createAdmin(String adminName, String adminEmail, String password);
+	public ApiResponse createAdmin(AdminRequest adminRequest);
 
 	public AdminResponse getAdmin(String adminId);
 
-	public AdminResponse updateAdmin(Integer adminId, String adminName, String adminEmail, MultipartFile file);
+	public AdminResponse updateAdmin(UpdateAdminRequest adminRequest);
 
 	ApiResponse deleteAdmin(Integer adminId);
 

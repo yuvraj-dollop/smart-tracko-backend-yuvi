@@ -1,4 +1,5 @@
 package com.cico.repository;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,12 @@ public interface ChapterCompletedRepository extends JpaRepository<ChapterComplet
 	Long countBySubjectIdAndStudentId(@Param("subjectId") Integer subjectId, @Param("studentId") Integer studentId);
 
 	@Query("SELECT c FROM ChapterCompleted c WHERE c.chapterId =:chapterId AND c.studentId =:studentId")
-	ChapterCompleted findByChapterAndStudent(@Param("chapterId") Integer chapter,@Param("studentId") Integer student);
+	ChapterCompleted findByChapterAndStudent(@Param("chapterId") Integer chapter, @Param("studentId") Integer student);
+
+	// ............ NEW QUERIES ..................
+
+	@Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM ChapterCompleted c WHERE c.chapterId = :chapterId AND c.subjectId = :subjectId AND c.studentId = :studentId")
+	Boolean isQuizCompletedByStudent(@Param("chapterId") Integer chapterId, @Param("subjectId") Integer subjectId,
+			@Param("studentId") Integer studentId);
 
 }

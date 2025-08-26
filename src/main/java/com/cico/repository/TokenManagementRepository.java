@@ -11,7 +11,7 @@ import com.cico.model.TokenManagement;
 public interface TokenManagementRepository extends JpaRepository<TokenManagement, Integer> {
 	
 	Boolean existsByToken(String token);
-
 	Optional<TokenManagement> findByToken(String token);
+	void deleteByToken(String token);
 
 }
