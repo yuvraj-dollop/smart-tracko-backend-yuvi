@@ -124,4 +124,18 @@ public interface CourseExamRepository extends JpaRepository<CourseExam, Integer>
 	@Query("SELECT COALESCE(SUM(e.totalQuestionForTest), 0) FROM CourseExam e WHERE e.course.courseId = :courseId")
 	Integer getTotalQuestionsByCourseId(@Param("courseId") Integer courseId);
 
+	@Query("SELECT NEW com.cico.payload.CourseExamResponse("
+			+ "e.examName, e.examId, c.technologyStack.imageName, e.examTimer, "
+			+ "e.passingMarks, sr.scoreGet, e.scheduleTestDate, e.totalQuestionForTest, "
+			+ "e.examType, sr.id, c.courseId, e.examStartTime, e.isStart) " + "FROM CourseExam e " + "JOIN e.course c "
+			+ "LEFT JOIN CourseExamResult sr ON (sr.courseExam.examId = e.examId AND sr.student.studentId = :studentId) "
+			+ "WHERE c.courseId = :courseId " + "AND e.isActive = true " + "AND e.isDeleted = false "
+			+ "AND e.examType = :examType " + "AND (:status IS NULL OR "
+			+ "    (:status = 'PENDING' AND sr.id IS NULL) OR " + "    (:status = 'COMPLETED' AND sr.id IS NOT NULL))"
+			+ "AND (:search IS NULL " + "     OR LOWER(e.examName) LIKE LOWER(CONCAT('%', :search, '%'))) ")
+
+	Page<CourseExamResponse> searchCourseExams(@Param("examType") ExamType examType,
+			@Param("courseId") Integer courseId, @Param("studentId") Integer studentId, @Param("status") String status,
+			@Param("search") String search, Pageable pageable);
+
 }

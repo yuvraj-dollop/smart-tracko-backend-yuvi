@@ -128,4 +128,21 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
 			@Param("studentId") Integer studentId);
 
+	@Query("SELECT NEW com.cico.payload.SubjectExamResponse("
+			+ "e.examName,  s.technologyStack.imageName,e.examId, s.technologyStack.imageName, "
+			+ "e.examTimer, e.passingMarks, sr.scoreGet, " + "e.scheduleTestDate, e.totalQuestionForTest, "
+			+ "e.examType, sr.id, s.subjectId, " + "e.examStartTime, e.isStart, "
+			+ "CASE WHEN sr.id IS NOT NULL THEN 'COMPLETED' ELSE 'PENDING' END) " + "FROM Course c "
+			+ "LEFT JOIN c.subjects s ON s.isDeleted = 0 "
+			+ "JOIN s.exams e ON e.isActive = 1 AND e.isDeleted = 0 AND e.examType = :examType "
+			+ "LEFT JOIN e.results sr ON sr.student.studentId = :studentId "
+			+ "JOIN Student student ON student.studentId = :studentId "
+			+ "WHERE student.course = c AND c.isDeleted = 0 " + "AND (:status IS NULL OR "
+			+ "    (:status = 'PENDING' AND sr.id IS NULL) OR " + "    (:status = 'COMPLETED' AND sr.id IS NOT NULL)) "
+			+ "AND (:search IS NULL " + "     OR LOWER(e.examName) LIKE LOWER(CONCAT('%', :search, '%'))) "
+			+ "GROUP BY s.subjectId, e.examId, sr.id " + "ORDER BY e.createdDate DESC")
+	Page<SubjectExamResponse> searchAllSubjectExam(@Param("examType") ExamType examType,
+			@Param("studentId") Integer studentId, @Param("status") String status, @Param("search") String search,
+			Pageable pageable);
+
 }

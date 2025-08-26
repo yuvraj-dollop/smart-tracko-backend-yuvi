@@ -270,4 +270,26 @@ public class ExamController {
 	public ResponseEntity<?> addSubjectExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
 		return this.examService.addSubjectExamResult(chapterExamResult);
 	}
+
+	@GetMapping("/v2/searchAllCourseExamsByExamTypes")
+	public ResponseEntity<?> searchCourseSubjectTestNew(@RequestParam(name = AppConstants.EXAM_TYPE) ExamType examType,
+			@RequestParam(name = AppConstants.SEARCH) String search,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
+			@RequestParam(name = AppConstants.STATUS, required = false) String status,
+			@RequestParam(name = AppConstants.PAGE_SIZE, defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer pageSize,
+			@RequestParam(name = AppConstants.PAGE_NUMBER, defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer pageNumber) {
+
+		// create TestFilterRequest manually
+		TestFilterRequest request = new TestFilterRequest();
+		request.setCourseId(courseId);
+		request.setSubjectId(subjectId);
+		request.setStudentId(studentId);
+		request.setStatus(status);
+		request.setPaginationRequest(PaginationRequest.builder().pageSize(pageSize).pageNumber(pageNumber).build());
+
+		return examService.searchCourseSubjectTest(examType, request, search);
+	}
+
 }

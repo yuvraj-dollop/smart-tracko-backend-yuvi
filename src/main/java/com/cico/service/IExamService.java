@@ -104,4 +104,6 @@ public interface IExamService {
 	public ResponseEntity<?> addCourseExamNew(AddExamRequest request);
 
 	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request);
+
+	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search);
 }

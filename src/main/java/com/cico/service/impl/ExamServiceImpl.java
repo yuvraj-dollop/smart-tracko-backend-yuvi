@@ -2040,4 +2040,55 @@ public class ExamServiceImpl implements IExamService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search) {
+		// Early validation
+		Integer courseId = request.getCourseId();
+		Integer subjectId = request.getSubjectId();
+		Integer studentId = request.getStudentId();
+
+		if (courseId == null || studentId == null) {
+			throw new ResourceNotFoundException("Course or Student ID cannot be null");
+		}
+
+		// Validate entities
+		validateEntities(courseId, subjectId, studentId);
+
+		// Prepare response
+		Map<String, Object> response = new HashMap<>();
+		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		// Create page request once
+		PageRequest pageRequest = PageRequest.of(request.getPaginationRequest().getPageNumber(),
+				request.getPaginationRequest().getPageSize());
+
+		if (subjectId != null) {
+			searchProcessSubjectExams(studentId, pageRequest, response, examType, request.getStatus(), search);
+		} else {
+			searchProcessCourseExams(studentId, courseId, pageRequest, response, examType, request.getStatus(), search);
+		}
+
+		return ResponseEntity.ok(response);
+	}
+
+	private void searchProcessSubjectExams(Integer studentId, PageRequest pageRequest, Map<String, Object> response,
+			ExamType examType, String status, String search) {
+		Page<SubjectExamResponse> exams = subjectRepository.searchAllSubjectExam(examType, studentId, status, search,
+				pageRequest);
+
+		if (examType.equals(ExamType.SCHEDULEEXAM)) {
+			exams = exams.map(this::processScheduleExam);
+		}
+		response.put(AppConstants.EXAM, exams);
+	}
+
+	private void searchProcessCourseExams(Integer studentId, Integer courseId, PageRequest pageRequest,
+			Map<String, Object> response, ExamType examType, String status, String search) {
+		Page<CourseExamResponse> exams = courseExamRepo.searchCourseExams(examType, courseId, studentId, status, search,
+				pageRequest);
+
+		if (examType.equals(ExamType.SCHEDULEEXAM)) {
+			exams = exams.map(this::processScheduleExam);
+		}
+		response.put(AppConstants.EXAM, exams);
+	}
 }
