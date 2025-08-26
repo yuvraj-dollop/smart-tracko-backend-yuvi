@@ -74,6 +74,9 @@ spring:
       com.zaxxer.hikari.HikariConfig: DEBUG
       com.zaxxer.hikari.HikariDataSource: DEBUG
 staticPath: \src\main\resources\static\
+piston:
+  api:
+    url: https://emkc.org/api/v2/piston
 
 #  data server ip :108.181.203.244
 
