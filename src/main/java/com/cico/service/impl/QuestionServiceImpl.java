@@ -388,10 +388,10 @@ public class QuestionServiceImpl implements IQuestionService {
 		}
 
 		// If still no questions are available, return an error message
-		if (randomQuestionList.isEmpty() || allQuestions.isEmpty()) {
-			response.put(AppConstants.MESSAGE, AppConstants.NO_QUESTION_AVAILABLE);
-			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-		}
+//		if (randomQuestionList.isEmpty() || allQuestions.isEmpty()) {
+//			response.put(AppConstants.MESSAGE, AppConstants.NO_QUESTION_AVAILABLE);
+//			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+//		}
 
 		questionRepo.setQuestionIsSelectdTrue(randomQuestionList);
 		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
@@ -693,6 +693,200 @@ public class QuestionServiceImpl implements IQuestionService {
 		if (optionSet.size() < 4) {
 			throw new ResourceAlreadyExistException(AppConstants.OPTION_ALREDY_EXISTS);
 		}
+	}
+
+//	========================= NEW METHODs =================================
+
+	@Override
+	public ResponseEntity<?> getAllSubjectQuestionForTestNew(Integer examId, Integer studentId) {
+
+		List<Question> allQuestions = new ArrayList<>();
+		List<Question> randomQuestionList = new ArrayList<>();
+		Map<String, Object> response = new HashMap<>();
+
+		// check for test given or not
+		Optional<SubjectExam> isExamTaken = subjectExamRepo.findByExamIdAndStudentId(examId, studentId);
+		SubjectExam exam = examServiceImpl.checkSubjectExamIsPresent(examId);
+
+		if (exam.getScheduleTestDate() == LocalDate.now()
+				&& exam.getExamStartTime().getMinute() <= LocalDateTime.now().getMinute() + 15
+				&& exam.getExamStartTime().getHour() == LocalDateTime.now().getHour()) {
+			if (isExamTaken.isPresent()) {
+				response.put(AppConstants.MESSAGE, AppConstants.EXAM_ALREADY_GIVEN);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+		}
+
+		// Load subject and questions
+		Subject subject = subjectRepository.findByExamId(examId);
+		allQuestions.addAll(subject.getQuestions().parallelStream()
+				.filter(obj -> !obj.getIsDeleted() && obj.getIsActive()).collect(Collectors.toList()));
+
+		List<Chapter> chapters = subject.getChapters().parallelStream().filter(obj -> !obj.getIsDeleted())
+				.collect(Collectors.toList());
+
+		for (Chapter ch : chapters) {
+			allQuestions.addAll(ch.getExam().getQuestions());
+		}
+
+		// Make a copy of all questions (full pool)
+		List<Question> allQuestionsFromDb = new ArrayList<>(allQuestions);
+		System.err.println("allQuestionsFromDb ==>" + allQuestionsFromDb.size());
+		// Filter out previously attempted questions
+		List<Integer> allPriviousSubmittedQuestions = submittedExamHistoryRepo.findByStudentId(studentId);
+		List<Question> remainingQuestions = allQuestions;
+		if (allPriviousSubmittedQuestions != null && !allPriviousSubmittedQuestions.isEmpty()) {
+			remainingQuestions = allQuestions.parallelStream()
+					.filter(obj -> !allPriviousSubmittedQuestions.contains(obj.getQuestionId()))
+					.collect(Collectors.toList());
+		}
+
+		Random random = new Random();
+		int requiredSize = exam.getTotalQuestionForTest();
+
+		// Case A: If enough new questions exist
+		if (remainingQuestions.size() >= requiredSize) {
+			System.err.println("==== > enough new questions exist ");
+			for (int i = 0; i < requiredSize; i++) {
+				int randomIndex = random.nextInt(remainingQuestions.size());
+				randomQuestionList.add(remainingQuestions.remove(randomIndex));
+			}
+		}
+		// Case B: Some new questions, but not enough
+		else if (!remainingQuestions.isEmpty() && remainingQuestions.size() < requiredSize) {
+			System.err.println(" ==== > Some new questions, but not enough ");
+			randomQuestionList.addAll(remainingQuestions); // take all available new
+			int remainingNeeded = requiredSize - randomQuestionList.size();
+			allQuestionsFromDb.removeAll(remainingQuestions);
+
+			for (int i = 0; i < remainingNeeded; i++) {
+				int randomIndex = random.nextInt(allQuestionsFromDb.size());
+				randomQuestionList.add(allQuestionsFromDb.remove(randomIndex));
+			}
+			submittedExamHistoryRepo.deleteAllByStudentId(studentId);
+		}
+		// Case C: No new questions at all
+		else {
+			System.err.println("====== > No new questions at all");
+			for (int i = 0; i < requiredSize && !allQuestionsFromDb.isEmpty(); i++) {
+				int randomIndex = random.nextInt(allQuestionsFromDb.size());
+				randomQuestionList.add(allQuestionsFromDb.remove(randomIndex));
+			}
+			submittedExamHistoryRepo.deleteAllByStudentId(studentId);
+		}
+
+		// If still no questions are available, return error
+		if (randomQuestionList.isEmpty()) {
+			response.put(AppConstants.MESSAGE, AppConstants.NO_QUESTION_AVAILABLE);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		// Mark selected questions as selected
+		questionRepo.setQuestionIsSelectdTrue(randomQuestionList);
+
+		// Prepare response
+		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		response.put(AppConstants.QUESTIONS,
+				randomQuestionList.parallelStream().map(this::questionFilter).collect(Collectors.toList()));
+		response.put(AppConstants.TIMER, exam.getExamTimer());
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> getAllCourseQuestionForTestNew(Integer examId, Integer studentId) {
+
+		List<Question> allQuestions = new ArrayList<>();
+		List<Question> randomQuestionList = new ArrayList<>();
+		Map<String, Object> response = new HashMap<>();
+		// check for test given or not
+		Optional<CourseExam> isExamTaken = courseExamRepository.findByExamIdAndStudentId(examId);
+		CourseExam exam2 = examServiceImpl.checkCourseExamIsPresent(examId);
+
+		if (exam2.getScheduleTestDate() == LocalDate.now()
+				&& exam2.getExamStartTime().getMinute() <= LocalDateTime.now().getMinute() + 15
+				&& exam2.getExamStartTime().getHour() == LocalDateTime.now().getHour())
+
+			// return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			if (isExamTaken.isPresent()) {
+				response.put(AppConstants.MESSAGE, AppConstants.EXAM_ALREADY_GIVEN);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+		CourseExam exam = examServiceImpl.checkCourseExamIsPresent(examId);
+
+		// not optimisedd code
+		List<Subject> subjects = exam.getCourse().getSubjects();
+		for (Subject subject : subjects) {
+			if (!subject.getIsDeleted()) {
+				allQuestions.addAll(subject.getQuestions().parallelStream()
+						.filter(obj -> !obj.getIsDeleted() && obj.getIsActive()).collect(Collectors.toList()));
+				allQuestions.addAll(subject.getChapters().parallelStream().filter(obj -> !obj.getIsDeleted())
+						.flatMap(chapter -> chapter.getExam().getQuestions().stream())
+						.filter(obj -> !obj.getIsDeleted() && obj.getIsActive()).collect(Collectors.toList()));
+			}
+		}
+
+		// Make a copy of all questions (full pool)
+		List<Question> allQuestionsFromDb = new ArrayList<>(allQuestions);
+
+		// filter questions that are not given by the student
+		List<Integer> allPriviousSubmittedQuestions = submittedExamHistoryRepo.findByStudentId(studentId);
+		List<Question> remainingQuestions = allQuestions;
+		if (allPriviousSubmittedQuestions != null && !allPriviousSubmittedQuestions.isEmpty()) {
+			remainingQuestions = allQuestions.parallelStream()
+					.filter(obj -> !allPriviousSubmittedQuestions.contains(obj.getQuestionId()))
+					.collect(Collectors.toList());
+		}
+
+		Random random = new Random();
+		int requiredSize = exam.getTotalQuestionForTest();
+
+		// Case A: If enough new questions exist
+		if (remainingQuestions.size() >= requiredSize) {
+			System.err.println("==== > enough new questions exist ");
+			for (int i = 0; i < requiredSize; i++) {
+				int randomIndex = random.nextInt(remainingQuestions.size());
+				randomQuestionList.add(remainingQuestions.remove(randomIndex));
+			}
+		}
+		// Case B: Some new questions, but not enough
+		else if (!remainingQuestions.isEmpty() && remainingQuestions.size() < requiredSize) {
+			System.err.println(" ==== > Some new questions, but not enough ");
+			randomQuestionList.addAll(remainingQuestions); // take all available new
+			int remainingNeeded = requiredSize - randomQuestionList.size();
+			allQuestionsFromDb.removeAll(remainingQuestions);
+
+			for (int i = 0; i < remainingNeeded; i++) {
+				int randomIndex = random.nextInt(allQuestionsFromDb.size());
+				randomQuestionList.add(allQuestionsFromDb.remove(randomIndex));
+			}
+			submittedExamHistoryRepo.deleteAllByStudentId(studentId);
+		}
+		// Case C: No new questions at all
+		else {
+			System.err.println("====== > No new questions at all");
+			for (int i = 0; i < requiredSize && !allQuestionsFromDb.isEmpty(); i++) {
+				int randomIndex = random.nextInt(allQuestionsFromDb.size());
+				randomQuestionList.add(allQuestionsFromDb.remove(randomIndex));
+			}
+			submittedExamHistoryRepo.deleteAllByStudentId(studentId);
+		}
+
+		// If still no questions are available, return error
+		if (randomQuestionList.isEmpty()) {
+			response.put(AppConstants.MESSAGE, AppConstants.NO_QUESTION_AVAILABLE);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		questionRepo.setQuestionIsSelectdTrue(randomQuestionList);
+		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		response.put(AppConstants.QUESTIONS,
+				randomQuestionList.parallelStream().map(obj -> questionFilter(obj)).collect(Collectors.toList()));
+		response.put(AppConstants.TIMER, exam.getExamTimer());
+		return new ResponseEntity<>(response, HttpStatus.OK);
+
 	}
 
 }

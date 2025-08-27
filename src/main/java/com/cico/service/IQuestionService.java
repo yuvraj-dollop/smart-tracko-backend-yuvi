@@ -53,4 +53,10 @@ public interface IQuestionService {
 	// ==================== GENERAL QUESTION METHODS ====================
 	// Read
 	Question getQuestionById(Integer questionId);
+
+//	====================== NEW METHIDS =========================
+
+	ResponseEntity<?> getAllSubjectQuestionForTestNew(Integer examId, Integer studentId);
+
+	ResponseEntity<?> getAllCourseQuestionForTestNew(Integer examId, Integer studentId);
 }

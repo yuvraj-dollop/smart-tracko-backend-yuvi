@@ -107,12 +107,11 @@ public interface IExamService {
 
 	public Integer getRemainingQuestionCountForCourse(Integer courseId);
 
-	// ===================== NEW ============================
+//	===================== NEW ============================
 
 	public ResponseEntity<?> addCourseExamNew(AddExamRequest request);
 
 	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request);
 
 	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search);
-
 }
