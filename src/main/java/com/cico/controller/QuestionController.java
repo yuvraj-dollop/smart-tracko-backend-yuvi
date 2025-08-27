@@ -143,12 +143,12 @@ public class QuestionController {
 	@GetMapping("/v2/getAllCourseQuestionForTest")
 	public ResponseEntity<?> getAllCourseQuestionForTestNew(@RequestParam(AppConstants.EXAM_ID) Integer examId,
 			@RequestParam(AppConstants.STUDENT_ID) Integer studentId) {
-		return questionService.getAllCourseQuestionForTest(examId, studentId);
+		return questionService.getAllCourseQuestionForTestNew(examId, studentId);
 	}
 
 	@GetMapping("/v2/getAllSubjectQuestionForTest")
 	public ResponseEntity<?> getAllSubjectQuestionForTestNew(@RequestParam(AppConstants.EXAM_ID) Integer examId,
 			@RequestParam(AppConstants.STUDENT_ID) Integer studentId) {
-		return questionService.getAllSubjectQuestionForTest(examId, studentId);
+		return questionService.getAllSubjectQuestionForTestNew(examId, studentId);
 	}
 }
