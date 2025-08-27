@@ -51,6 +51,7 @@ public class FeesPayServiceImpl implements IFeesPayService {
 			feesPay.setFeesPayAmount(feesPayAmount);
 			Fees fees = feesPay.getFees();
 			if (feesPay.getFeesPayAmount() <= findByFeesId.getRemainingFees()) {
+
 				fees.setRemainingFees(fees.getRemainingFees() - feesPay.getFeesPayAmount());
 				fees.setFeesPaid(fees.getFinalFees() - fees.getRemainingFees());
 
@@ -86,7 +87,6 @@ public class FeesPayServiceImpl implements IFeesPayService {
 
 	@Override
 	public ResponseEntity<?> getAllTransectionByStudentId(Integer studentId) {
-
 		Fees fees = feesRepository.findFeesByStudentId(studentId);
 		List<FeesPay> findByFees = feesPayRepository.findByFees(fees);
 
@@ -251,8 +251,9 @@ public class FeesPayServiceImpl implements IFeesPayService {
 	public ResponseEntity<?> getAllTransectionByStudentIdNew(Integer studentId) {
 
 		Fees fees = feesRepository.findFeesByStudentId(studentId);
+		System.err.println("FEES ===> " + fees);
 		List<FeesPay> findByFees = feesPayRepository.findByFees(fees);
-
+		System.err.println("feeeeeeee =====>>> " + studentId + "  " + findByFees);
 		return new ResponseEntity<>(findByFees.stream().map(this::setFeesPayResponse).toList(), HttpStatus.OK);
 	}
 

@@ -34,8 +34,8 @@ import com.cico.util.AppConstants;
 @CrossOrigin("*")
 public class StudentController {
 
-//	@Autowired
-//	AuthenticationManager manager;
+	// @Autowired
+	// AuthenticationManager manager;
 
 	@Autowired
 	private IStudentService studentService;
@@ -346,4 +346,9 @@ public class StudentController {
 		return new ResponseEntity<Map<String, Object>>(studentData, HttpStatus.OK);
 	}
 
+	@GetMapping("/v2/getStudentByIdForWeb")
+	public ResponseEntity<?> getStudentByIdForWebNew(@RequestParam(name = "studentId") Integer studentId) {
+		return studentService.getStudentByIdForWeb(studentId);
+
+	}
 }

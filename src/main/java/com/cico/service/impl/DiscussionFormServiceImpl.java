@@ -921,6 +921,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -930,6 +934,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cico.config.CommentResponseConfig;
 import com.cico.config.LikeResponseForum;
 import com.cico.config.RemoveComment;
+import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.CommentReply;
 import com.cico.model.DiscussionFormComment;
 import com.cico.model.DiscusssionForm;
@@ -943,6 +948,7 @@ import com.cico.payload.CreateDiscussionFormRequest;
 import com.cico.payload.DiscussionFormResponse;
 import com.cico.payload.LikeRequest;
 import com.cico.payload.LikeResponse;
+import com.cico.payload.PageResponse;
 import com.cico.repository.CommentReplyRepo;
 import com.cico.repository.DiscussionFormCommentRepo;
 import com.cico.repository.DiscussionFormRepo;
@@ -1110,9 +1116,9 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 				list.forEach(obj -> {
 					DiscussionFormResponse obj1 = discussionFormFilter(obj);
 					obj1.setIsLike(obj1.getLikes().stream().anyMatch(e -> Objects.equals(e.getStudentId(), studentId)));
-					response1.add(obj1);
 					obj1.setIsCommented(obj1.getComments().stream()
 							.anyMatch(obj2 -> Objects.equals(obj2.getStudentId(), studentId)));
+					response1.add(obj1);
 				});
 
 			} else {
@@ -1469,47 +1475,57 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 	public ResponseEntity<?> addOrRemoveLike(LikeRequest likeRequest) {
 		Integer studentId = likeRequest.getStudentId();
 		Integer discussionFormId = likeRequest.getDiscussionFormId();
-		Optional<Student> student1 = studentRepository.findById(studentId);
-		Optional<DiscusssionForm> discusssionForm = discussionFormRepo.findById(discussionFormId);
-		if (student1.isPresent() && discusssionForm.isPresent()) {
-			DiscusssionForm form = discusssionForm.get();
-			Student student = student1.get();
-			List<Likes> likes = form.getLikes();
-			Likes like = likes.stream().filter(obj -> obj.getStudent().getStudentId() == studentId).findFirst()
-					.orElse(null);
-			if (Objects.isNull(like)) {
-				Likes obj = new Likes();
-				obj.setCreatedDate(LocalDateTime.now());
-				obj.setStudent(student);
-				Likes like1 = likeRepo.save(obj);
-				likes.add(like1);
-				form.setLikes(likes);
-				DiscusssionForm save = discussionFormRepo.save(form);
-				DiscussionFormResponse obj1 = discussionFormFilter(save);
-				obj1.setIsLike(true);
 
-				// sending to socket response //
-				LikeResponseForum res = mapToLikeResponseForum(like, true, studentId, discussionFormId);
-				sendMessageManually(res.toString());
-				//////////////// end //////
+		// Fetch Student & DiscussionForm
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id " + studentId));
 
-				return new ResponseEntity<>(obj1, HttpStatus.OK);
-			} else {
-				form.setLikes(likes.parallelStream().filter(obj -> obj.getStudent().getStudentId() != studentId)
-						.collect(Collectors.toList()));
-				DiscusssionForm form2 = discussionFormRepo.save(form);
-				likeRepo.delete(like);
-				DiscussionFormResponse obj1 = discussionFormFilter(form2);
-				obj1.setIsLike(false);
+		DiscusssionForm form = discussionFormRepo.findById(discussionFormId).orElseThrow(
+				() -> new ResourceNotFoundException("DiscussionForm not found with id " + discussionFormId));
 
-				// sending to socket response ///
-				LikeResponseForum res = mapToLikeResponseForum(like, false, studentId, discussionFormId);
-				sendMessageManually(res.toString());
-				//////////////// end //////
-				return new ResponseEntity<>(obj1, HttpStatus.OK);
-			}
+		List<Likes> likes = form.getLikes();
+
+		// ✅ Find if already liked
+		Likes existingLike = likes.stream().filter(l -> Objects.equals(l.getStudent().getStudentId(), studentId))
+				.findFirst().orElse(null);
+
+		if (existingLike == null) {
+			// 🔹 Add new like
+			Likes newLike = new Likes();
+			newLike.setCreatedDate(LocalDateTime.now());
+			newLike.setStudent(student);
+
+			Likes savedLike = likeRepo.save(newLike);
+			likes.add(savedLike);
+			form.setLikes(likes);
+
+			DiscusssionForm updatedForm = discussionFormRepo.save(form);
+			DiscussionFormResponse responseDto = discussionFormFilter(updatedForm);
+			responseDto.setIsLike(true);
+
+			// 🔹 Send socket event
+			LikeResponseForum res = mapToLikeResponseForum(savedLike, true, studentId, discussionFormId);
+			sendMessageManually(res.toString());
+
+			return ResponseEntity.ok(responseDto);
+
+		} else {
+			// 🔹 Remove like
+			likes.remove(existingLike);
+			form.setLikes(likes);
+
+			DiscusssionForm updatedForm = discussionFormRepo.save(form);
+			likeRepo.delete(existingLike);
+
+			DiscussionFormResponse responseDto = discussionFormFilter(updatedForm);
+			responseDto.setIsLike(false);
+
+			// 🔹 Send socket event
+			LikeResponseForum res = mapToLikeResponseForum(existingLike, false, studentId, discussionFormId);
+			sendMessageManually(res.toString());
+
+			return ResponseEntity.ok(responseDto);
 		}
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
 
 	private LikeResponseForum mapToLikeResponseForum(Likes like, boolean isLike, Integer studentId,
@@ -1540,6 +1556,55 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 		} else {
 			return new ResponseEntity<>(HttpStatus.OK);
 		}
+	}
+
+	@Override
+	public ResponseEntity<?> getAllDiscussionFormNew(Integer studentId, Integer pageSize, Integer pageNo) {
+		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
+
+		Page<DiscusssionForm> pageResult;
+
+		if (Objects.nonNull(studentId)) {
+			// Fetch discussion forms created by this student
+			pageResult = discussionFormRepo.findByStudent_StudentId(studentId, pageable);
+		} else {
+			// Fetch all discussion forms
+			pageResult = discussionFormRepo.findAll(pageable);
+		}
+
+		List<DiscussionFormResponse> responseList = new ArrayList<>();
+
+		pageResult.forEach(obj -> {
+			DiscussionFormResponse obj1 = discussionFormFilter(obj);
+
+			if (Objects.nonNull(studentId)) {
+				obj1.setIsLike(obj1.getLikes().stream().anyMatch(e -> Objects.equals(e.getStudentId(), studentId)));
+				obj1.setIsCommented(
+						obj1.getComments().stream().anyMatch(c -> Objects.equals(c.getStudentId(), studentId)));
+			}
+
+			// reverse comments for each discussion
+			Collections.reverse(obj1.getComments());
+			responseList.add(obj1);
+		});
+
+		PageResponse<DiscussionFormResponse> response = new PageResponse<>(responseList, pageResult.getNumber(),
+				pageResult.getSize(), pageResult.getTotalElements(), pageResult.getTotalPages(), pageResult.isLast());
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> searchingDiscussionFormByAllFields(String search) {
+		if (search == null || search.trim().isEmpty()) {
+			return ResponseEntity.ok(Collections.emptyList());
+		}
+
+		List<DiscusssionForm> forms = discussionFormRepo.searchingByAllFields(search.trim());
+		List<DiscussionFormResponse> response = forms.stream().map(this::discussionFormFilter)
+				.collect(Collectors.toList());
+
+		return ResponseEntity.ok(response);
 	}
 
 }

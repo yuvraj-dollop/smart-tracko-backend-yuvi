@@ -1,4 +1,5 @@
 package com.cico.service.impl;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -43,16 +44,16 @@ public class QRServiceImpl implements IQRService {
 
 	@Autowired
 	private StudentRepository studentRepository;
-	
+
 	@Autowired
 	private QrManageRepository qrManageRepository;
 
 	@Autowired
 	private JwtUtil util;
-	
+
 	@Value("${cico.key}")
 	private String qrSecretKey;
-	
+
 	@Autowired
 	private AttendenceRepository attendenceRepository;
 
@@ -63,7 +64,7 @@ public class QRServiceImpl implements IQRService {
 
 	@Override
 	public QRResponse generateQRCode() throws WriterException, IOException {
-		String randomData = qrSecretKey+UUID.randomUUID().toString();
+		String randomData = qrSecretKey + UUID.randomUUID().toString();
 
 		int imageSize = 283;
 		BitMatrix matrix = new MultiFormatWriter().encode(randomData, BarcodeFormat.QR_CODE, imageSize, imageSize);
@@ -73,17 +74,17 @@ public class QRServiceImpl implements IQRService {
 	}
 
 	@Override
-	public ResponseEntity<?>  QRLogin(String qrKey, String token) {
+	public ResponseEntity<?> QRLogin(String qrKey, String token) {
 //	qrKey="CICO#"+qrKey;
 		String[] split = qrKey.split("#");
-		
-		if(split[0].equals("CICO")){
+
+		if (split[0].equals("CICO")) {
 			QrManage findByUuid = qrManageRepository.findByUuid(split[1]);
-			if(Objects.isNull(findByUuid)) {
-				
+			if (Objects.isNull(findByUuid)) {
+
 				String username = util.getUsername(token);
-				if(Objects.isNull(qrManageRepository.findByUserId(username))) {
-					findByUuid = new QrManage(username,split[1]);
+				if (Objects.isNull(qrManageRepository.findByUserId(username))) {
+					findByUuid = new QrManage(username, split[1]);
 					QrManage qrManage = qrManageRepository.save(findByUuid);
 				}
 				JwtResponse message = ClientLogin(token);
@@ -91,13 +92,14 @@ public class QRServiceImpl implements IQRService {
 					message.setToken(token);
 					jobEnd(split[1], message.getToken());
 				});
-				return new ResponseEntity<> (new ApiResponse(Boolean.TRUE, AppConstants.SUCCESS, HttpStatus.OK),HttpStatus.OK);
+				return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.SUCCESS, HttpStatus.OK),
+						HttpStatus.OK);
 			}
 		}
-		return new ResponseEntity<> (new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.BAD_REQUEST),HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.BAD_REQUEST),
+				HttpStatus.BAD_REQUEST);
 	}
 
-	
 	public JwtResponse ClientLogin(String token) {
 		String username = util.getUsername(token);
 		Student student = studentRepository.findByUserId(username);
@@ -114,7 +116,6 @@ public class QRServiceImpl implements IQRService {
 		messageSendingOperations.convertAndSend("/queue/messages-" + qrKey, message);
 	}
 
-	
 	public ResponseEntity<?> getLinkedDeviceData(HttpHeaders headers) {
 		String username = util.getUsername(headers.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
@@ -124,35 +125,35 @@ public class QRServiceImpl implements IQRService {
 		Map<String, Object> response = new HashMap<>();
 		response.put("loginDevice", findByUserId);
 		response.put("attendance", attendance);
-		response.put("loginAt",findByUserId != null ? findByUserId.getLoginAt().toString().replace('T',' '):"");
+		response.put("loginAt", findByUserId != null ? findByUserId.getLoginAt().toString().replace('T', ' ') : "");
 		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
-		return new ResponseEntity<>(response,HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	
 	public ResponseEntity<?> removeDeviceFromWeb(HttpHeaders headers) {
 		String username = util.getUsername(headers.getFirst(AppConstants.AUTHORIZATION));
 		QrManage findByUserId = qrManageRepository.findByUserId(username);
-		if(findByUserId != null) {
+		if (findByUserId != null) {
 			System.out.println(findByUserId);
 			jobEnd(findByUserId.getUuid(), "LOGOUT");
 			qrManageRepository.delete(findByUserId);
-			return new ResponseEntity<>(new ApiResponse(Boolean.TRUE,AppConstants.SUCCESS, HttpStatus.OK),HttpStatus.OK);
+			return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.SUCCESS, HttpStatus.OK),
+					HttpStatus.OK);
 		}
-		return new ResponseEntity<>(new ApiResponse(Boolean.FALSE,AppConstants.FAILED, HttpStatus.OK),HttpStatus.OK);
-		
+		return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK), HttpStatus.OK);
+
 	}
 
 	@Override
 	public ResponseEntity<?> updateWebLoginStatus(String token, String os, String deviceType, String browser) {
 		String username = util.getUsername(token);
 		QrManage findByUserId = qrManageRepository.findByUserId(username);
-			findByUserId.setBrowser(browser);
-			findByUserId.setDeviceType(deviceType);
-			findByUserId.setOs(os);
-			findByUserId.setLoginAt(LocalDateTime.now());
-			QrManage save = qrManageRepository.save(findByUserId);
-			return new ResponseEntity<>(save,HttpStatus.OK);
+		findByUserId.setBrowser(browser);
+		findByUserId.setDeviceType(deviceType);
+		findByUserId.setOs(os);
+		findByUserId.setLoginAt(LocalDateTime.now());
+		QrManage save = qrManageRepository.save(findByUserId);
+		return new ResponseEntity<>(save, HttpStatus.OK);
 	}
 
 	@Override
@@ -162,8 +163,28 @@ public class QRServiceImpl implements IQRService {
 		Map<String, Object> response = new HashMap<>();
 		response.put("loginDevice", findByUuid);
 		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
-		return new ResponseEntity<>(response,HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-	
+
+	// ===================================== New Methods
+	// =========================================================
+	@Override
+	public ResponseEntity<?> removeDeviceFromWebNew() {
+		// Extract token directly from util
+		String token = util.getToken();
+		String username = util.getUsername(token);
+
+		QrManage findByUserId = qrManageRepository.findByUserId(username);
+
+		if (findByUserId != null) {
+			jobEnd(findByUserId.getUuid(), "LOGOUT");
+			qrManageRepository.delete(findByUserId);
+
+			return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.SUCCESS, HttpStatus.OK),
+					HttpStatus.OK);
+		}
+
+		return new ResponseEntity<>(new ApiResponse(Boolean.FALSE, AppConstants.FAILED, HttpStatus.OK), HttpStatus.OK);
+	}
 
 }

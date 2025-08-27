@@ -20,6 +20,6 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 				.setAllowedOrigins("https://cico.dollopinfotech.com/", "https://cico.dollopinfotech.com",
 						"http://localhost:4200", "http://192.168.1.131:4200", "http://192.168.1.92:4200/")
 				.withSockJS();
-	}
+}
 
 }

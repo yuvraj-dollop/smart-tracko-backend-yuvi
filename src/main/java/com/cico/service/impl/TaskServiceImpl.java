@@ -173,7 +173,7 @@ public class TaskServiceImpl implements ITaskService {
 	@Override
 	public ResponseEntity<?> studentTaskSubmittion(Long questionId, Long taskId, Integer studentId, MultipartFile file,
 			String taskDescription, String codeSubmission) {
-
+		System.err.println("file=====>>    " + file);
 		// check task is present or not
 
 		Task task = taskRepo.findByTaskIdAndIsDeleted(taskId, false)
@@ -638,7 +638,12 @@ public class TaskServiceImpl implements ITaskService {
 
 	@Override
 	public ResponseEntity<?> isTaskQuestionSubmittedByStudentId(Long questionId, Integer studentId) {
-
+		if (studentRepository.existsById(studentId)) {
+			throw new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND);
+		}
+		if (taskQuestionRepository.existsById(questionId)) {
+			throw new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND);
+		}
 		Map<String, Object> res = new HashMap<>();
 
 		Boolean isSubmittedTask = taskSubmissionRepository.submissionExistByQuestionIdAndStudentId(questionId,
@@ -780,7 +785,7 @@ public class TaskServiceImpl implements ITaskService {
 		MultipartFile file = submissionRequest.getSubmittionFileName();
 		String taskDescription = submissionRequest.getTaskDescription();
 		String codeSubmission = submissionRequest.getCodeSubmission();
-
+		System.err.println("file ===================>> " + submissionRequest);
 		// Validate Task
 		Task task = taskRepo.findByTaskIdAndIsDeleted(taskId, false)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.TASK_NOT_FOUND));
@@ -1017,10 +1022,9 @@ public class TaskServiceImpl implements ITaskService {
 	public Long countTaskOfStudent(Integer studentId) {
 		return taskRepo.countAllTaskOfStudent(studentId);
 	}
-	
+
 	@Override
-	public Long countSubmittedTasksByStudentId(Integer studentId)
-	{
+	public Long countSubmittedTasksByStudentId(Integer studentId) {
 		return taskSubmissionRepository.countSubmittedTasksByStudentId(studentId);
 	}
 

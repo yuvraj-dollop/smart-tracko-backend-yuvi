@@ -22,7 +22,7 @@ public class StudentFeesRequest {
 	private Integer courseId;
 
 	@NotNull(message = AppConstants.FEES_REQUIRED)
-//	    @DecimalMin(value = "0.0", inclusive = false, message = "Final fees must be greater than 0")
+	@DecimalMin(value = "0.0", inclusive = false, message = "Final fees must be greater than 0")
 	private Double finalFees;
 
 	@NotBlank(message = AppConstants.DATE_REQUIRED)

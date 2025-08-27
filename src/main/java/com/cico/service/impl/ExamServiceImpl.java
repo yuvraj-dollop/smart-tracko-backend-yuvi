@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +52,9 @@ import com.cico.payload.PaginationRequest;
 import com.cico.payload.QuestionResponse;
 import com.cico.payload.SubjectExamResponse;
 import com.cico.payload.TestFilterRequest;
+import com.cico.payload.TestPerformanceResponse;
 import com.cico.payload.UpcomingExamResponse;
+import com.cico.repository.AssignmentRepository;
 import com.cico.repository.ChapterCompletedRepository;
 import com.cico.repository.ChapterExamResultRepo;
 import com.cico.repository.ChapterRepository;
@@ -69,6 +72,7 @@ import com.cico.service.IExamService;
 import com.cico.util.AppConstants;
 import com.cico.util.ExamType;
 import com.cico.util.NotificationConstant;
+import com.cico.util.SubmissionStatus;
 
 @Service
 public class ExamServiceImpl implements IExamService {
@@ -119,99 +123,111 @@ public class ExamServiceImpl implements IExamService {
 	private QuestionRepo questionRepo;
 
 	private final Map<String, Object> locks = new ConcurrentHashMap<>();
-
-//	@Override
-//	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
-//		Student student = studentRepository.findById(chapterExamResult.getStudentId())
-//				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
-//		Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
-//
-//		Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
-//				student);
-//		if (findByChapterAndStudent.isPresent())
-//			throw new ResourceAlreadyExistException("You have already submitted this test");
-//
-//		ChapterExamResult examResult = new ChapterExamResult();
-//		Map<Integer, String> review = chapterExamResult.getReview();
-//		int correct = 0;
-//		int inCorrect = 0;
-//		examResult.setChapter(chapter);
-//		examResult.setStudent(student);
-//
-//		List<Question> questions = chapter.getExam().getQuestions();
-//		questions = questions.stream().filter(obj -> !obj.getIsDeleted()).collect(Collectors.toList());
-//
-//		for (Question q : questions) {
-//			Integer id = q.getQuestionId();
-//			String correctOption = q.getCorrectOption();
-//
-//			if (Objects.nonNull(review)) {
-//				String reviewAns = review.get(id);
-//				if (Objects.nonNull(reviewAns)) {
-//					if (review.get(id).equals(correctOption)) {
-//						correct++;
-//					} else {
-//						inCorrect++;
-//					}
-//				}
-//			}
-//		}
-//		examResult.setReview(review);
-//		examResult.setCorrecteQuestions(correct);
-//		examResult.setWrongQuestions(inCorrect);
-//		examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
-//		examResult.setScoreGet(correct - inCorrect);
-//		examResult.setTotalQuestion(questions.size());
-//		ChapterExamResult save = chapterExamResultRepo.save(examResult);
-//
-//		ChapterCompleted chapterCompleted = new ChapterCompleted();
-//		chapterCompleted.setChapterId(chapterExamResult.getChapterId());
-//		chapterCompleted.setStudentId(chapterExamResult.getStudentId());
-//		chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
-//		chapterCompletedRepository.save(chapterCompleted);
-//
-//		ExamResultResponse res = new ExamResultResponse();
-//		res.setCorrecteQuestions(save.getCorrecteQuestions());
-//		res.setNotSelectedQuestions(save.getNotSelectedQuestions());
-//		res.setScoreGet(save.getScoreGet());
-//		res.setWrongQuestions(save.getWrongQuestions());
-//		res.setId(save.getId());
-//		res.setTotalQuestion(save.getTotalQuestion());
-//		res.setStudentId(save.getStudent().getStudentId());
-//		res.setStudentName(save.getStudent().getFullName());
-//		res.setProfilePic(save.getStudent().getProfilePic());
-//
-//		List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
-//
-//		int total = allResults.size();
-//		int lowerScores = 0;
-//
-//		for (ChapterExamResult result : allResults) {
-//			if (result.getScoreGet() <= save.getScoreGet()) {
-//				lowerScores++;
-//			}
-//		}
-//
-//		int percentile = 0;
-//		if (total == 1) {
-//			percentile = 100;
-//		} else {
-//			percentile = (int) Math.round(((double) lowerScores / total) * 100);
-//		}
-//
-//		res.setPercentile(percentile);
-//
-//		// .....firebase notification .....//
-//
-//		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
-//		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
-//		fcmIds.setMessage(message);
-//		fcmIds.setTitle("Exam Completed!");
-//		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
-//		// .....firebase notification .....//
-//
-//		return new ResponseEntity<>(res, HttpStatus.OK);
-//	}
+	@Autowired
+	private AssignmentRepository assignmentRepository;
+	// @Override
+	// public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult)
+	// {
+	// Student student =
+	// studentRepository.findById(chapterExamResult.getStudentId())
+	// .orElseThrow(() -> new
+	// ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+	// Chapter chapter =
+	// chapterRepo.findById(chapterExamResult.getChapterId()).get();
+	//
+	// Optional<ChapterExamResult> findByChapterAndStudent =
+	// chapterExamResultRepo.findByChapterAndStudent(chapter,
+	// student);
+	// if (findByChapterAndStudent.isPresent())
+	// throw new ResourceAlreadyExistException("You have already submitted this
+	// test");
+	//
+	// ChapterExamResult examResult = new ChapterExamResult();
+	// Map<Integer, String> review = chapterExamResult.getReview();
+	// int correct = 0;
+	// int inCorrect = 0;
+	// examResult.setChapter(chapter);
+	// examResult.setStudent(student);
+	//
+	// List<Question> questions = chapter.getExam().getQuestions();
+	// questions = questions.stream().filter(obj ->
+	// !obj.getIsDeleted()).collect(Collectors.toList());
+	//
+	// for (Question q : questions) {
+	// Integer id = q.getQuestionId();
+	// String correctOption = q.getCorrectOption();
+	//
+	// if (Objects.nonNull(review)) {
+	// String reviewAns = review.get(id);
+	// if (Objects.nonNull(reviewAns)) {
+	// if (review.get(id).equals(correctOption)) {
+	// correct++;
+	// } else {
+	// inCorrect++;
+	// }
+	// }
+	// }
+	// }
+	// examResult.setReview(review);
+	// examResult.setCorrecteQuestions(correct);
+	// examResult.setWrongQuestions(inCorrect);
+	// examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
+	// examResult.setScoreGet(correct - inCorrect);
+	// examResult.setTotalQuestion(questions.size());
+	// ChapterExamResult save = chapterExamResultRepo.save(examResult);
+	//
+	// ChapterCompleted chapterCompleted = new ChapterCompleted();
+	// chapterCompleted.setChapterId(chapterExamResult.getChapterId());
+	// chapterCompleted.setStudentId(chapterExamResult.getStudentId());
+	// chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
+	// chapterCompletedRepository.save(chapterCompleted);
+	//
+	// ExamResultResponse res = new ExamResultResponse();
+	// res.setCorrecteQuestions(save.getCorrecteQuestions());
+	// res.setNotSelectedQuestions(save.getNotSelectedQuestions());
+	// res.setScoreGet(save.getScoreGet());
+	// res.setWrongQuestions(save.getWrongQuestions());
+	// res.setId(save.getId());
+	// res.setTotalQuestion(save.getTotalQuestion());
+	// res.setStudentId(save.getStudent().getStudentId());
+	// res.setStudentName(save.getStudent().getFullName());
+	// res.setProfilePic(save.getStudent().getProfilePic());
+	//
+	// List<ChapterExamResult> allResults =
+	// chapterExamResultRepo.findAllById(chapter.getChapterId());
+	//
+	// int total = allResults.size();
+	// int lowerScores = 0;
+	//
+	// for (ChapterExamResult result : allResults) {
+	// if (result.getScoreGet() <= save.getScoreGet()) {
+	// lowerScores++;
+	// }
+	// }
+	//
+	// int percentile = 0;
+	// if (total == 1) {
+	// percentile = 100;
+	// } else {
+	// percentile = (int) Math.round(((double) lowerScores / total) * 100);
+	// }
+	//
+	// res.setPercentile(percentile);
+	//
+	// // .....firebase notification .....//
+	//
+	// NotificationInfo fcmIds =
+	// studentRepository.findFcmIdByStudentId(student.getStudentId());
+	// String message = String.format("Congratulations! You have successfully
+	// completed your exam. Well done!");
+	// fcmIds.setMessage(message);
+	// fcmIds.setTitle("Exam Completed!");
+	// kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC,
+	// fcmIds.toString());
+	// // .....firebase notification .....//
+	//
+	// return new ResponseEntity<>(res, HttpStatus.OK);
+	// }
 
 	@Override
 	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
@@ -401,11 +417,14 @@ public class ExamServiceImpl implements IExamService {
 
 		// .....firebase notification .....//
 
-//		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
-//		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
-//		fcmIds.setMessage(message);
-//		fcmIds.setTitle("Exam Completed!");
-//		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
+		// NotificationInfo fcmIds =
+		// studentRepository.findFcmIdByStudentId(student.getStudentId());
+		// String message = String.format("Congratulations! You have successfully
+		// completed your exam. Well done!");
+		// fcmIds.setMessage(message);
+		// fcmIds.setTitle("Exam Completed!");
+		// kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC,
+		// fcmIds.toString());
 		// .....firebase notification .....//
 
 		// Save submitted exam question history
@@ -592,14 +611,17 @@ public class ExamServiceImpl implements IExamService {
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
 		SubjectExam exam = new SubjectExam();
 
-//		Optional<SubjectExam> isExamExist = subject.getExams().stream()
-//				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
-//
-//		// checking exam existance with the name;
-//		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
-//
-//		if (contains)
-//			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+		// Optional<SubjectExam> isExamExist = subject.getExams().stream()
+		// .filter(obj ->
+		// obj.getExamName().equals(request.getExamName().trim())).findFirst();
+		//
+		// // checking exam existance with the name;
+		// boolean contains = isExamExist.isPresent() &&
+		// subject.getExams().contains(isExamExist.get());
+		//
+		// if (contains)
+		// throw new
+		// ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
 
 		// UPDATE
 		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),
@@ -829,37 +851,40 @@ public class ExamServiceImpl implements IExamService {
 	}
 
 	// for student use
-//	@Override
+	// @Override
 	public ResponseEntity<?> getAllSubjectNormalAndScheduleExamForStudent(Integer studentId) {
-//		studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("student not found !! "));
-//
-//		Map<String, Object> response = new HashMap<>();
-//		List<SubjectExamResponse> allSubjectExam = new ArrayList<>();
-//
-//		allSubjectExam = subjectRepository.getAllSubjectExam(studentId);
-//		List<SubjectExamResponse> normalExam = new ArrayList<>();
-//		List<SubjectExamResponse> scheduleExam = new ArrayList<>();
-//		allSubjectExam.stream().forEach(obj -> {
-//			if (obj.getExamType().equals(ExamType.SCHEDULEEXAM)) {
-//				LocalDateTime scheduledDateTime = LocalDateTime.of(obj.getScheduleTestDate(), obj.getExamStartTime());
-//				LocalDateTime examEndTime = scheduledDateTime.plus(AppConstants.EXTRA_EXAM_TIME, ChronoUnit.MINUTES);
-//				LocalDateTime now = LocalDateTime.now();
-//
-//				if (now.isBefore(examEndTime)) {
-//					obj.setIsExamEnd(false); // Exam is not ended
-//					obj.setExtraTime(1);
-//				} else {
-//					obj.setIsExamEnd(true);
-//				}
-//				scheduleExam.add(obj);
-//			} else {
-//				normalExam.add(obj);
-//			}
-//		});
-//		response.put(AppConstants.NORMAL_EXAM, normalExam);
-//		response.put(AppConstants.SCHEDULE_EXAM, scheduleExam);
-//		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
-//		return new ResponseEntity<>(response, HttpStatus.OK);
+		// studentRepository.findById(studentId).orElseThrow(() -> new
+		// ResourceNotFoundException("student not found !! "));
+		//
+		// Map<String, Object> response = new HashMap<>();
+		// List<SubjectExamResponse> allSubjectExam = new ArrayList<>();
+		//
+		// allSubjectExam = subjectRepository.getAllSubjectExam(studentId);
+		// List<SubjectExamResponse> normalExam = new ArrayList<>();
+		// List<SubjectExamResponse> scheduleExam = new ArrayList<>();
+		// allSubjectExam.stream().forEach(obj -> {
+		// if (obj.getExamType().equals(ExamType.SCHEDULEEXAM)) {
+		// LocalDateTime scheduledDateTime = LocalDateTime.of(obj.getScheduleTestDate(),
+		// obj.getExamStartTime());
+		// LocalDateTime examEndTime =
+		// scheduledDateTime.plus(AppConstants.EXTRA_EXAM_TIME, ChronoUnit.MINUTES);
+		// LocalDateTime now = LocalDateTime.now();
+		//
+		// if (now.isBefore(examEndTime)) {
+		// obj.setIsExamEnd(false); // Exam is not ended
+		// obj.setExtraTime(1);
+		// } else {
+		// obj.setIsExamEnd(true);
+		// }
+		// scheduleExam.add(obj);
+		// } else {
+		// normalExam.add(obj);
+		// }
+		// });
+		// response.put(AppConstants.NORMAL_EXAM, normalExam);
+		// response.put(AppConstants.SCHEDULE_EXAM, scheduleExam);
+		// response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		// return new ResponseEntity<>(response, HttpStatus.OK);
 		return null;
 	}
 
@@ -919,24 +944,27 @@ public class ExamServiceImpl implements IExamService {
 
 	// ******************************************
 
-//	@Override
-//	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
-//
-//		Map<String, Object> response = new HashMap<>();
-//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
-//		if (chapter.isPresent()) {
-//
-//			Optional<Exam> exam = examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(), false);
-//			if (exam.isPresent() && exam.get().getIsActive()) {
-//				exam.get().setIsStarted(true);
-//				examRepo.save(exam.get());
-//				return new ResponseEntity<>(HttpStatus.OK);
-//			}
-//		}
-//		response.put(AppConstants.MESSAGE, "Chapter not found");
-//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//
-//	}
+	// @Override
+	// public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
+	//
+	// Map<String, Object> response = new HashMap<>();
+	// Optional<Chapter> chapter =
+	// chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+	// if (chapter.isPresent()) {
+	//
+	// Optional<Exam> exam =
+	// examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(),
+	// false);
+	// if (exam.isPresent() && exam.get().getIsActive()) {
+	// exam.get().setIsStarted(true);
+	// examRepo.save(exam.get());
+	// return new ResponseEntity<>(HttpStatus.OK);
+	// }
+	// }
+	// response.put(AppConstants.MESSAGE, "Chapter not found");
+	// return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	//
+	// }
 
 	@Override
 	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
@@ -1136,6 +1164,7 @@ public class ExamServiceImpl implements IExamService {
 		Map<String, Object> response = new HashMap<>();
 		CourseExamResult examResult = courseExamResultRepo.findById(resultId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+		System.err.println("------------------------------->     " + examResult.getRandomQuestoinList());
 		List<QuestionResponse> questiosList = questionRepo
 				.findAllByIdAndIsDeletedFalse(examResult.getRandomQuestoinList()).stream()
 				.map(obj -> questionFilter(obj)).collect(Collectors.toList());
@@ -1672,24 +1701,27 @@ public class ExamServiceImpl implements IExamService {
 				.courseId(c.getCourseId()).examFrom("COURSE").build();
 	}
 
-//	@Override
-//	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
-//
-//		Map<String, Object> response = new HashMap<>();
-//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
-//		if (chapter.isPresent()) {
-//			
-//			
-//			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
-//					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
-//			response.put("examTimer", chapter.get().getExam().getExamTimer());
-//			response.put("chapterId", chapterId);
-//			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
-//			return new ResponseEntity<>(response, HttpStatus.OK);
-//		}
-//		response.put(AppConstants.MESSAGE, "Chapter not found");
-//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//	}
+	// @Override
+	// public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
+	//
+	// Map<String, Object> response = new HashMap<>();
+	// Optional<Chapter> chapter =
+	// chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+	// if (chapter.isPresent()) {
+	//
+	//
+	// response.put("testQuestions",
+	// chapter.get().getExam().getQuestions().parallelStream()
+	// .filter(obj ->
+	// !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
+	// response.put("examTimer", chapter.get().getExam().getExamTimer());
+	// response.put("chapterId", chapterId);
+	// response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+	// return new ResponseEntity<>(response, HttpStatus.OK);
+	// }
+	// response.put(AppConstants.MESSAGE, "Chapter not found");
+	// return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	// }
 
 	@Override
 	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
@@ -1824,6 +1856,344 @@ public class ExamServiceImpl implements IExamService {
 	}
 	// ==================================== NEW METHOD ===========================\
 
+	// ........................................... New
+	// .........................................
+	@Override
+	public ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDate joiningDate = student.getJoinDate();
+
+		int totalObtained = 0;
+		int totalMax = 0;
+		int passed = 0;
+		int failed = 0;
+		boolean notAttempted = true;
+
+		List<CourseExamResult> courseResults = courseExamResultRepo.findByStudentAndCourse(studentId, courseId);
+		List<SubjectExamResult> subjectResults = subjectExamResultRepo.findByStudentAndCourse(studentId, courseId);
+
+		// 🔹 Calculate for course exams
+		for (CourseExamResult r : courseResults) {
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			notAttempted = false;
+			int obtained = r.getScoreGet();
+			int maxMarks = r.getCourseExam().getTotalQuestionForTest();
+
+			totalObtained += obtained;
+			totalMax += maxMarks;
+			if (obtained >= (maxMarks * 0.4))
+				passed++;
+			else
+				failed++;
+		}
+
+		// 🔹 Calculate for subject exams
+		for (SubjectExamResult r : subjectResults) {
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			notAttempted = false;
+			int obtained = r.getScoreGet();
+			int maxMarks = r.getTotalQuestion();
+
+			totalObtained += obtained;
+			totalMax += maxMarks;
+			if (obtained >= (maxMarks * 0.4))
+				passed++;
+			else
+				failed++;
+		}
+
+		double percentage = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0;
+		if (percentage < 0) {
+			percentage = 0;
+		}
+		// 🔹 Grade Calculation
+		String grade;
+		if (notAttempted || totalMax == 0) {
+			grade = "N/A"; // didn’t attempt any valid exam
+		} else if (percentage == 0) {
+			grade = "F"; // attempted but got zero
+		} else if (percentage >= 90)
+			grade = "A+";
+		else if (percentage >= 80)
+			grade = "A";
+		else if (percentage >= 70)
+			grade = "B";
+		else if (percentage >= 60)
+			grade = "C";
+		else if (percentage >= 50)
+			grade = "D";
+		else
+			grade = "F";
+
+		// -------------------------
+		// 🔹 Rank Calculation
+		// -------------------------
+		List<Student> allStudents = studentRepository.findByCourse_CourseId(courseId);
+		List<Map<String, Object>> allResults = new ArrayList<>();
+
+		for (Student s : allStudents) {
+			int obtainedMarks = 0;
+			int maxMarks = 0;
+
+			for (CourseExamResult r : courseExamResultRepo.findByStudentAndCourse(s.getStudentId(), courseId)) {
+				LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+				if (examDate != null && examDate.isBefore(s.getJoinDate()))
+					continue;
+
+				obtainedMarks += r.getScoreGet();
+				maxMarks += r.getCourseExam().getTotalQuestionForTest();
+			}
+
+			for (SubjectExamResult r : subjectExamResultRepo.findByStudentAndCourse(s.getStudentId(), courseId)) {
+				LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+						.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+						.getScheduleTestDate();
+				if (examDate != null && examDate.isBefore(s.getJoinDate()))
+					continue;
+
+				obtainedMarks += r.getScoreGet();
+				maxMarks += r.getTotalQuestion();
+			}
+
+			double percent = maxMarks > 0 ? (obtainedMarks * 100.0 / maxMarks) : 0;
+			allResults.add(Map.of("studentId", s.getStudentId(), "percentage", percent));
+		}
+
+		// Sort by percentage desc
+		allResults.sort((a, b) -> Double.compare((double) b.get("percentage"), (double) a.get("percentage")));
+
+		// Find current student's rank
+		int rank = 0;
+		for (int i = 0; i < allResults.size(); i++) {
+			if (allResults.get(i).get("studentId").equals(studentId)) {
+				rank = i + 1;
+				break;
+			}
+		}
+		double performancePercentage = student.getPerformancePercentage();
+		double improvementRate = 0.0;
+		if (percentage != performancePercentage) {
+			improvementRate = percentage - performancePercentage;
+		}
+
+		return ResponseEntity.ok(Map.ofEntries(Map.entry("studentId", studentId), Map.entry("courseId", courseId),
+				Map.entry("totalObtained", totalObtained), Map.entry("totalMax", totalMax),
+				Map.entry("percentage", percentage), Map.entry("grade", grade), Map.entry("rank", rank),
+				Map.entry("passed", passed), Map.entry("failed", failed), Map.entry("notAttempted", notAttempted),
+				Map.entry("improvementRate", improvementRate)));
+	}
+
+	private double calculateMonthlyPercentage(Student student, YearMonth month) {
+		LocalDate joiningDate = student.getJoinDate(); // changed getter to LocalDateTime
+
+		int totalObtained = 0;
+		int totalMax = 0;
+
+		// 🔹 Course Exams
+		for (CourseExamResult r : courseExamResultRepo.findByStudentAndCourse(student.getStudentId(),
+				student.getCourse().getCourseId())) {
+
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate == null || examDate.isBefore(student.getJoinDate())) {
+				continue; // skip this exam
+			}
+			LocalDateTime examDateTime = examDate.atStartOfDay();
+
+			if (YearMonth.from(examDateTime.toLocalDate()).equals(month)) {
+				totalObtained += r.getScoreGet();
+				totalMax += r.getCourseExam().getTotalQuestionForTest();
+			}
+		}
+
+		// 🔹 Subject Exams
+		for (SubjectExamResult r : subjectExamResultRepo.findByStudentAndCourse(student.getStudentId(),
+				student.getCourse().getCourseId())) {
+
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate == null || examDate.isBefore(joiningDate))
+				continue;
+			LocalDateTime examDateTime = examDate.atStartOfDay();
+			if (YearMonth.from(examDateTime.toLocalDate()).equals(month)) {
+				totalObtained += r.getScoreGet();
+				totalMax += r.getTotalQuestion();
+			}
+		}
+		double percent = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0.0;
+		if (percent < 0) {
+			percent = 0;
+		}
+
+		return percent;
+	}
+
+	@Override
+	public ResponseEntity<?> getperformanceDataMonthaly(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDateTime joiningDateTime = student.getJoinDate().atStartOfDay();
+		LocalDateTime currentDateTime = LocalDateTime.now();
+
+		YearMonth startMonth = YearMonth.from(joiningDateTime.toLocalDate());
+		YearMonth endMonth = YearMonth.from(currentDateTime.toLocalDate());
+
+		List<Student> courseStudents = studentRepository.findByCourse_CourseId(courseId);
+
+		List<Map<String, Object>> monthlyData = new ArrayList<>();
+
+		YearMonth month = startMonth;
+		while (!month.isAfter(endMonth)) {
+
+			// 🔹 Student exam percentage for this month
+			double studentPercentage = calculateMonthlyPercentage(student, month);
+
+			// 🔹 Course average percentage for this month
+			double totalPercent = 0.0;
+			int count = 0;
+			for (Student s : courseStudents) {
+				double percent = calculateMonthlyPercentage(s, month);
+				totalPercent += percent;
+				count++;
+			}
+			double courseAverage = count > 0 ? totalPercent / count : 0.0;
+
+			// 🔹 Assignment stats for this student in this month
+			LocalDateTime startDateTime = month.atDay(1).atStartOfDay();
+			LocalDateTime endDateTime = month.atEndOfMonth().atTime(23, 59, 59);
+
+			int totalAssignments = assignmentRepository.countAssignmentsByCourseAndMonth(courseId, startDateTime,
+					endDateTime);
+			int completedAssignments = assignmentRepository.countCompletedAssignmentsByStudentAndMonth(courseId,
+					studentId, SubmissionStatus.Accepted, startDateTime, endDateTime);
+			int pendingAssignments = totalAssignments - completedAssignments;
+
+			monthlyData.add(Map.of("month", month.toString(), "studentPercentage", studentPercentage,
+					"courseAveragePercentage", courseAverage, "totalAssignments", totalAssignments,
+					"completedAssignments", completedAssignments, "pendingAssignments", pendingAssignments));
+
+			month = month.plusMonths(1);
+		}
+
+		return ResponseEntity.ok(Map.of("studentId", studentId, "courseId", courseId, "performance", monthlyData));
+	}
+
+	@Override
+	public ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+		Integer courseId = student.getCourse().getCourseId();
+		LocalDate joiningDate = student.getJoinDate();
+
+		// Get all subjects of this course
+		List<Subject> subjects = student.getCourse().getSubjects();
+
+		List<Map<String, Object>> subjectPerformanceList = new ArrayList<>();
+
+		for (Subject subject : subjects) {
+			List<SubjectExamResult> subjectResults = subjectExamResultRepo
+					.findByStudent_StudentIdAndSubject_SubjectId(studentId, subject.getSubjectId());
+
+			int totalObtained = 0;
+			int totalMax = 0;
+
+			for (SubjectExamResult r : subjectResults) {
+				LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+						.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+						.getScheduleTestDate();
+
+				if (examDate != null && examDate.isBefore(joiningDate))
+					continue; // skip exams before joining
+
+				totalObtained += r.getScoreGet();
+				totalMax += r.getTotalQuestion();
+			}
+
+			double percentage = totalMax > 0 ? (totalObtained * 100.0 / totalMax) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+
+			subjectPerformanceList.add(Map.of("subjectId", subject.getSubjectId(), "subjectName",
+					subject.getSubjectName(), "percentage", percentage));
+		}
+
+		return ResponseEntity.ok(subjectPerformanceList);
+	}
+
+	@Override
+	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+
+		LocalDate joiningDate = student.getJoinDate();
+		List<TestPerformanceResponse> testPerformances = new ArrayList<>();
+
+		// 1️⃣ Course Exam Results
+		List<CourseExamResult> courseResults = courseExamResultRepo.findByStudent_StudentId(studentId);
+		for (CourseExamResult r : courseResults) {
+			LocalDate examDate = r.getCourseExam().getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue; // skip before joining
+
+			int obtained = r.getScoreGet();
+			int total = r.getCourseExam().getTotalQuestionForTest();
+			double percentage = total > 0 ? (obtained * 100.0 / total) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+			Integer examTimer = r.getCourseExam().getExamTimer();
+			LocalTime scheduleTestTime = r.getCourseExam().getExamStartTime();
+			String examName = r.getCourseExam().getExamName(); // make sure examName comes from CourseExam
+
+			testPerformances.add(new TestPerformanceResponse(r.getCourseExam().getExamId(), examName, "COURSE",
+					examDate == null ? "" : examDate.toString(), total, obtained, percentage,
+					examTimer == null ? "" : examTimer.toString(),
+					scheduleTestTime == null ? "" : scheduleTestTime.toString(),
+					obtained >= (total * 0.4) ? "PASS" : "FAIL"));
+		}
+
+		// 2️⃣ Subject Exam Results
+		List<SubjectExamResult> subjectResults = subjectExamResultRepo.findByStudent_StudentId(studentId);
+		for (SubjectExamResult r : subjectResults) {
+			LocalDate examDate = subjectExamRepo.findById(r.getSubjectExamId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.EXAM_NOT_FOUND))
+					.getScheduleTestDate();
+			if (examDate != null && examDate.isBefore(joiningDate))
+				continue;
+
+			int obtained = r.getScoreGet();
+			int total = r.getTotalQuestion();
+			double percentage = total > 0 ? (obtained * 100.0 / total) : 0;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+			SubjectExam exam = subjectExamRepo.findById(r.getSubjectExamId()).get();
+			String examName = exam.getExamName();
+			LocalTime scheduleTestTime = exam.getExamStartTime();
+			Integer examTimer = exam.getExamTimer();
+			testPerformances.add(new TestPerformanceResponse(r.getSubjectExamId(), examName, "SUBJECT",
+					examDate == null ? "" : examDate.toString(), total, obtained, percentage,
+					examTimer == null ? "" : examTimer.toString(),
+					scheduleTestTime == null ? "" : scheduleTestTime.toString(),
+					obtained >= (total * 0.4) ? "PASS" : "FAIL"));
+		}
+
+		return ResponseEntity.ok(testPerformances);
+	}
+
 	@Override
 	public Integer getRemainingQuestionCountForSubject(Integer subjectId) {
 		Subject subject = subjectRepository.findById(subjectId)
@@ -1845,10 +2215,24 @@ public class ExamServiceImpl implements IExamService {
 
 		return subjectsTotalQuestionsCount - totalQuestionsCountByCourseId;
 	}
+<<<<<<< HEAD
+=======
+	// ==================================== NEW METHOD ===========================
+>>>>>>> 6edf8b18b108c4624fb999b6d12c7b3f781a7c3c
 
 	// add check for questions available or not for this exam
 	@Override
 	public ResponseEntity<?> addCourseExamNew(AddExamRequest request) {
+<<<<<<< HEAD
+=======
+		Integer remainingQuestionCountForCourse = getRemainingQuestionCountForCourse(request.getCourseId());
+
+		if (!(remainingQuestionCountForCourse >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForCourse);
+
+		}
+>>>>>>> 6edf8b18b108c4624fb999b6d12c7b3f781a7c3c
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -1856,6 +2240,7 @@ public class ExamServiceImpl implements IExamService {
 		Course course = courseRepository.findById(request.getCourseId())
 				.orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
+<<<<<<< HEAD
 		int subjectsTotalQuestionsCount = course.getSubjects().stream().mapToInt(s -> s.getQuestions().size()).sum();
 
 		if (!(subjectsTotalQuestionsCount >= request.getTotalQuestionForTest())) {
@@ -1863,6 +2248,8 @@ public class ExamServiceImpl implements IExamService {
 					+ request.getTotalQuestionForTest() + ", Available: " + subjectsTotalQuestionsCount);
 
 		}
+=======
+>>>>>>> 6edf8b18b108c4624fb999b6d12c7b3f781a7c3c
 		// 2. Check for duplicate exam name in the same course
 		boolean examExists = courseExamRepo.existsByExamNameAndCourseId(request.getExamName().trim(),
 				request.getCourseId());
@@ -1938,12 +2325,23 @@ public class ExamServiceImpl implements IExamService {
 
 	@Override
 	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request) {
+<<<<<<< HEAD
+=======
+		Integer remainingQuestionCountForSubject = getRemainingQuestionCountForSubject(request.getSubjectId());
+
+		if (!(remainingQuestionCountForSubject >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForSubject);
+
+		}
+>>>>>>> 6edf8b18b108c4624fb999b6d12c7b3f781a7c3c
 
 		Map<String, Object> response = new HashMap<>();
 
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
 		SubjectExam exam = new SubjectExam();
 
+<<<<<<< HEAD
 		int subjectTotalQuestionsCount = subject.getQuestions().size();
 		if (!(subjectTotalQuestionsCount >= request.getTotalQuestionForTest())) {
 			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
@@ -1959,6 +2357,19 @@ public class ExamServiceImpl implements IExamService {
 //
 //		if (contains)
 //			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+=======
+		// Optional<SubjectExam> isExamExist = subject.getExams().stream()
+		// .filter(obj ->
+		// obj.getExamName().equals(request.getExamName().trim())).findFirst();
+		//
+		// // checking exam existance with the name;
+		// boolean contains = isExamExist.isPresent() &&
+		// subject.getExams().contains(isExamExist.get());
+		//
+		// if (contains)
+		// throw new
+		// ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+>>>>>>> 6edf8b18b108c4624fb999b6d12c7b3f781a7c3c
 
 		// UPDATE
 		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),

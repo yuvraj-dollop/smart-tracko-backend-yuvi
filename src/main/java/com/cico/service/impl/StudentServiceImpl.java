@@ -1455,7 +1455,7 @@ public class StudentServiceImpl implements IStudentService {
 	@Override
 	public ResponseEntity<?> getStudentByIdForWeb(Integer studentId) {
 		Student student = studRepo.findById(studentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found from given id"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
 		return new ResponseEntity<>(studentFilter(student), HttpStatus.OK);
 	}
 

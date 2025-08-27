@@ -92,6 +92,7 @@ public class JwtUtil {
 	// ==================== Utility ====================
 	public String getToken() {
 		String header = httpServletRequest.getHeader("Authorization");
+		System.err.println("===================>" + header);
 		if (header == null || !header.startsWith("Bearer ")) {
 			return null;
 		}

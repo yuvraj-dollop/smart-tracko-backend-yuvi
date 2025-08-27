@@ -119,10 +119,12 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			    SELECT new com.cico.payload.TaskResponse(
 			        t.taskId,
 			        t.taskName,
+
 			        CASE
 			            WHEN COUNT(DISTINCT tq.questionId) = COUNT(DISTINCT ts.question.questionId)
 			            THEN true ELSE false
 			        END
+			        ,  t.createdDate
 			    )
 			    FROM Student st
 			    JOIN st.course c
@@ -133,7 +135,7 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			        AND ts.student.studentId = :studentId
 			    WHERE st.studentId = :studentId
 			      AND tq.isDeleted = false
-			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive
+			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive,t.createdDate
 			    HAVING (
 			        (t.isActive = true)
 			        OR ((t.isDeleted = true OR t.isActive = false) AND COUNT(ts) > 0)
@@ -195,27 +197,25 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 //			) AS result
 //			""", nativeQuery = true)
 //	Long countAllTaskOfStudent(@Param("studentId") Integer studentId);
-	
-	
 
 	@Query("""
-		    SELECT COUNT(t)
-		    FROM Student st
-		    JOIN st.course c
-		    JOIN c.subjects s
-		    JOIN Task t ON t.subject.subjectId = s.subjectId
-		    JOIN t.taskQuestion tq
-		    LEFT JOIN TaskSubmission ts 
-		        ON ts.question.questionId = tq.questionId 
-		       AND ts.student.studentId = :studentId
-		    WHERE st.studentId = :studentId
-		      AND tq.isDeleted = false
-		    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive
-		    HAVING (
-		        t.isActive = true
-		        OR ((t.isDeleted = true OR t.isActive = false) AND COUNT(ts) > 0)
-		    )
-		""")
-		Long countAllTaskOfStudent(@Param("studentId") Integer studentId);
+			    SELECT COUNT(t)
+			    FROM Student st
+			    JOIN st.course c
+			    JOIN c.subjects s
+			    JOIN Task t ON t.subject.subjectId = s.subjectId
+			    JOIN t.taskQuestion tq
+			    LEFT JOIN TaskSubmission ts
+			        ON ts.question.questionId = tq.questionId
+			       AND ts.student.studentId = :studentId
+			    WHERE st.studentId = :studentId
+			      AND tq.isDeleted = false
+			    GROUP BY t.taskId, t.taskName, t.isDeleted, t.isActive
+			    HAVING (
+			        t.isActive = true
+			        OR ((t.isDeleted = true OR t.isActive = false) AND COUNT(ts) > 0)
+			    )
+			""")
+	Long countAllTaskOfStudent(@Param("studentId") Integer studentId);
 
 }

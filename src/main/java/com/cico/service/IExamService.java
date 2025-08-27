@@ -95,6 +95,14 @@ public interface IExamService {
 
 	public ResponseEntity<?> getChapterExamResultNew(Integer id);
 
+	ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId);
+
+	ResponseEntity<?> getperformanceDataMonthaly(Integer studentId);
+
+	ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId);
+
+	ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId);
+
 	public Integer getRemainingQuestionCountForSubject(Integer subjectId);
 
 	public Integer getRemainingQuestionCountForCourse(Integer courseId);
