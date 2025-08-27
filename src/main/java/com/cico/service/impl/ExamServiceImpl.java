@@ -1822,6 +1822,7 @@ public class ExamServiceImpl implements IExamService {
 		}
 		return questionResponse;
 	}
+	// ==================================== NEW METHOD ===========================\
 
 	@Override
 	public Integer getRemainingQuestionCountForSubject(Integer subjectId) {
@@ -1844,18 +1845,10 @@ public class ExamServiceImpl implements IExamService {
 
 		return subjectsTotalQuestionsCount - totalQuestionsCountByCourseId;
 	}
-// ==================================== NEW METHOD ===========================
 
 	// add check for questions available or not for this exam
 	@Override
 	public ResponseEntity<?> addCourseExamNew(AddExamRequest request) {
-		Integer remainingQuestionCountForCourse = getRemainingQuestionCountForCourse(request.getCourseId());
-
-		if (!(remainingQuestionCountForCourse >= request.getTotalQuestionForTest())) {
-			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
-					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForCourse);
-
-		}
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -1863,6 +1856,13 @@ public class ExamServiceImpl implements IExamService {
 		Course course = courseRepository.findById(request.getCourseId())
 				.orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
+		int subjectsTotalQuestionsCount = course.getSubjects().stream().mapToInt(s -> s.getQuestions().size()).sum();
+
+		if (!(subjectsTotalQuestionsCount >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + subjectsTotalQuestionsCount);
+
+		}
 		// 2. Check for duplicate exam name in the same course
 		boolean examExists = courseExamRepo.existsByExamNameAndCourseId(request.getExamName().trim(),
 				request.getCourseId());
@@ -1938,18 +1938,18 @@ public class ExamServiceImpl implements IExamService {
 
 	@Override
 	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request) {
-		Integer remainingQuestionCountForSubject = getRemainingQuestionCountForSubject(request.getSubjectId());
-
-		if (!(remainingQuestionCountForSubject >= request.getTotalQuestionForTest())) {
-			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
-					+ request.getTotalQuestionForTest() + ", Available: " + remainingQuestionCountForSubject);
-
-		}
 
 		Map<String, Object> response = new HashMap<>();
 
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
 		SubjectExam exam = new SubjectExam();
+
+		int subjectTotalQuestionsCount = subject.getQuestions().size();
+		if (!(subjectTotalQuestionsCount >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + subjectTotalQuestionsCount);
+
+		}
 
 //		Optional<SubjectExam> isExamExist = subject.getExams().stream()
 //				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
