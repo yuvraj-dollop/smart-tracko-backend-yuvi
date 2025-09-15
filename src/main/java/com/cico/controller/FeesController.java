@@ -208,5 +208,48 @@ public class FeesController {
 			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
 		return feesPayService.feesPendingList(page, size);
 	}
+	
+	@GetMapping("/v2/feesListApi")
+	public PageResponse<FeesResponse> feesListApiNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+		return feesService.feesList(page, size);
+
+	}
+	
+	@GetMapping("/v2/searchByName")
+	public ResponseEntity<List<FeesResponse>> searchByNameNew(@RequestParam(name = AppConstants.FULL_NAME) String fullName,
+			@RequestParam(name = AppConstants.STATUS) String status) {
+		List<FeesResponse> searchByName = feesService.searchByName(fullName, status);
+		return new ResponseEntity<List<FeesResponse>>(searchByName, HttpStatus.OK);
+	}
+	
+	@GetMapping("/v2/feesPayList")
+	public PageResponse<FeesPayResponse> feesPayListNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+		return feesPayService.feesPayList(page, size);
+	}
+	
+	@GetMapping("/v2/feesCompletedList")
+	public PageResponse<FeesResponse> feesCompleteListNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+
+		return feesService.feesCompleteList(page, size);
+	}
+	
+	@GetMapping("/v2/findByFeesId")
+	public ResponseEntity<FeesResponse> findByFeesIdNew(@RequestParam(name = AppConstants.FEES_ID) Integer feesId) {
+		FeesResponse findByFeesId = feesService.findByFeesId(feesId);
+		return new ResponseEntity<FeesResponse>(findByFeesId, HttpStatus.OK);
+	}
+	
+	@GetMapping("/v2/findByPayId")
+	public ResponseEntity<FeesPayResponse> findByPayIdNew(@RequestParam(name = AppConstants.PAY_ID) Integer payId) {
+		FeesPayResponse findByPayId = feesPayService.findByPayId(payId);
+		return new ResponseEntity<FeesPayResponse>(findByPayId, HttpStatus.OK);
+	}
+
 
 }

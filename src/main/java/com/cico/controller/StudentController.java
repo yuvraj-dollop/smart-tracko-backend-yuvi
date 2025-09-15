@@ -375,5 +375,26 @@ public class StudentController {
 			@RequestParam("studentId") Integer studentId) {
 		return studentService.getStudentPresentsAbsentsAndLeavesYearWiseNew(year, studentId);
 	}
+	
+	@GetMapping("/v2/allFeesRemainingStudent")
+	public ResponseEntity<?> allFeesRemainingStudentNew() {
+		return studentService.allFeesRemainingStudent();
+	}
+	
+	@GetMapping("/v2/searchStudentByName")
+	public ResponseEntity<PageResponse<StudentReponseForWeb>> searchStudentByNameNew(
+			@RequestParam(name = "fullName") String fullName, @RequestParam("pageSize") Integer pageSize,
+			@RequestParam("pageNumber") Integer pageNumber) {
+		PageResponse<StudentReponseForWeb> res = studentService.searchStudentByName(fullName, pageNumber, pageSize);
+		return new ResponseEntity<PageResponse<StudentReponseForWeb>>(res, HttpStatus.OK);
+
+	}
+	
+	@PostMapping("/v2/registerStudent")
+	public ResponseEntity<?> registerStudentNew(@RequestBody StudentRequest student) {
+		return studentService.registerStudent(student);
+
+	}
+
 
 }

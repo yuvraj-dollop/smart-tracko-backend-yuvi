@@ -7,13 +7,14 @@ cloudinary:
 secret: abhi9462
 server:
   port: 8080
-spring:
+spring: 
   cache:
     type: redis
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: ${MYSQL_PASSWORD:Java@2023}
-    url: jdbc:mysql://${MYSQL_HOST:108.181.203.244}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
+    password: ${MYSQL_PASSWORD:raj7828}
+#    url: jdbc:mysql://${MYSQL_HOST:108.181.203.244}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/fees_management-1?createDatabaseIfNotExist=true
     username: ${MYSQL_USERNAME:root}
     hikari:
       maximum-pool-size: 20              # Increase if you're under heavy load
@@ -35,7 +36,7 @@ spring:
 
   credentials:
   username: root
-  password: Java@2023
+  password: raj7828
   
   kafka:
     consumer:
@@ -47,16 +48,16 @@ spring:
       key-serializer: 'org.apache.kafka.common.serialization.StringSerializer '
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
   mail:
-    host: smtp.google.com
-    password: abhi@123
-    port: 25
+    host: smtp.gmail.com
+    password: xxoy tfgz xomq pxdv
+    port: 587
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-    username: abhi
+    username: uraj47986@gmail.com
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
@@ -73,6 +74,9 @@ spring:
       com.zaxxer.hikari.HikariConfig: DEBUG
       com.zaxxer.hikari.HikariDataSource: DEBUG
 staticPath: \src\main\resources\static\
+piston:
+  api:
+    url: https://emkc.org/api/v2/piston
 
 #  data server ip :108.181.203.244
 
