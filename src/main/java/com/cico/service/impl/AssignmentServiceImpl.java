@@ -3,13 +3,13 @@ package com.cico.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cico.exception.BadRequestException;
 import com.cico.exception.InvalidFileTypeException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
@@ -28,9 +27,7 @@ import com.cico.kafkaServices.KafkaProducerService;
 import com.cico.model.Assignment;
 import com.cico.model.AssignmentSubmission;
 import com.cico.model.AssignmentTaskQuestion;
-import com.cico.model.Course;
 import com.cico.model.Student;
-import com.cico.model.Subject;
 import com.cico.payload.AssignmentAndTaskSubmission;
 import com.cico.payload.AssignmentFilter;
 import com.cico.payload.AssignmentFilterResponse;
@@ -47,7 +44,6 @@ import com.cico.payload.NotificationInfo;
 import com.cico.payload.SubjectResponse;
 import com.cico.payload.TaskQuestionResponse;
 import com.cico.payload.TaskStatusSummary;
-import com.cico.payload.TechnologyStackResponse;
 import com.cico.payload.UpdateAssignmentQuestionRequest;
 import com.cico.repository.AssignmentRepository;
 import com.cico.repository.AssignmentSubmissionRepository;
@@ -1269,34 +1265,33 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		if (submittedAssignment != null) {
 			submittedAssignment
 					.setOriginalFileName(extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
-		System.err.println("extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()) => "
-				+ extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
-		response.put("submittedAssignment", submittedAssignment);
+			System.err.println("extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()) => "
+					+ extractOriginalFileNameFromUrl(submittedAssignment.getSubmitFile()));
+			response.put("submittedAssignment", submittedAssignment);
 		}
 
 		return ResponseEntity.ok(response);
 	}
 
 	private String extractOriginalFileNameFromUrl(String url) {
-	    if (url == null || url.isBlank() || !url.contains("/")) {
-	        return null;
-	    }
+		if (url == null || url.isBlank() || !url.contains("/")) {
+			return null;
+		}
 
-	    // Get the last segment (file name) after last '/'
-	    String fileName = url.substring(url.lastIndexOf("/") + 1); // e.g., 29a9af80-xyz_Submit My File.zip
+		// Get the last segment (file name) after last '/'
+		String fileName = url.substring(url.lastIndexOf("/") + 1); // e.g., 29a9af80-xyz_Submit My File.zip
 
-	    int underscoreIndex = fileName.indexOf("_");
-	    int dotIndex = fileName.lastIndexOf(".");
+		int underscoreIndex = fileName.indexOf("_");
+		int dotIndex = fileName.lastIndexOf(".");
 
-	    // Ensure underscore is before dot (correct format) and both exist
-	    if (underscoreIndex != -1 && dotIndex != -1 && underscoreIndex < dotIndex) {
-	        String originalFileName = fileName.substring(underscoreIndex + 1, dotIndex); // e.g., Submit My File
-	        return originalFileName.trim(); // Removes any extra spaces if present
-	    }
+		// Ensure underscore is before dot (correct format) and both exist
+		if (underscoreIndex != -1 && dotIndex != -1 && underscoreIndex < dotIndex) {
+			String originalFileName = fileName.substring(underscoreIndex + 1, dotIndex); // e.g., Submit My File
+			return originalFileName.trim(); // Removes any extra spaces if present
+		}
 
-	    // Fallback: return default name
-	    return "SubmittedFile";
+		// Fallback: return default name
+		return "SubmittedFile";
 	}
-
 
 }

@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.TechnologyStack;
 import com.cico.payload.ApiResponse;
+import com.cico.payload.TechnologyStackResponse;
 import com.cico.service.ITechnologyStackService;
 
 @RestController
@@ -65,4 +66,11 @@ public class TechnologyStackController {
 		return new ResponseEntity<ApiResponse>(new ApiResponse(Boolean.TRUE, "Deleted Successfully", HttpStatus.OK),
 				HttpStatus.OK);
 	}
+
+	@GetMapping("/v2/getAllTechnologyStackApi")
+	public ResponseEntity<List<TechnologyStackResponse>> getAllTechnologyStackNew() {
+		List<TechnologyStackResponse> technologyStack = TechnologyStackService.getAllTechnologyStackNew();
+		return new ResponseEntity<>(technologyStack, HttpStatus.OK);
+	}
+
 }

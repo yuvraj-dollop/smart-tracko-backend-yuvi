@@ -13,6 +13,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,16 +33,16 @@ public class Task {
 
 	private String taskName;
 
-
-	@OneToMany(cascade = CascadeType.ALL,mappedBy = "task")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "task")
+	@JsonManagedReference
 	private List<TaskQuestion> taskQuestion;
 
-	@ManyToOne(fetch = FetchType.LAZY) 
-	@JoinColumn(name = "course_id") 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "course_id")
 	private Course course;
 
-	@ManyToOne(fetch = FetchType.LAZY) 
-	@JoinColumn(name = "subject_id") 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "subject_id")
 	private Subject subject;
 
 	private Boolean isDeleted = Boolean.FALSE;

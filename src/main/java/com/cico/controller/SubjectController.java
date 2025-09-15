@@ -128,4 +128,10 @@ public class SubjectController {
 
 	}
 
+	@GetMapping("v2/getAllSubjects")
+	public ResponseEntity<List<SubjectResponse>> getAllSubjectsNew() {
+		List<SubjectResponse> subjects = subjectService.getAllSubjects();
+		return ResponseEntity.ok(subjects);
+	}
+
 }

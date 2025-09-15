@@ -2237,6 +2237,7 @@ public class StudentServiceImpl implements IStudentService {
 
 				List<Attendance> obj1 = attendenceRepository.countTotalEarlyCheckOutForCurrent1New(id, month, year);
 				for (Attendance attendance : obj1) {
+					System.err.println("Attendancen    " + attendance);
 					LocalDate attendanceDate = attendance.getCheckInDate();
 					calenderData
 							.add(Map.of("date", attendanceDate.getDayOfMonth(), "checkIn", attendance.getCheckInTime(),
@@ -2525,4 +2526,33 @@ public class StudentServiceImpl implements IStudentService {
 
 		return joinDate.datesUntil(yesterday.plusDays(1)).filter(d -> d.getDayOfWeek() != DayOfWeek.SUNDAY).count();
 	}
+
+	@Override
+	public ResponseEntity<?> getStudentPresentsAbsentsAndLeavesYearWiseNew(Integer year, Integer studentId) {
+		List<Map<String, Object>> responseList = new ArrayList<>();
+
+		int startMonth = studRepo.findById(studentId).get().getJoinDate().getMonthValue();
+		int currentYear = LocalDate.now().getYear();
+		int currentMonth = LocalDate.now().getMonthValue();
+
+		int endMonth = (studRepo.findById(studentId).get().getJoinDate().getYear() == currentYear) ? currentMonth : 12;
+
+		for (int month = startMonth; month <= endMonth; month++) {
+			Map<String, Object> calenderData = this.getCalenderData(studentId, month, year);
+			StudentCalenderResponse response1 = (StudentCalenderResponse) calenderData.get("StudentCalenderData");
+
+			Map<String, Object> monthData = new HashMap<>();
+			monthData.put("month", month);
+			monthData.put("absent", response1.getAbsent().size());
+			monthData.put("present", response1.getPresent().size());
+			monthData.put("mispunch", response1.getMispunch().size());
+			monthData.put("earlycheckout", response1.getEarlyCheckOut().size());
+			monthData.put("leaves", response1.getLeaves().size());
+
+			responseList.add(monthData);
+		}
+
+		return new ResponseEntity<>(responseList, HttpStatus.OK);
+	}
+
 }

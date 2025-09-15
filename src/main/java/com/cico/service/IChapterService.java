@@ -10,16 +10,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.Chapter;
 import com.cico.model.ChapterContent;
-import com.cico.model.Subject;
 import com.cico.payload.AddChapterContentRequest;
 import com.cico.payload.AddChapterRequest;
+import com.cico.payload.ChapterContentResponse;
 import com.cico.payload.UpdateChapterRequest;
 
 public interface IChapterService {
 
-	ResponseEntity<?> addChapter(Integer subjectId,String chapterName,MultipartFile image) ;
+	ResponseEntity<?> addChapter(Integer subjectId, String chapterName, MultipartFile image);
 
-	ResponseEntity<?> updateChapter(Integer chapterId,String chapterName, Integer subjectId);
+	ResponseEntity<?> updateChapter(Integer chapterId, String chapterName, Integer subjectId);
 
 	Map<String, Object> getChapterById(Integer chapterId);
 
@@ -33,7 +33,7 @@ public interface IChapterService {
 
 	ResponseEntity<?> addContentToChapter(Integer chapterId, String title, String subTitle, String content);
 
-	ChapterContent updateChapterContent(String title, String subTitle, String content,Integer contentId);
+	ChapterContent updateChapterContent(String title, String subTitle, String content, Integer contentId);
 
 	ChapterContent getChapterContent(Integer chapterContentId);
 
@@ -42,26 +42,25 @@ public interface IChapterService {
 	ResponseEntity<?> getChapterContentWithChapterId(Integer chapterId);
 
 	ResponseEntity<?> getChaperExamQuestions(Integer chapterId);
-	
+
 	public Chapter getChapterByid(Integer chapterId);
 
 	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer pageNumber, Integer pageSize);
-	
+
 	ResponseEntity<?> getChapterExamQuestionsWithPagination(Integer chapterId, Integer pageNumber, Integer pageSize);
 
+	ResponseEntity<?> getChapterDetails(Integer chapterId);
 
-	ResponseEntity<?>  getChapterDetails(Integer chapterId);
-	
-	
-	
-	//.................. NEW METHOD'S .........................
+	// .................. NEW METHOD'S .........................
 	ResponseEntity<?> addChapter(AddChapterRequest chapterRequest);
 
 	ResponseEntity<?> updateChapter(UpdateChapterRequest chapterRequest);
 
 	ResponseEntity<?> addContentToChapter(@Valid AddChapterContentRequest chapterContentRequest);
 
-	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer studentId,Integer pageNumber, Integer pageSize);
-	
+	ResponseEntity<?> getChapterContentListByChapterId(Integer chapterId, Integer studentId, Integer pageNumber,
+			Integer pageSize);
+
+	ChapterContentResponse updateChapterContentNew(String title, String subTitle, String content, Integer contentId);
 
 }

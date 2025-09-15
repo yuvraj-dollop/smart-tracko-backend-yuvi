@@ -38,7 +38,7 @@ public class CompilerController {
 		return ResponseEntity.ok(compilerService.execute(request));
 	}
 
-	@GetMapping("/v2/runtimes")
+	@GetMapping("/v2/getLanguages")
 	public ResponseEntity<List<Map<String, Object>>> getRuntimes() {
 		return ResponseEntity.ok(compilerService.getRuntimes());
 	}

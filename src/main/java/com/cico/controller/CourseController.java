@@ -121,4 +121,15 @@ public class CourseController {
 		return courseService.getAllCourses(page, size);
 	}
 
+	@PostMapping("/v2/addCourseApi")
+	public ResponseEntity<?> createCourseNew(@RequestBody @Valid CourseRequest courseRequest) {
+		return courseService.createCourseNew(courseRequest);
+	}
+
+	@GetMapping("/v2/findCourseByIdApi")
+	public ResponseEntity<CourseResponse> getCourseByIdNew(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
+		CourseResponse courseResponse = courseService.findCourseById(courseId);
+		return ResponseEntity.ok(courseResponse);
+	}
 }

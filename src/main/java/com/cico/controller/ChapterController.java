@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +22,8 @@ import com.cico.model.Chapter;
 import com.cico.model.ChapterContent;
 import com.cico.payload.AddChapterContentRequest;
 import com.cico.payload.AddChapterRequest;
+import com.cico.payload.ChapterContentResponse;
+import com.cico.payload.UpdateChapterContentRequest;
 import com.cico.payload.UpdateChapterRequest;
 import com.cico.service.IChapterService;
 import com.cico.util.AppConstants;
@@ -160,18 +161,37 @@ public class ChapterController {
 		return chapterService.addContentToChapter(chapterContentRequest);
 	}
 
-	@GetMapping("/v2/getChapterDetails/{chapterId}")
-	public ResponseEntity<?> getChapterDetailsNew(@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+	@GetMapping("/v2/getChapterDetails")
+	public ResponseEntity<?> getChapterDetailsNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return chapterService.getChapterDetails(chapterId);
 	}
 
-	@GetMapping("/v2/getChapterContentListByChapterId/{chapterId}")
+	@GetMapping("/v2/getChapterContentListByChapterId")
 	public ResponseEntity<?> getChapterContentListByChapterIdNew(
-			@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId,
+			@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId,
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
 			@RequestParam(name = AppConstants.PAGE_NUMBER) Integer pageNumber,
 			@RequestParam(name = AppConstants.PAGE_SIZE) Integer pageSize) {
 		return chapterService.getChapterContentListByChapterId(chapterId, studentId, pageNumber, pageSize);
 	}
 
+	@PutMapping("/v2/updateChapterContent")
+	public ResponseEntity<ChapterContentResponse> updateChapterContentNew(
+			@Valid @RequestBody UpdateChapterContentRequest contentRequest) {
+
+		ChapterContentResponse chapterContent = chapterService.updateChapterContentNew(contentRequest.getTitle(),
+				contentRequest.getSubTitle(), contentRequest.getContent(), contentRequest.getContentId());
+		return new ResponseEntity<>(chapterContent, HttpStatus.OK);
+	}
+
+	@PutMapping("/v2/deleteChapterContent")
+	public ResponseEntity<?> deleteChapterContentNew(@RequestParam(name = AppConstants.CONTENT_ID) Integer contentId) {
+		chapterService.deleteChapterContent(contentId);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping("/v2/deleteChapter")
+	public ResponseEntity<?> deleteChapterNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+		return chapterService.deleteChapter(chapterId);
+	}
 }

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class NewsEventsResponse {
+	private int id;
 	private String shortDescription;
 	private String briefDescription;
 	private String image;

@@ -3,25 +3,31 @@ package com.cico.controller;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.Question;
+import com.cico.payload.SubjectQuestionRequest;
 import com.cico.service.IQuestionService;
 import com.cico.util.AppConstants;
 
 @RestController
 @RequestMapping("/question")
 @CrossOrigin("*")
+@Validated
 public class QuestionController {
 
 	@Autowired
@@ -151,4 +157,27 @@ public class QuestionController {
 			@RequestParam(AppConstants.STUDENT_ID) Integer studentId) {
 		return questionService.getAllSubjectQuestionForTestNew(examId, studentId);
 	}
+
+	@GetMapping("/v2/getAllSubjectQuestionBySubjectIdWithPagination")
+	public ResponseEntity<?> getAllSubjectQuestionBySubjectIdWithPaginationNew(
+			@RequestParam("subjectId") Integer subjectId, @RequestParam(value = "pageSize") Integer pageSise,
+			@RequestParam(value = "pageNumber") Integer pageNumber) {
+		return questionService.getAllSubjectQuestionBySubjectIdWithPaginationNew(subjectId, pageSise, pageNumber);
+	}
+
+	@PostMapping(value = "/v2/addQuestionToSubject")
+
+	public ResponseEntity<?> addQuestionToSubjectExamNew(@Valid SubjectQuestionRequest request,
+			@RequestPart("image") MultipartFile image) {
+
+		return questionService.addQuestionToSubjectExam(request, image);
+
+	}
+
+	@PostMapping("/v2/upload-csv-subject-question")
+	public ResponseEntity<?> uploadSubjectBulkQuestionNew(@RequestParam("file") MultipartFile file,
+			@RequestParam("subjectId") Integer subjectId) {
+		return questionService.uploadSubjectBulkQuestion(file, subjectId);
+	}
+
 }

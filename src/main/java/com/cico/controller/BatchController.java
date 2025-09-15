@@ -86,8 +86,9 @@ public class BatchController {
 	public ResponseEntity<?> firstUpcomingBatchOfCurrentCourse(@PathVariable String courseName) {
 		return new ResponseEntity<>(batchService.getFirstUpcomingBatchOfCurrentCourse(courseName), HttpStatus.OK);
 	}
-	
-	//================================= New Methods =====================================================
+
+	// ================================= New Methods
+	// =====================================================
 
 	@GetMapping("/v2/getUpcomingBatches")
 	public ResponseEntity<List<BatchResponse>> getUpcomingBatchesNew() {
@@ -96,4 +97,32 @@ public class BatchController {
 
 	}
 
+	@PostMapping("/v2/createBatch")
+	public ResponseEntity<?> createBatchNew(@RequestBody @Valid BatchRequest request) {
+		System.out.println(request);
+		ApiResponse createBatch = batchService.createBatch(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(createBatch);
+
+	}
+
+	@PutMapping("/v2/updateBatch")
+	public ResponseEntity<?> updateBatchNew(@RequestBody Batch batch) {
+
+		ApiResponse updateBatch = batchService.updateBatch(batch);
+		return ResponseEntity.ok(updateBatch);
+
+	}
+
+	@GetMapping("/v2/getBatchById")
+	public ResponseEntity<?> getBatchByIdNew(@RequestParam(name = AppConstants.BATCH_ID) Integer batchId) {
+		BatchResponse batchResponse = batchService.getBatchById(batchId);
+		return ResponseEntity.ok(batchResponse);
+
+	}
+
+	@PutMapping("/v2/deleteBatch")
+	public ResponseEntity<ApiResponse> deleteBatchNew(@PathVariable(name = AppConstants.BATCH_ID) Integer batchId) {
+		ApiResponse response = batchService.deleteBatch(batchId);
+		return ResponseEntity.ok(response);
+	}
 }

@@ -51,4 +51,5 @@ public class SubjectExamResult {
 	@ElementCollection
 	@CollectionTable
 	private List<Integer> randomQuestoinList = new ArrayList<>();
+	private double latestPercentage;
 }

@@ -337,7 +337,7 @@ public class ExamServiceImpl implements IExamService {
 	@Override
 	public ResponseEntity<?> addSubjectExamResult(ExamRequest request) {
 		Map<String, String> response = new HashMap<>();
-
+		System.err.println(request.getStudentId());
 		Student student = studentRepository.findById(request.getStudentId()).get();
 		Subject subject = subjectRepository.findById(request.getSubjectId()).get();
 		SubjectExam subjectExam = subjectExamRepo.findById(request.getExamId())
@@ -1496,6 +1496,7 @@ public class ExamServiceImpl implements IExamService {
 						conflictingExam.getExamName(), remaining.toHours(), remaining.toMinutesPart());
 
 				response.put(AppConstants.MESSAGE, message);
+
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 		}
@@ -2127,10 +2128,25 @@ public class ExamServiceImpl implements IExamService {
 			}
 
 			subjectPerformanceList.add(Map.of("subjectId", subject.getSubjectId(), "subjectName",
-					subject.getSubjectName(), "percentage", percentage));
+					subject.getSubjectName(), "percentage", percentage, "grade", calculateGrade(percentage)));
 		}
 
 		return ResponseEntity.ok(subjectPerformanceList);
+	}
+
+	private String calculateGrade(double percentage) {
+		if (percentage >= 90)
+			return "A+";
+		else if (percentage >= 80)
+			return "A";
+		else if (percentage >= 70)
+			return "B";
+		else if (percentage >= 60)
+			return "C";
+		else if (percentage >= 50)
+			return "D";
+		else
+			return "F";
 	}
 
 	@Override

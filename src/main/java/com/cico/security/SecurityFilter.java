@@ -36,7 +36,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		String token = request.getHeader(AppConstants.AUTHORIZATION);
-		
+
 		String uri = request.getRequestURI();
 		System.out.println("Request URL :: " + request.getRequestURL());
 		System.out.println("TOKEN :: " + token);
@@ -94,7 +94,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 //			}
 		}
 		filterChain.doFilter(request, response);
-		
+
 	}
 
 }

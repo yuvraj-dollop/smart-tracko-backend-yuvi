@@ -147,6 +147,50 @@ public interface TaskRepo extends JpaRepository<Task, Long> {
 			    )
 			    ORDER BY t.createdDate DESC
 			""")
+//	@Query(value = """
+//			    SELECT
+//			        t.task_id AS taskId,
+//			        t.task_name AS taskName,
+//			        CASE
+//			            WHEN COUNT(DISTINCT tq.question_id) = COUNT(DISTINCT ts.question_id)
+//			            THEN true ELSE false
+//			        END AS completed,
+//			        t.created_date AS createdDate,
+//			        JSON_ARRAYAGG(
+//			            JSON_OBJECT(
+//			                'questionId', tq.question_id,
+//			                'questionText', tq.question
+//			            )
+//			        ) AS questions
+//			    FROM students st
+//			    JOIN courses c ON st.course_id = c.course_id
+//			    JOIN subject s ON s.course_id = c.course_id
+//			    JOIN task t ON t.subject_id = s.subject_id
+//			    JOIN task_question tq ON tq.task_id = t.task_id
+//			    LEFT JOIN task_submission ts ON ts.question_id = tq.question_id
+//			        AND ts.student_student_id = :studentId
+//			    WHERE st.student_id = :studentId
+//			      AND tq.is_deleted = false
+//			    GROUP BY t.task_id, t.task_name, t.is_deleted, t.is_active, t.created_date
+//			    HAVING (
+//			        (t.is_active = true)
+//			        OR ((t.is_deleted = true OR t.is_active = false) AND COUNT(ts) > 0)
+//			    )
+//			    AND (
+//			        :status IS NULL OR
+//			        (:status = 'Completed' AND COUNT(DISTINCT tq.question_id) = COUNT(DISTINCT ts.question_id)) OR
+//			        (:status = 'Pending' AND COUNT(DISTINCT tq.question_id) > COUNT(DISTINCT ts.question_id))
+//			    )
+//			    ORDER BY t.created_date DESC
+//			""", countQuery = """
+//			    SELECT COUNT(*)
+//			    FROM students st
+//			    JOIN courses c ON st.course_id = c.course_id
+//			    JOIN subject s ON s.course_id = c.course_id
+//			    JOIN task t ON t.subject_id = s.subject_id
+//			    JOIN task_question tq ON tq.task_id = t.task_id
+//			    WHERE st.student_id = :studentId AND tq.is_deleted = false
+//			""", nativeQuery = true)
 	Page<TaskResponse> getAllTaskOfStudent(@Param("studentId") Integer studentId, @Param("status") String status,
 			Pageable pageRequest);
 

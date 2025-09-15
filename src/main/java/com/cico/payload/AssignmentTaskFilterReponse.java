@@ -9,11 +9,15 @@ import com.cico.model.AssignmentTaskQuestion;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @JsonInclude(value = Include.NON_NULL)
 public class AssignmentTaskFilterReponse {
 
@@ -33,10 +37,10 @@ public class AssignmentTaskFilterReponse {
 		this.question = question;
 		this.videoUrl = videoUrl;
 		this.questionImages = (List<String>) questionImages;
-		
+
 	}
 
-	public AssignmentTaskFilterReponse(AssignmentTaskQuestion question, Integer studentId,Long taskNumber) {
+	public AssignmentTaskFilterReponse(AssignmentTaskQuestion question, Integer studentId, Long taskNumber) {
 		super();
 		this.questionId = question.getQuestionId();
 		this.title = question.getTitle();

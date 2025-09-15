@@ -76,27 +76,28 @@ public class GlobalExceptionHandler {
 				HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(InvalidException.class)
+	public ResponseEntity<MyErrorResponse> showMyCustomError(InvalidException ue) {
+		return new ResponseEntity<MyErrorResponse>(
+				new MyErrorResponse(new Date().toString(), AppConstants.INVALID_DATA, ue.getMessage()),
+				HttpStatus.BAD_REQUEST);
+	}
+
 	@ExceptionHandler(FileSizeExceededException.class)
 	public ResponseEntity<MyErrorResponse> showMyCustomError(FileSizeExceededException ue) {
 		return new ResponseEntity<MyErrorResponse>(new MyErrorResponse(new Date().toString(),
 				"file size too large! File size exceeds allowed limit.", ue.getMessage()),
 				HttpStatus.PAYLOAD_TOO_LARGE);
 	}
-	
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<MyErrorResponse> showMyCustomError(MethodArgumentNotValidException ex) {
-	    String errorMessage = ex.getBindingResult()
-	            .getFieldErrors()
-	            .stream()
-	            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-	            .findFirst()
-	            .orElse("Validation failed");
+		String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+				.map(error -> error.getField() + ": " + error.getDefaultMessage()).findFirst()
+				.orElse("Validation failed");
 
-	    return new ResponseEntity<>(
-	            new MyErrorResponse(new Date().toString(), "VALIDATION_ERROR", errorMessage),
-	            HttpStatus.BAD_REQUEST
-	    );
+		return new ResponseEntity<>(new MyErrorResponse(new Date().toString(), "VALIDATION_ERROR", errorMessage),
+				HttpStatus.BAD_REQUEST);
 	}
-
 
 }

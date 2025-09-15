@@ -275,4 +275,44 @@ public class TaskController {
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return taskService.isTaskQuestionSubmittedByStudentId(questionId, studentId);
 	}
+
+	@GetMapping("/v2/getOverAllTaskStatusforBarChart")
+	public ResponseEntity<?> getOverAllTaskStatusforBarChartNew() {
+		return taskService.getOverAllTaskStatusforBarChart();
+	}
+
+	@PostMapping("/v2/getAllTasks")
+	public ResponseEntity<?> getAllTasksNew(
+			@RequestParam(name = AppConstants.COURSE_ID, required = false) Integer courseId,
+			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam("pageSize") Integer pageSise, @RequestParam("pageNumber") Integer pageNumber) {
+		return taskService.getAllTasks(pageSise, pageNumber, courseId, subjectId);
+
+	}
+
+	@GetMapping("/v2/getAllSubmitedTask")
+	public ResponseEntity<?> getAllSubmitedTasksNew(
+			@RequestParam(value = AppConstants.COURSE_ID, required = false) Integer courseId,
+			@RequestParam(value = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
+			@RequestParam(value = AppConstants.STATUS, required = false) SubmissionStatus status,
+			@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNumber") Integer pageNumber) {
+
+		return taskService.getAllSubmitedTasks(courseId, subjectId, status, pageNumber, pageSize);
+	}
+
+	@PostMapping("/v2/createTask")
+	private ResponseEntity<?> createTaskNew(@RequestBody @Valid TaskRequest taskRequest) {
+		return taskService.createTask(taskRequest);
+	}
+
+	@GetMapping("/v2/getTaskQuestion")
+	public ResponseEntity<?> getTaskQuestionNew(@RequestParam(name = AppConstants.QUESTION_ID) long questionId,
+			@RequestParam(name = AppConstants.TASK_ID) Long taskId) {
+		return taskService.getTaskQuestion(questionId, taskId);
+	}
+
+	@DeleteMapping("/v2/deleteTaskQuestion")
+	public ResponseEntity<?> deleteTaskQuestionsNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
+		return taskService.deleteTaskQuestion(questionId);
+	}
 }

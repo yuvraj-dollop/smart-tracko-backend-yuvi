@@ -189,4 +189,24 @@ public class FeesController {
 		return feesPayService.getAllTransectionByStudentIdNew(studentId);
 	}
 
+	@GetMapping("/v2/getFeesCollectionMonthAndYearWise")
+	public ResponseEntity<?> getFeesCollectionMonthAndYearWiseNew(
+			@RequestParam(name = AppConstants.YEAR) Integer year) {
+		ResponseEntity<?> feesCollectionMonthAndYearWise = feesService.getFeesCollectionMonthAndYearWise(year);
+		return new ResponseEntity<>(feesCollectionMonthAndYearWise, HttpStatus.OK);
+	}
+
+	@GetMapping("/v2/getTotalFeesCollection")
+	public ResponseEntity<?> getTotalfeesCollectionNew() {
+		ResponseEntity<?> feesCollectionMonthAndYearWise = feesService.getTotalfeesCollection();
+		return new ResponseEntity<>(feesCollectionMonthAndYearWise, HttpStatus.OK);
+	}
+
+	@GetMapping("/v2/feesPendingList")
+	public PageResponse<FeesResponse> feesPendingListNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+		return feesPayService.feesPendingList(page, size);
+	}
+
 }

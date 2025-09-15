@@ -157,7 +157,7 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 
 	@Override
 	public NewsEventsResponse newsEventsToNewsEventsResponse(NewsEvents newsEvent) {
-		return NewsEventsResponse.builder().shortDescription(newsEvent.getShortDescription())
+		return NewsEventsResponse.builder().id(newsEvent.getId()).shortDescription(newsEvent.getShortDescription())
 				.briefDescription(newsEvent.getBriefDescription()).image(newsEvent.getImage())
 				.title(newsEvent.getTitle()).createdDate(newsEvent.getCreatedDate()).isActive(newsEvent.getIsActive())
 				.isDeleted(newsEvent.getIsDeleted()).build();

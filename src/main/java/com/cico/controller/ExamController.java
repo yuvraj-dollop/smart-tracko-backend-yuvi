@@ -199,6 +199,7 @@ public class ExamController {
 		System.err.println(" ------------- >chapterExamResult => " + chapterExamResult);
 		return this.examService.addChapterExamResult(chapterExamResult);
 	}
+
 //	=========== TEST RELATED ===============
 	// ................................................... New
 	// ......................................................
@@ -223,6 +224,7 @@ public class ExamController {
 	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
 		return examService.getAllTestperformanceDataOfStudent(studentId);
 	}
+
 	// =========== TEST RELATED ===============
 	// for admin use
 	@GetMapping("/v2/getRemainingQuestionCountForSubject")
@@ -314,4 +316,35 @@ public class ExamController {
 		return examService.searchCourseSubjectTest(examType, request, search);
 	}
 
+	@GetMapping("/v2/getAllSubjectNormalAndScheduleExam")
+	public ResponseEntity<?> getAllSubjectNormalAndScheduleExamNew(
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
+		return examService.getAllSubjectNormalAndScheduleExam(subjectId);
+	}
+
+	@PostMapping("/v2/addSubjectExam")
+	public ResponseEntity<?> addSubjectExamNew(@Valid @RequestBody AddExamRequest request) {
+		return examService.addSubjectExamNew(request);
+	}
+
+	@PutMapping("/v2/changeSubjectExamStatus")
+	public ResponseEntity<?> changeSubjectExamStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.changeSubjectExamStatus(examId);
+	}
+
+	@GetMapping("/v2/getALLChapterExamResultesByChapterIdApi")
+	public ResponseEntity<?> getChapterExamResultesNew(
+			@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+		return examService.getChapterExamResultByChaterId(chapterId);
+	}
+
+	@PutMapping("/v2/changeChapterExamStatus")
+	public ResponseEntity<?> changeChapterExamStatusNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.changeChapterExamStatus(examId);
+	}
+
+	@GetMapping("/v2/getALLSubjectExamResultesBySubjectId")
+	public ResponseEntity<?> getSubjectExamResultesNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.getSubjectExamResultesBySubjectId(examId);
+	}
 }

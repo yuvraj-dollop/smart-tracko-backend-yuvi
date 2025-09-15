@@ -351,4 +351,29 @@ public class StudentController {
 		return studentService.getStudentByIdForWeb(studentId);
 
 	}
+
+	@GetMapping("/v2/getAllStudentData")
+	public PageResponse<StudentReponseForWeb> getAllStudentDataNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+
+		return studentService.getAllStudentData(page, size);
+	}
+
+	@GetMapping("/v2/todayAttendanceCountsForAdmin")
+	public ResponseEntity<?> todayAttendanceCountsForAdminDashNew() {
+		return studentService.getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeaves();
+	}
+
+	@GetMapping("/v2/getMonthwiseAdmissionCountForYear")
+	public ResponseEntity<?> getMonthwiseAdmissionCountForYearNew(@RequestParam("year") Integer year) {
+		return studentService.getMonthwiseAdmissionCountForYear(year);
+	}
+
+	@GetMapping("/v2/getStudentPresentsAbsentsAndLeavesYearWise")
+	public ResponseEntity<?> getStudentPresentsAbsentsAndLeavesYearWiseNew(@RequestParam("year") Integer year,
+			@RequestParam("studentId") Integer studentId) {
+		return studentService.getStudentPresentsAbsentsAndLeavesYearWiseNew(year, studentId);
+	}
+
 }

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cico.model.Chapter;
 import com.cico.model.ChapterContent;
 
 @Repository
@@ -27,4 +28,6 @@ public interface ChapterContentRepository extends JpaRepository<ChapterContent, 
 	@Query("SELECT c FROM Chapter ch JOIN ch.chapterContent c WHERE c.isDeleted = 0 AND ch.chapterId = :chapterId")
 	Page<ChapterContent> findAllByChapterId(Integer chapterId, PageRequest of);
 
+	@Query("SELECT ch FROM Chapter ch JOIN ch.chapterContent cc WHERE cc.id = :contentId")
+	Chapter findByContentId(@Param("contentId") Integer contentId);
 }

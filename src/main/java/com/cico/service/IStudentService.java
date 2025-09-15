@@ -132,4 +132,6 @@ public interface IStudentService {
 			Integer limit, String type);
 
 	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year);
+
+	ResponseEntity<?> getStudentPresentsAbsentsAndLeavesYearWiseNew(Integer year, Integer studentId);
 }

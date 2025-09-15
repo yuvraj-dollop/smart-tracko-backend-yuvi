@@ -3,10 +3,13 @@ package com.cico.service;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.Question;
+import com.cico.payload.SubjectQuestionRequest;
 
 public interface IQuestionService {
 
@@ -59,4 +62,9 @@ public interface IQuestionService {
 	ResponseEntity<?> getAllSubjectQuestionForTestNew(Integer examId, Integer studentId);
 
 	ResponseEntity<?> getAllCourseQuestionForTestNew(Integer examId, Integer studentId);
+
+	ResponseEntity<?> getAllSubjectQuestionBySubjectIdWithPaginationNew(Integer subjectId, Integer pageSise,
+			Integer pageNumber);
+
+	ResponseEntity<?> addQuestionToSubjectExam(@Valid SubjectQuestionRequest request, MultipartFile image);
 }

@@ -82,4 +82,33 @@ public class CourseExamController {
 			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
 		return examService.getAllCourseNormalAndScheduleExam(courseId);
 	}
+
+	// ==============================New Apis ======================================
+	@GetMapping("/v2/getAllCourseNormalAndScheduleExamForStudent")
+	public ResponseEntity<?> getAllCourseNormalAndScheduleExamForStudentNew(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+		return examService.getAllCourseNormalAndScheduleExamForStudent(studentId);
+	}
+
+	@GetMapping("/v2/getAllCourseNormalAndScheduleExam")
+	public ResponseEntity<?> getAllCourseNormalAndScheduleExamNew(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
+		return examService.getAllCourseNormalAndScheduleExam(courseId);
+	}
+
+	@PostMapping("/v2/addCourseExam")
+	public ResponseEntity<?> addCourseExamNew(@Valid @RequestBody AddExamRequest request) {
+		return examService.addCourseExamNew(request);
+	}
+
+	@PutMapping("/v2/deleteExamById")
+	public ResponseEntity<?> deleteExamByIdNew(@RequestParam(name = AppConstants.EXAM_ID) Integer examId) {
+		return examService.deleteExamById(examId);
+	}
+
+	@PutMapping("/v2/updateCourseExam")
+	public ResponseEntity<?> updateCourseExamNew(@Valid @RequestBody AddExamRequest request) {
+		return examService.updateCourseExam(request);
+	}
+
 }

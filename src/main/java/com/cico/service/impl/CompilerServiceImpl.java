@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -248,8 +248,8 @@ public class CompilerServiceImpl implements ICompilerService {
 		String url = pistonApiUrl + "/execute";
 		System.err.println(request + "\n url==> " + url);
 		// ✅ Build request payload
-		Map<String, Object> payload = Map.of("language", request.getLanguage(), "version", request.getVersion(),
-				"files", List.of(Map.of("content", request.getCode())), "stdin", request.getInput());
+		Map<String, Object> payload = Map.of("language", request.getLanguage(), "version", " ", "files",
+				List.of(Map.of("content", request.getCode())), "stdin", request.getInput());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -286,13 +286,31 @@ public class CompilerServiceImpl implements ICompilerService {
 
 	@Override
 	public List<Map<String, Object>> getRuntimes() {
-		String url = pistonApiUrl + "/runtimes";
-
-		try {
-			ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
-			return response.getBody() != null ? response.getBody() : Collections.emptyList();
-		} catch (RestClientException e) {
-			return Collections.emptyList();
-		}
+//		String url = pistonApiUrl + "/runtimes";
+		List<Map<String, Object>> topLanguages = new ArrayList<>();
+		topLanguages.add(Map.of("rank", 1, "language", "python", "code", "print(\"Hello World\")"));
+		topLanguages.add(Map.of("rank", 2, "language", "java", "code",
+				"class Main { public static void main(String[] args) { System.out.println(\"Hello World\"); } }"));
+		topLanguages.add(Map.of("rank", 3, "language", "c", "code",
+				"#include <stdio.h>\nint main() { printf(\"Hello World\\n\"); return 0; }"));
+		topLanguages.add(Map.of("rank", 4, "language", "c++", "code",
+				"#include <iostream>\nint main() { std::cout << \"Hello World\" << std::endl; return 0; }"));
+		topLanguages.add(Map.of("rank", 5, "language", "c#", "code",
+				"using System;\nclass Program { static void Main() { Console.WriteLine(\"Hello World\"); } }"));
+		topLanguages.add(Map.of("rank", 6, "language", "javascript", "code", "console.log(\"Hello World\");"));
+		topLanguages.add(Map.of("rank", 7, "language", "go", "code",
+				"package main\nimport \"fmt\"\nfunc main() { fmt.Println(\"Hello World\") }"));
+		topLanguages.add(Map.of("rank", 8, "language", "typescript", "code", "console.log(\"Hello World\");"));
+		topLanguages.add(Map.of("rank", 9, "language", "ruby", "code", "puts \"Hello World\""));
+		topLanguages.add(Map.of("rank", 10, "language", "kotlin", "code", "fun main() { println(\"Hello World\") }"));
+		topLanguages.add(Map.of("rank", 11, "language", "php", "code", "<?php echo \"Hello World\"; ?>"));
+//		try {
+//			ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
+//			System.err.println("leguages =====>> " + response.getBody());
+//			return response.getBody() != null ? response.getBody() : Collections.emptyList();
+//		} catch (RestClientException e) {
+//			return Collections.emptyList();
+//		}
+		return topLanguages;
 	}
 }

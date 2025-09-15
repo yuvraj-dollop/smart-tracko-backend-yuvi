@@ -3,6 +3,7 @@ package com.cico.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.TechnologyStack;
+import com.cico.payload.TechnologyStackResponse;
 import com.cico.repository.TechnologyStackRepository;
 import com.cico.service.IFileService;
 import com.cico.service.ITechnologyStackService;
@@ -73,9 +75,28 @@ public class TechnologyStackServiceImpl implements ITechnologyStackService {
 				.orElseThrow(() -> new ResourceNotFoundException("technologyStack not found with this id"));
 	}
 
+	public TechnologyStackResponse toResponse(TechnologyStack entity) {
+		if (entity == null)
+			return null;
+		return TechnologyStackResponse.builder().id(entity.getId()).imageName(entity.getImageName())
+				.technologyName(entity.getTechnologyName()).isDeleted(entity.getIsDeleted())
+				.createdDate(entity.getCreatedDate()).updatedDate(entity.getUpdatedDate()).build();
+	}
+
+	public List<TechnologyStackResponse> toResponseList(List<TechnologyStack> entities) {
+		return entities.stream().map(this::toResponse).collect(Collectors.toList());
+	}
+
 	@Override
 	public List<TechnologyStack> getAllTechnologyStack() {
+
 		return technologyStackRepository.findAll();
+	}
+
+	@Override
+	public List<TechnologyStackResponse> getAllTechnologyStackNew() {
+
+		return toResponseList(technologyStackRepository.findAll());
 	}
 
 	@Override

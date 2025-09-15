@@ -16,6 +16,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.exception.BadRequestException;
+import com.cico.exception.InvalidException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Chapter;
@@ -38,7 +41,9 @@ import com.cico.model.Exam;
 import com.cico.model.Question;
 import com.cico.model.Subject;
 import com.cico.model.SubjectExam;
+import com.cico.payload.PageResponse;
 import com.cico.payload.QuestionResponse;
+import com.cico.payload.SubjectQuestionRequest;
 import com.cico.repository.ChapterRepository;
 import com.cico.repository.CourseExamRepository;
 import com.cico.repository.ExamRepo;
@@ -49,6 +54,7 @@ import com.cico.repository.SubmittedExamHistoryRepo;
 import com.cico.service.IChapterService;
 import com.cico.service.IFileService;
 import com.cico.service.IQuestionService;
+import com.cico.service.IStudentService;
 import com.cico.util.AppConstants;
 
 @Service
@@ -88,6 +94,8 @@ public class QuestionServiceImpl implements IQuestionService {
 
 	@Autowired
 	private SubmittedExamHistoryRepo submittedExamHistoryRepo;
+	@Autowired
+	private IStudentService studentService;
 
 	@Override
 	public Question addQuestionToChapterExam(Integer chapterId, String questionContent, String option1, String option2,
@@ -333,7 +341,7 @@ public class QuestionServiceImpl implements IQuestionService {
 		List<Question> allQuestions = new ArrayList<>();
 		List<Question> randomQuestionList = new ArrayList<>();
 		Map<String, Object> response = new HashMap<>();
-
+		studentService.getStudentById(studentId);
 		// check for test given or not
 		Optional<SubjectExam> isExamTaken = subjectExamRepo.findByExamIdAndStudentId(examId, studentId);
 		SubjectExam exam2 = examServiceImpl.checkSubjectExamIsPresent(examId);
@@ -401,6 +409,11 @@ public class QuestionServiceImpl implements IQuestionService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	public List<QuestionResponse> questionFilter(List<Question> question) {
+
+		return question.stream().map(this::questionFilter).toList();
+	}
+
 	public QuestionResponse questionFilter(Question question) {
 		QuestionResponse q = new QuestionResponse();
 		q.setOption1(question.getOption1());
@@ -411,7 +424,7 @@ public class QuestionServiceImpl implements IQuestionService {
 		q.setQuestionImage(question.getQuestionImage());
 		q.setQuestionId(question.getQuestionId());
 		q.setIsSelected(question.getIsSelected());
-
+		q.setCorrectOption(question.getCorrectOption());
 		return q;
 	}
 
@@ -611,12 +624,29 @@ public class QuestionServiceImpl implements IQuestionService {
 	}
 
 	@Override
+	public ResponseEntity<?> getAllSubjectQuestionBySubjectIdWithPaginationNew(Integer subjectId, Integer pageSize,
+			Integer pageNumber) {
+
+		PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+
+		Page<Question> questions = questionRepo.findBySubjectIdAndIsDeleted(subjectId, false, pageRequest);
+
+		List<QuestionResponse> questionResponses = questionFilter(questions.getContent());
+
+		PageResponse<QuestionResponse> pageResponse = PageResponse.<QuestionResponse>builder()
+				.response(questionResponses).page(questions.getNumber()).size(questions.getSize())
+				.totalElements(questions.getTotalElements()).totalPages(questions.getTotalPages())
+				.last(questions.isLast()).first(questions.isFirst()).build();
+
+		return new ResponseEntity<>(pageResponse, HttpStatus.OK);
+	}
+
+	@Override
 	public ResponseEntity<?> getAllCourseQuestionForTest(Integer examId, Integer studentId) {
 
 		List<Question> allQuestions = new ArrayList<>();
 		List<Question> randomQuestionList = new ArrayList<>();
 		Map<String, Object> response = new HashMap<>();
-		// check for test given or not
 		Optional<CourseExam> isExamTaken = courseExamRepository.findByExamIdAndStudentId(examId);
 		CourseExam exam2 = examServiceImpl.checkCourseExamIsPresent(examId);
 
@@ -703,7 +733,7 @@ public class QuestionServiceImpl implements IQuestionService {
 		List<Question> allQuestions = new ArrayList<>();
 		List<Question> randomQuestionList = new ArrayList<>();
 		Map<String, Object> response = new HashMap<>();
-
+		studentService.getStudentById(studentId);
 		// check for test given or not
 		Optional<SubjectExam> isExamTaken = subjectExamRepo.findByExamIdAndStudentId(examId, studentId);
 		SubjectExam exam = examServiceImpl.checkSubjectExamIsPresent(examId);
@@ -887,6 +917,47 @@ public class QuestionServiceImpl implements IQuestionService {
 		response.put(AppConstants.TIMER, exam.getExamTimer());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 
+	}
+
+	@Override
+	public ResponseEntity<?> addQuestionToSubjectExam(@Valid SubjectQuestionRequest request, MultipartFile image) {
+		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
+		String option1 = request.getOption1();
+		String option2 = request.getOption2();
+		String option3 = request.getOption3();
+		String option4 = request.getOption4();
+		String correctOption = request.getCorrectOption();
+		if (!(correctOption.equals(option1) || correctOption.equals(option2) || correctOption.equals(option3)
+				|| correctOption.equals(option4))) {
+			throw new InvalidException("Correct option must match one of the provided options.");
+		}
+		String questionContent = request.getQuestionContent();
+		Question questionObj = questionRepo.findByQuestionContentAndIsDeleted(questionContent.trim(), false);
+		if (Objects.nonNull(questionObj))
+			throw new ResourceAlreadyExistException(AppConstants.QUESTION_ALREDY_EXISTS);
+
+		// Check Options Are Not Duplicate
+		this.validateUniqueOptions(option1, option2, option3, option4);
+
+		questionObj = new Question();
+		questionObj.setQuestionContent(questionContent.trim());
+		questionObj.setOption1(option1.trim());
+		questionObj.setOption2(option2.trim());
+		questionObj.setOption3(option3.trim());
+		questionObj.setOption4(option4.trim());
+		questionObj.setCorrectOption(correctOption.trim());
+		if (image != null) {
+			questionObj.setQuestionImage(image.getOriginalFilename());
+			String file = fileService.uploadFileInFolder(image, AppConstants.SUBJECT_AND_CHAPTER_IMAGES);
+			questionObj.setQuestionImage(file);
+		}
+
+		Question save = questionRepo.save(questionObj);
+
+		subject.getQuestions().add(save);
+		subjectRepository.save(subject);
+
+		return ResponseEntity.ok(questionFilter(save));
 	}
 
 }

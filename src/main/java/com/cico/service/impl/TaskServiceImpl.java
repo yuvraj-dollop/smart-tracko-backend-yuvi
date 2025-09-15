@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.exception.ResourceAlreadyExistException;
@@ -490,6 +491,7 @@ public class TaskServiceImpl implements ITaskService {
 
 	}
 
+	@Transactional
 	@Override
 	public ResponseEntity<?> getTaskQuestion(Long questionId, Long taskId) {
 
@@ -873,8 +875,7 @@ public class TaskServiceImpl implements ITaskService {
 		}
 
 		// Handle attachment status
-		taskQuestion.setAttachmentStatus(
-				Objects.nonNull(taskRequest.getStatus()) ? taskRequest.getStatus() : AttachmentStatus.REQUIRED);
+		taskQuestion.setAttachmentStatus(AttachmentStatus.REQUIRED);
 
 		// Set task number
 		int nextTaskNumber = task.getTaskQuestion() != null ? task.getTaskQuestion().size() + 1 : 1;

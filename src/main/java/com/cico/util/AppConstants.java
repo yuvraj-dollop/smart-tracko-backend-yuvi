@@ -487,6 +487,7 @@ public class AppConstants {
 
 	public static final String OPTION_ALREDY_EXISTS = "Options must be unique and not repeated.";
 	public static final String INVALID_FILE_TYPE = "Invalid file type";
+	public static final String INVALID_DATA = "Invalid Data Contant";
 
 	public static final String ALL_ANNOUNCEMENTS_ALREADY_CLEARED = "All selected announcements are already cleared by the student.";
 

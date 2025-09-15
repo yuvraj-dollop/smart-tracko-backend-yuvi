@@ -5,25 +5,28 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.TechnologyStack;
+import com.cico.payload.TechnologyStackResponse;
 
 public interface ITechnologyStackService {
 
 	// create
-		TechnologyStack createTechnologyStack(String technologyName, MultipartFile file);
+	TechnologyStack createTechnologyStack(String technologyName, MultipartFile file);
 
-		// update
-		TechnologyStack updateTechnologyStack(Integer id, String technologyName, MultipartFile file);
+	// update
+	TechnologyStack updateTechnologyStack(Integer id, String technologyName, MultipartFile file);
 
-		// delete
-		void deleteTechnologyStack(Integer id);
+	// delete
+	void deleteTechnologyStack(Integer id);
 
-		// get TechnologyStack
-		TechnologyStack getTechnologyStack(Integer id);
+	// get TechnologyStack
+	TechnologyStack getTechnologyStack(Integer id);
 
-		// get all TechnologyStack
-		List<TechnologyStack> getAllTechnologyStack();
+	// get all TechnologyStack
+	List<TechnologyStack> getAllTechnologyStack();
 
-		// get technologyStack by name
-		TechnologyStack getTechnologyStackByTechnologyName(String name);
+	// get technologyStack by name
+	TechnologyStack getTechnologyStackByTechnologyName(String name);
+
+	List<TechnologyStackResponse> getAllTechnologyStackNew();
 
 }

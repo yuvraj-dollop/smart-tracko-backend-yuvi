@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -249,12 +248,13 @@ public class AssigmentController {
 		return service.getAssignmentQuesSubmissionStatus(questionId, studentId);
 	}
 
-	@GetMapping("/v2/getAssignmentQuesById/{questionId}")
-	public ResponseEntity<?> getAssignmentQuestionNew(@PathVariable(name = AppConstants.QUESTION_ID) Long questionId) {
+	@GetMapping("/v2/getAssignmentQuesById")
+	public ResponseEntity<?> getAssignmentQuestionNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
 		return service.getAssignmentQuesById(questionId);
 	}
 
-	// FOR STUDENT - RETURN QUESTION DETAILS, SUBMISSION DETAILS, STATUS AND ADMIN RESPONSE FOR THE ASSIGNMENT ALSO
+	// FOR STUDENT - RETURN QUESTION DETAILS, SUBMISSION DETAILS, STATUS AND ADMIN
+	// RESPONSE FOR THE ASSIGNMENT ALSO
 	@GetMapping("/v2/getAssignmentQuestionDetails")
 	public ResponseEntity<?> getAssignmentQuestionDetails(
 			@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
@@ -269,4 +269,76 @@ public class AssigmentController {
 			@Valid AssignmentSubmissionRequest assignmentSubmissionRequest) throws Exception {
 		return service.submitAssignment(file, assignmentSubmissionRequest);
 	}
+
+	@GetMapping("v2/getOverAllAssignmentTaskStatus")
+	public ResponseEntity<?> getOverAllAssignmentTaskStatusNew() {
+		return service.getOverAllAssignmentTaskStatus();
+	}
+
+	// getAllAssignments_new
+	@PostMapping("/v2/getAllAssignments_new")
+	public ResponseEntity<?> getAllAssignments_newV2(@Valid @RequestBody AssignmentFilter assignmentFilter) {
+		return service.getAllAssignments_new(assignmentFilter);
+	}
+
+	@GetMapping("/v2/getAllSubmitedAssginments")
+	public ResponseEntity<?> getAllSubmitedAssginmentsnNew(
+			@RequestParam(value = "courseId", required = false) Integer courseId,
+			@RequestParam(value = "subjectId", required = false) Integer subjectId,
+			@RequestParam(value = AppConstants.STATUS, required = false) SubmissionStatus status,
+			@RequestParam("pageSize") Integer pageSise, @RequestParam("pageNumber") Integer pageNumber) {
+		return service.getAllSubmitedAssginments(courseId, subjectId, status, pageSise, pageNumber);
+	}
+
+	@PostMapping("/v2/getAllSubmissionAssignmentTaskStatusByAssignmentId")
+	public ResponseEntity<?> getAllSubmissionAssignmentTaskStatusByCourseIdNew(
+			@Valid @RequestBody AssignmentFilter assignmentFilter) {
+		return service.getAllSubmissionAssignmentTaskStatusByCourseIdAndSubjectId(assignmentFilter);
+	}
+
+	@PutMapping("/v2/changeAssignmentTaskStatus")
+	public ResponseEntity<?> changeAssignmentTaskStatusNew(@RequestParam(name = AppConstants.ID) Long id) {
+		return service.changeAssignmentTaskStatus(id);
+	}
+
+	@PutMapping("/v2/activateAssigment")
+	public ResponseEntity<?> activateAssigmentNew(@RequestParam(name = AppConstants.ID) Long assignmentId) {
+		return service.activateAssigment(assignmentId);
+	}
+
+	@PostMapping("/v2/createAssignment")
+	public ResponseEntity<?> createAssignmentNew(@RequestBody @Valid AssignmentRequest assignmentRequest) {
+		return service.createAssignment(assignmentRequest);
+	}
+
+	@GetMapping("/v2/isAssignmentTaskSubmittedByStudent")
+	public ResponseEntity<?> isAssignmentTaskSubmittedByStudentNew(
+			@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId) {
+		return service.isAssignmentTaskSubmittedByStudent(assignmentId);
+	}
+
+	@PostMapping("/v2/addQuestionInAssignment")
+	public ResponseEntity<?> addQuestionInAssignmentNew(@Valid AssignmentQuestionRequest assignmentQuestionRequest,
+			@RequestParam(value = "questionImages", required = false) List<MultipartFile> questionImages) {
+		assignmentQuestionRequest.setQuestionImages(questionImages);
+		return service.addQuestionInAssignment(assignmentQuestionRequest);
+	}
+
+	@PostMapping("/v2/addAttachment")
+	public ResponseEntity<?> addAttachmentNew(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId,
+			@RequestParam(value = AppConstants.FILE, required = false) MultipartFile file) {
+		return service.addAttachment(assignmentId, file);
+	}
+
+	@PutMapping("/v2/updateAssignmentQuestion")
+	public ResponseEntity<?> updateAssignmentQuestionNew(
+			@Valid UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest,
+			@RequestParam(value = "newImages", required = false) List<String> questionImages,
+			@RequestParam(value = "newImages", required = false) List<MultipartFile> newImages) {
+		System.err.println("updateAssignmentQuestion =>>> " + updateAssignmentQuestionRequest);
+		updateAssignmentQuestionRequest.setQuestionImages(questionImages);
+		updateAssignmentQuestionRequest.setNewImages(newImages);
+		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
+	}
+
 }
