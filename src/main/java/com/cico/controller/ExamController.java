@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cico.payload.AddExamRequest;
 import com.cico.payload.ExamRequest;
-import com.cico.payload.PaginationRequest;
 import com.cico.payload.TestFilterRequest;
 import com.cico.service.IExamService;
 import com.cico.util.AppConstants;
@@ -174,8 +173,8 @@ public class ExamController {
 		return examService.getChapterExamIsCompleteOrNot(chapterId, studentId);
 	}
 
-	@GetMapping("/v2/getChapterExamResult/{resultId}")
-	public ResponseEntity<?> getChapterExamResultNew(@PathVariable(name = AppConstants.RESULT_ID) Integer resultId) {
+	@GetMapping("/v2/getChapterExamResult")
+	public ResponseEntity<?> getChapterExamResultNew(@RequestParam(name = AppConstants.RESULT_ID) Integer resultId) {
 		return examService.getChapterExamResultNew(resultId);
 	}
 
@@ -185,15 +184,38 @@ public class ExamController {
 		return examService.setChapterExamStartStatus(chapterId);
 	}
 
-	@GetMapping("/v2/getChapterExam/{chapterId}")
-	public ResponseEntity<?> getChapterExamNew(@PathVariable(name = AppConstants.CHAPTER_ID) Integer chapterId) {
+	@GetMapping("/v2/getChapterExam")
+	public ResponseEntity<?> getChapterExamNew(@RequestParam(name = AppConstants.CHAPTER_ID) Integer chapterId) {
 		return examService.getChapterExamNew(chapterId);
 	}
 
 	// POST
 	@PostMapping("/v2/addChapterExam")
 	public ResponseEntity<?> addChapterExamResultNew(@Valid @RequestBody ExamRequest chapterExamResult) {
-		System.err.println(" ------------- >chapterExamResult => "+chapterExamResult);
+		System.err.println(" ------------- >chapterExamResult => " + chapterExamResult);
 		return this.examService.addChapterExamResult(chapterExamResult);
+	}
+
+//................................................... New ......................................................
+	@GetMapping("/v2/getPerformanceDataOfStudent")
+	public ResponseEntity<?> getResultCountsDataOfStudent(
+			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
+
+		return examService.getOverallResultOfStudentByCourse(studentId);
+	}
+
+	@GetMapping("/v2/getperformanceDataMonthaly")
+	public ResponseEntity<?> getperformanceDataMonthaly(Integer studentId) {
+		return examService.getperformanceDataMonthaly(studentId);
+	}
+
+	@GetMapping("/v2/getAllSubjectPerformanceData")
+	public ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId) {
+		return examService.getAllSubjectPerformanceData(studentId);
+	}
+
+	@GetMapping("/v2/getAllTestperformanceDataOfStudent")
+	public ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId) {
+		return examService.getAllTestperformanceDataOfStudent(studentId);
 	}
 }

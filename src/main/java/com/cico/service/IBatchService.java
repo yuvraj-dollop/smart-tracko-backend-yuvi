@@ -28,4 +28,10 @@ public interface IBatchService {
 	
 	Batch getFirstUpcomingBatchOfCurrentCourse(String course);
 
+	List<BatchResponse> batchToBatchResponse(List<Batch> batches);
+
+	BatchResponse batchToBatchResponse(Batch batch);
+
+	List<BatchResponse> getUpcomingBatchesNew();
+
 }

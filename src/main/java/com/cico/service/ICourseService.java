@@ -33,4 +33,8 @@ public interface ICourseService {
 
 	public ResponseEntity<?> getAllCourseForStudent(Integer studentId);
 
+	public ResponseEntity<?> getAllCourseForStudentNew(Integer studentId);
+
+	ResponseEntity<?> getCourseProgressNew(Integer studentId);
+
 }

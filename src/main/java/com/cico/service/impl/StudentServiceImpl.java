@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -51,7 +50,6 @@ import com.cico.model.QrManage;
 import com.cico.model.Student;
 import com.cico.model.StudentSeatingAlloatment;
 import com.cico.model.StudentWorkReport;
-import com.cico.model.TokenManagement;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.AttendanceLogResponse;
 import com.cico.payload.AttendenceOfMonth;
@@ -74,7 +72,6 @@ import com.cico.payload.StudentRequest;
 import com.cico.payload.StudentResponse;
 import com.cico.payload.StudentTvResponse;
 import com.cico.payload.TodayLeavesRequestResponse;
-import com.cico.payload.UpdateStudentRequest;
 import com.cico.repository.AttendenceRepository;
 import com.cico.repository.CounsellingRepo;
 import com.cico.repository.CourseRepository;
@@ -94,8 +91,6 @@ import com.cico.util.AppConstants;
 import com.cico.util.HelperService;
 import com.cico.util.NotificationConstant;
 import com.cico.util.Roles;
-import com.cico.util.TokenType;
-import com.cloudinary.api.exceptions.BadRequest;
 
 @Service
 public class StudentServiceImpl implements IStudentService {
@@ -1217,7 +1212,7 @@ public class StudentServiceImpl implements IStudentService {
 	public Map<String, Object> getCalenderData(Integer id, Integer month, Integer year) { // working code
 		Map<String, Object> response = new HashMap<>();
 		Student student = studRepo.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND+" with ID: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND + " with ID: " + id));
 
 		LocalDate joinDate = student.getJoinDate();
 
@@ -1451,7 +1446,7 @@ public class StudentServiceImpl implements IStudentService {
 	@Override
 	public ResponseEntity<?> getStudentByIdForWeb(Integer studentId) {
 		Student student = studRepo.findById(studentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found from given id"));
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
 		return new ResponseEntity<>(studentFilter(student), HttpStatus.OK);
 	}
 

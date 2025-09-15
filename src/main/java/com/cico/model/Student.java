@@ -65,7 +65,8 @@ public class Student {
 	private Boolean isCompleted;
 	private Boolean isActive;
 	private String role;
-
+	@Builder.Default
+	private Double performancePercentage = 0.0;
 	@OneToOne
 	@JoinColumn
 	@JsonBackReference

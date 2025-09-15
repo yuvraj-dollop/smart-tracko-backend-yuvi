@@ -169,7 +169,6 @@ public class CourseServiceImpl implements ICourseService {
 		return res;
 	}
 
-
 	@Override
 	public ResponseEntity<?> getAllCourses(Integer page, Integer size) {
 		if (page != -1) {
@@ -258,7 +257,8 @@ public class CourseServiceImpl implements ICourseService {
 	public Map<String, Object> studentUpgradeCourse(Integer studnetId, Integer courseId) {
 		Map<String, Object> response = new HashMap<>();
 		Student findByStudentId = studentRepository.findByStudentId(studnetId);
-		Course findByCourseId = courseRepository.findByCourseId(courseId).orElseThrow(()-> new ResourceNotFoundException(COURSE_NOT_FOUND));
+		Course findByCourseId = courseRepository.findByCourseId(courseId)
+				.orElseThrow(() -> new ResourceNotFoundException(COURSE_NOT_FOUND));
 		findByCourseId.setCourseFees(findByStudentId.getCourse().getCourseFees());
 		findByStudentId.setApplyForCourse(findByCourseId.getCourseName());
 		findByStudentId.setCourse(findByCourseId);
@@ -353,6 +353,7 @@ public class CourseServiceImpl implements ICourseService {
 		res.setCourseName(course.getCourseName());
 		res.setDuration(course.getDuration());
 		res.setSortDescription(course.getSortDescription());
+		res.setTotalEnrolledStudents(studentRepository.countByCourse_CourseId(course.getCourseId()));
 		TechnologyStackResponse stackResponse = new TechnologyStackResponse();
 		stackResponse.setId(course.getTechnologyStack().getId());
 		stackResponse.setImageName(course.getTechnologyStack().getImageName());
@@ -408,6 +409,60 @@ public class CourseServiceImpl implements ICourseService {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 
+	}
+
+	// ============================New Methods
+	// ===========================================================================================
+	@Override
+	public ResponseEntity<?> getAllCourseForStudentNew(Integer studentId) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		Optional<Student> student = studentRepository.findById(studentId);
+		if (student.isPresent()) {
+			List<Course> allCourses = courseRepository.findAll();
+			List<CourseResponse> list = allCourses.stream()
+					.filter(obj -> obj.getCourseId() != student.get().getCourse().getCourseId() && !obj.getIsDeleted())
+					.map(this::courseToCourseResponse).toList();
+
+			response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+			response.put("courses", list);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			response.put(AppConstants.MESSAGE, AppConstants.NO_DATA_FOUND);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+
+	}
+
+	@Override
+	public ResponseEntity<?> getCourseProgressNew(Integer studentId) {
+		Map<String, Object> response = new HashMap<>();
+		Student findByStudentId = studentRepository.findByStudentId(studentId);
+		String duration = findByStudentId.getCourse().getDuration();
+		System.out.println(duration);
+		long months = Long.parseLong(duration);
+
+		LocalDate joinDate = findByStudentId.getJoinDate();
+		LocalDate endDate = joinDate.plusMonths(months);
+		LocalDate currentDate = LocalDate.now();
+
+		long daysElapsed = ChronoUnit.DAYS.between(joinDate, currentDate);
+		long totalDays = ChronoUnit.DAYS.between(joinDate, endDate);
+
+		double percentageCompletion = (double) daysElapsed / totalDays * 100;
+		if (percentageCompletion < 0) {
+			percentageCompletion = 0.0;
+		}
+		response.put("percentage",
+				percentageCompletion > 100 ? 100 : percentageCompletion < 0 ? 0 : percentageCompletion);
+		response.put("courseName", findByStudentId.getCourse().getCourseName());
+		response.put("joinDate", joinDate);
+		response.put("endDate", endDate);
+		response.put("image", findByStudentId.getCourse().getTechnologyStack().getImageName());
+		response.put("totalEnrolledStudent",
+				studentRepository.countByCourse_CourseId(findByStudentId.getCourse().getCourseId()));
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

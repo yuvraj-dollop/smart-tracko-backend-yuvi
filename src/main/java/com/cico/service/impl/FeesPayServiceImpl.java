@@ -51,6 +51,7 @@ public class FeesPayServiceImpl implements IFeesPayService {
 			feesPay.setFeesPayAmount(feesPayAmount);
 			Fees fees = feesPay.getFees();
 			if (feesPay.getFeesPayAmount() <= findByFeesId.getRemainingFees()) {
+
 				fees.setRemainingFees(fees.getRemainingFees() - feesPay.getFeesPayAmount());
 				fees.setFeesPaid(fees.getFinalFees() - fees.getRemainingFees());
 
@@ -86,7 +87,6 @@ public class FeesPayServiceImpl implements IFeesPayService {
 
 	@Override
 	public ResponseEntity<?> getAllTransectionByStudentId(Integer studentId) {
-
 		Fees fees = feesRepository.findFeesByStudentId(studentId);
 		List<FeesPay> findByFees = feesPayRepository.findByFees(fees);
 
@@ -151,13 +151,13 @@ public class FeesPayServiceImpl implements IFeesPayService {
 	@Override
 	public List<FeesPayResponse> searchByNameInFeesPayList(String fullName) {
 		List<FeesPay> findByFullName = feesPayRepository.findByFullName(fullName);
-		return findByFullName.stream().map(obj -> setFeesPayResponse(obj)).collect(Collectors.toList());
+		return findByFullName.stream().map(this::setFeesPayResponse).collect(Collectors.toList());
 	}
 
 	@Override
 	public List<FeesPayResponse> searchByMonthInFeesPayList(String startDate, String endDate) {
 		List<FeesPay> findByMonth = feesPayRepository.findByMonth(LocalDate.parse(startDate), LocalDate.parse(endDate));
-		return findByMonth.stream().map(obj -> setFeesPayResponse(obj)).collect(Collectors.toList());
+		return findByMonth.stream().map(this::setFeesPayResponse).collect(Collectors.toList());
 	}
 
 	public FeesResponse setFeesResponse(Fees fees) {
@@ -245,6 +245,16 @@ public class FeesPayServiceImpl implements IFeesPayService {
 		feesRepository.save(fees);
 		feesPayData.setFeesPayAmount(newAmount);
 		return setFeesPayResponse(feesPayRepository.save(feesPayData));
+	}
+
+	@Override
+	public ResponseEntity<?> getAllTransectionByStudentIdNew(Integer studentId) {
+
+		Fees fees = feesRepository.findFeesByStudentId(studentId);
+		System.err.println("FEES ===> " + fees);
+		List<FeesPay> findByFees = feesPayRepository.findByFees(fees);
+		System.err.println("feeeeeeee =====>>> " + studentId + "  " + findByFees);
+		return new ResponseEntity<>(findByFees.stream().map(this::setFeesPayResponse).toList(), HttpStatus.OK);
 	}
 
 }

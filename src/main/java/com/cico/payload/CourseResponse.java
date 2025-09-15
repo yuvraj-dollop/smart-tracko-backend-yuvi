@@ -21,6 +21,7 @@ public class CourseResponse {
 	private String courseFees;
 	private Long subjectCount;
 	private Long batchesCount;
+	private Long totalEnrolledStudents;
 //	private String technologyImage;
 	private String duration;
 	private String sortDescription;

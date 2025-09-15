@@ -2,6 +2,7 @@ package com.cico.payload;
 
 import java.util.List;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -29,6 +30,7 @@ public class CourseRequest {
 	private String courseFees;
 
 	@NotBlank(message = AppConstants.DURATION_REQUIRED)
+	@Min(value = 1, message = AppConstants.DURATION_POSITIVE_REQUIRED)
 	private String duration;
 
 	@NotBlank(message = AppConstants.SHORT_DESCRIPTION_REQUIRED)

@@ -3,6 +3,7 @@ package com.cico.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,10 @@ import com.cico.model.ClearedAnnouncement;
 import com.cico.model.Course;
 import com.cico.model.MessageSeenBy;
 import com.cico.model.Student;
+import com.cico.payload.AnnouncementActionRequest;
 import com.cico.payload.AnnouncementRequest;
 import com.cico.payload.AnnouncementResponseForAdmin;
 import com.cico.payload.AnnouncementStudentResponse;
-import com.cico.payload.AnnouncementActionRequest;
 import com.cico.payload.NotificationInfo;
 import com.cico.payload.PageResponse;
 import com.cico.repository.AnnouncementRepository;
@@ -129,7 +130,7 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 	public ResponseEntity<?> countUnseenNotificationForStudent(Integer studentId) {
 		Student student = studentRepository.findById(studentId).get();
 		Long announcements = announcementRepository.countUnseenNotificationForStudent(student.getCourse(), student);
-		return new ResponseEntity<>(announcements, HttpStatus.OK);
+		return new ResponseEntity<>(Map.of("announcementCount", announcements), HttpStatus.OK);
 	}
 
 	public AnnouncementStudentResponse announcementFilter(Announcement response) {

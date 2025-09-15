@@ -345,4 +345,10 @@ public class StudentController {
 		Map<String, Object> studentData = studentService.getStudentData(studentId);
 		return new ResponseEntity<Map<String, Object>>(studentData, HttpStatus.OK);
 	}
+
+	@GetMapping("/v2/getStudentByIdForWeb")
+	public ResponseEntity<?> getStudentByIdForWebNew(@RequestParam(name = "studentId") Integer studentId) {
+		return studentService.getStudentByIdForWeb(studentId);
+
+	}
 }
