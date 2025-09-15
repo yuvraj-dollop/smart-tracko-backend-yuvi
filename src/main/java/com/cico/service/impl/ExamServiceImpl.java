@@ -125,98 +125,109 @@ public class ExamServiceImpl implements IExamService {
 	private final Map<String, Object> locks = new ConcurrentHashMap<>();
 	@Autowired
 	private AssignmentRepository assignmentRepository;
-//	@Override
-//	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
-//		Student student = studentRepository.findById(chapterExamResult.getStudentId())
-//				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
-//		Chapter chapter = chapterRepo.findById(chapterExamResult.getChapterId()).get();
-//
-//		Optional<ChapterExamResult> findByChapterAndStudent = chapterExamResultRepo.findByChapterAndStudent(chapter,
-//				student);
-//		if (findByChapterAndStudent.isPresent())
-//			throw new ResourceAlreadyExistException("You have already submitted this test");
-//
-//		ChapterExamResult examResult = new ChapterExamResult();
-//		Map<Integer, String> review = chapterExamResult.getReview();
-//		int correct = 0;
-//		int inCorrect = 0;
-//		examResult.setChapter(chapter);
-//		examResult.setStudent(student);
-//
-//		List<Question> questions = chapter.getExam().getQuestions();
-//		questions = questions.stream().filter(obj -> !obj.getIsDeleted()).collect(Collectors.toList());
-//
-//		for (Question q : questions) {
-//			Integer id = q.getQuestionId();
-//			String correctOption = q.getCorrectOption();
-//
-//			if (Objects.nonNull(review)) {
-//				String reviewAns = review.get(id);
-//				if (Objects.nonNull(reviewAns)) {
-//					if (review.get(id).equals(correctOption)) {
-//						correct++;
-//					} else {
-//						inCorrect++;
-//					}
-//				}
-//			}
-//		}
-//		examResult.setReview(review);
-//		examResult.setCorrecteQuestions(correct);
-//		examResult.setWrongQuestions(inCorrect);
-//		examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
-//		examResult.setScoreGet(correct - inCorrect);
-//		examResult.setTotalQuestion(questions.size());
-//		ChapterExamResult save = chapterExamResultRepo.save(examResult);
-//
-//		ChapterCompleted chapterCompleted = new ChapterCompleted();
-//		chapterCompleted.setChapterId(chapterExamResult.getChapterId());
-//		chapterCompleted.setStudentId(chapterExamResult.getStudentId());
-//		chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
-//		chapterCompletedRepository.save(chapterCompleted);
-//
-//		ExamResultResponse res = new ExamResultResponse();
-//		res.setCorrecteQuestions(save.getCorrecteQuestions());
-//		res.setNotSelectedQuestions(save.getNotSelectedQuestions());
-//		res.setScoreGet(save.getScoreGet());
-//		res.setWrongQuestions(save.getWrongQuestions());
-//		res.setId(save.getId());
-//		res.setTotalQuestion(save.getTotalQuestion());
-//		res.setStudentId(save.getStudent().getStudentId());
-//		res.setStudentName(save.getStudent().getFullName());
-//		res.setProfilePic(save.getStudent().getProfilePic());
-//
-//		List<ChapterExamResult> allResults = chapterExamResultRepo.findAllById(chapter.getChapterId());
-//
-//		int total = allResults.size();
-//		int lowerScores = 0;
-//
-//		for (ChapterExamResult result : allResults) {
-//			if (result.getScoreGet() <= save.getScoreGet()) {
-//				lowerScores++;
-//			}
-//		}
-//
-//		int percentile = 0;
-//		if (total == 1) {
-//			percentile = 100;
-//		} else {
-//			percentile = (int) Math.round(((double) lowerScores / total) * 100);
-//		}
-//
-//		res.setPercentile(percentile);
-//
-//		// .....firebase notification .....//
-//
-//		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
-//		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
-//		fcmIds.setMessage(message);
-//		fcmIds.setTitle("Exam Completed!");
-//		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
-//		// .....firebase notification .....//
-//
-//		return new ResponseEntity<>(res, HttpStatus.OK);
-//	}
+	// @Override
+	// public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult)
+	// {
+	// Student student =
+	// studentRepository.findById(chapterExamResult.getStudentId())
+	// .orElseThrow(() -> new
+	// ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+	// Chapter chapter =
+	// chapterRepo.findById(chapterExamResult.getChapterId()).get();
+	//
+	// Optional<ChapterExamResult> findByChapterAndStudent =
+	// chapterExamResultRepo.findByChapterAndStudent(chapter,
+	// student);
+	// if (findByChapterAndStudent.isPresent())
+	// throw new ResourceAlreadyExistException("You have already submitted this
+	// test");
+	//
+	// ChapterExamResult examResult = new ChapterExamResult();
+	// Map<Integer, String> review = chapterExamResult.getReview();
+	// int correct = 0;
+	// int inCorrect = 0;
+	// examResult.setChapter(chapter);
+	// examResult.setStudent(student);
+	//
+	// List<Question> questions = chapter.getExam().getQuestions();
+	// questions = questions.stream().filter(obj ->
+	// !obj.getIsDeleted()).collect(Collectors.toList());
+	//
+	// for (Question q : questions) {
+	// Integer id = q.getQuestionId();
+	// String correctOption = q.getCorrectOption();
+	//
+	// if (Objects.nonNull(review)) {
+	// String reviewAns = review.get(id);
+	// if (Objects.nonNull(reviewAns)) {
+	// if (review.get(id).equals(correctOption)) {
+	// correct++;
+	// } else {
+	// inCorrect++;
+	// }
+	// }
+	// }
+	// }
+	// examResult.setReview(review);
+	// examResult.setCorrecteQuestions(correct);
+	// examResult.setWrongQuestions(inCorrect);
+	// examResult.setNotSelectedQuestions(questions.size() - (correct + inCorrect));
+	// examResult.setScoreGet(correct - inCorrect);
+	// examResult.setTotalQuestion(questions.size());
+	// ChapterExamResult save = chapterExamResultRepo.save(examResult);
+	//
+	// ChapterCompleted chapterCompleted = new ChapterCompleted();
+	// chapterCompleted.setChapterId(chapterExamResult.getChapterId());
+	// chapterCompleted.setStudentId(chapterExamResult.getStudentId());
+	// chapterCompleted.setSubjectId(chapterExamResult.getSubjectId());
+	// chapterCompletedRepository.save(chapterCompleted);
+	//
+	// ExamResultResponse res = new ExamResultResponse();
+	// res.setCorrecteQuestions(save.getCorrecteQuestions());
+	// res.setNotSelectedQuestions(save.getNotSelectedQuestions());
+	// res.setScoreGet(save.getScoreGet());
+	// res.setWrongQuestions(save.getWrongQuestions());
+	// res.setId(save.getId());
+	// res.setTotalQuestion(save.getTotalQuestion());
+	// res.setStudentId(save.getStudent().getStudentId());
+	// res.setStudentName(save.getStudent().getFullName());
+	// res.setProfilePic(save.getStudent().getProfilePic());
+	//
+	// List<ChapterExamResult> allResults =
+	// chapterExamResultRepo.findAllById(chapter.getChapterId());
+	//
+	// int total = allResults.size();
+	// int lowerScores = 0;
+	//
+	// for (ChapterExamResult result : allResults) {
+	// if (result.getScoreGet() <= save.getScoreGet()) {
+	// lowerScores++;
+	// }
+	// }
+	//
+	// int percentile = 0;
+	// if (total == 1) {
+	// percentile = 100;
+	// } else {
+	// percentile = (int) Math.round(((double) lowerScores / total) * 100);
+	// }
+	//
+	// res.setPercentile(percentile);
+	//
+	// // .....firebase notification .....//
+	//
+	// NotificationInfo fcmIds =
+	// studentRepository.findFcmIdByStudentId(student.getStudentId());
+	// String message = String.format("Congratulations! You have successfully
+	// completed your exam. Well done!");
+	// fcmIds.setMessage(message);
+	// fcmIds.setTitle("Exam Completed!");
+	// kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC,
+	// fcmIds.toString());
+	// // .....firebase notification .....//
+	//
+	// return new ResponseEntity<>(res, HttpStatus.OK);
+	// }
 
 	@Override
 	public ResponseEntity<?> addChapterExamResult(ExamRequest chapterExamResult) {
@@ -326,7 +337,7 @@ public class ExamServiceImpl implements IExamService {
 	@Override
 	public ResponseEntity<?> addSubjectExamResult(ExamRequest request) {
 		Map<String, String> response = new HashMap<>();
-
+		System.err.println(request.getStudentId());
 		Student student = studentRepository.findById(request.getStudentId()).get();
 		Subject subject = subjectRepository.findById(request.getSubjectId()).get();
 		SubjectExam subjectExam = subjectExamRepo.findById(request.getExamId())
@@ -406,11 +417,14 @@ public class ExamServiceImpl implements IExamService {
 
 		// .....firebase notification .....//
 
-//		NotificationInfo fcmIds = studentRepository.findFcmIdByStudentId(student.getStudentId());
-//		String message = String.format("Congratulations! You have successfully completed your exam. Well done!");
-//		fcmIds.setMessage(message);
-//		fcmIds.setTitle("Exam Completed!");
-//		kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC, fcmIds.toString());
+		// NotificationInfo fcmIds =
+		// studentRepository.findFcmIdByStudentId(student.getStudentId());
+		// String message = String.format("Congratulations! You have successfully
+		// completed your exam. Well done!");
+		// fcmIds.setMessage(message);
+		// fcmIds.setTitle("Exam Completed!");
+		// kafkaProducerService.sendNotification(NotificationConstant.COMMON_TOPIC,
+		// fcmIds.toString());
 		// .....firebase notification .....//
 
 		// Save submitted exam question history
@@ -597,14 +611,17 @@ public class ExamServiceImpl implements IExamService {
 		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
 		SubjectExam exam = new SubjectExam();
 
-//		Optional<SubjectExam> isExamExist = subject.getExams().stream()
-//				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
-//
-//		// checking exam existance with the name;
-//		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
-//
-//		if (contains)
-//			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+		// Optional<SubjectExam> isExamExist = subject.getExams().stream()
+		// .filter(obj ->
+		// obj.getExamName().equals(request.getExamName().trim())).findFirst();
+		//
+		// // checking exam existance with the name;
+		// boolean contains = isExamExist.isPresent() &&
+		// subject.getExams().contains(isExamExist.get());
+		//
+		// if (contains)
+		// throw new
+		// ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
 
 		// UPDATE
 		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),
@@ -834,37 +851,40 @@ public class ExamServiceImpl implements IExamService {
 	}
 
 	// for student use
-//	@Override
+	// @Override
 	public ResponseEntity<?> getAllSubjectNormalAndScheduleExamForStudent(Integer studentId) {
-//		studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("student not found !! "));
-//
-//		Map<String, Object> response = new HashMap<>();
-//		List<SubjectExamResponse> allSubjectExam = new ArrayList<>();
-//
-//		allSubjectExam = subjectRepository.getAllSubjectExam(studentId);
-//		List<SubjectExamResponse> normalExam = new ArrayList<>();
-//		List<SubjectExamResponse> scheduleExam = new ArrayList<>();
-//		allSubjectExam.stream().forEach(obj -> {
-//			if (obj.getExamType().equals(ExamType.SCHEDULEEXAM)) {
-//				LocalDateTime scheduledDateTime = LocalDateTime.of(obj.getScheduleTestDate(), obj.getExamStartTime());
-//				LocalDateTime examEndTime = scheduledDateTime.plus(AppConstants.EXTRA_EXAM_TIME, ChronoUnit.MINUTES);
-//				LocalDateTime now = LocalDateTime.now();
-//
-//				if (now.isBefore(examEndTime)) {
-//					obj.setIsExamEnd(false); // Exam is not ended
-//					obj.setExtraTime(1);
-//				} else {
-//					obj.setIsExamEnd(true);
-//				}
-//				scheduleExam.add(obj);
-//			} else {
-//				normalExam.add(obj);
-//			}
-//		});
-//		response.put(AppConstants.NORMAL_EXAM, normalExam);
-//		response.put(AppConstants.SCHEDULE_EXAM, scheduleExam);
-//		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
-//		return new ResponseEntity<>(response, HttpStatus.OK);
+		// studentRepository.findById(studentId).orElseThrow(() -> new
+		// ResourceNotFoundException("student not found !! "));
+		//
+		// Map<String, Object> response = new HashMap<>();
+		// List<SubjectExamResponse> allSubjectExam = new ArrayList<>();
+		//
+		// allSubjectExam = subjectRepository.getAllSubjectExam(studentId);
+		// List<SubjectExamResponse> normalExam = new ArrayList<>();
+		// List<SubjectExamResponse> scheduleExam = new ArrayList<>();
+		// allSubjectExam.stream().forEach(obj -> {
+		// if (obj.getExamType().equals(ExamType.SCHEDULEEXAM)) {
+		// LocalDateTime scheduledDateTime = LocalDateTime.of(obj.getScheduleTestDate(),
+		// obj.getExamStartTime());
+		// LocalDateTime examEndTime =
+		// scheduledDateTime.plus(AppConstants.EXTRA_EXAM_TIME, ChronoUnit.MINUTES);
+		// LocalDateTime now = LocalDateTime.now();
+		//
+		// if (now.isBefore(examEndTime)) {
+		// obj.setIsExamEnd(false); // Exam is not ended
+		// obj.setExtraTime(1);
+		// } else {
+		// obj.setIsExamEnd(true);
+		// }
+		// scheduleExam.add(obj);
+		// } else {
+		// normalExam.add(obj);
+		// }
+		// });
+		// response.put(AppConstants.NORMAL_EXAM, normalExam);
+		// response.put(AppConstants.SCHEDULE_EXAM, scheduleExam);
+		// response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		// return new ResponseEntity<>(response, HttpStatus.OK);
 		return null;
 	}
 
@@ -924,24 +944,27 @@ public class ExamServiceImpl implements IExamService {
 
 	// ******************************************
 
-//	@Override
-//	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
-//
-//		Map<String, Object> response = new HashMap<>();
-//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
-//		if (chapter.isPresent()) {
-//
-//			Optional<Exam> exam = examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(), false);
-//			if (exam.isPresent() && exam.get().getIsActive()) {
-//				exam.get().setIsStarted(true);
-//				examRepo.save(exam.get());
-//				return new ResponseEntity<>(HttpStatus.OK);
-//			}
-//		}
-//		response.put(AppConstants.MESSAGE, "Chapter not found");
-//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//
-//	}
+	// @Override
+	// public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
+	//
+	// Map<String, Object> response = new HashMap<>();
+	// Optional<Chapter> chapter =
+	// chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+	// if (chapter.isPresent()) {
+	//
+	// Optional<Exam> exam =
+	// examRepo.findByExamIdAndIsDeleted(chapter.get().getExam().getExamId(),
+	// false);
+	// if (exam.isPresent() && exam.get().getIsActive()) {
+	// exam.get().setIsStarted(true);
+	// examRepo.save(exam.get());
+	// return new ResponseEntity<>(HttpStatus.OK);
+	// }
+	// }
+	// response.put(AppConstants.MESSAGE, "Chapter not found");
+	// return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	//
+	// }
 
 	@Override
 	public ResponseEntity<?> setChapterExamStartStatus(Integer chapterId) {
@@ -1473,6 +1496,7 @@ public class ExamServiceImpl implements IExamService {
 						conflictingExam.getExamName(), remaining.toHours(), remaining.toMinutesPart());
 
 				response.put(AppConstants.MESSAGE, message);
+
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 		}
@@ -1678,24 +1702,27 @@ public class ExamServiceImpl implements IExamService {
 				.courseId(c.getCourseId()).examFrom("COURSE").build();
 	}
 
-//	@Override
-//	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
-//
-//		Map<String, Object> response = new HashMap<>();
-//		Optional<Chapter> chapter = chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
-//		if (chapter.isPresent()) {
-//			
-//			
-//			response.put("testQuestions", chapter.get().getExam().getQuestions().parallelStream()
-//					.filter(obj -> !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
-//			response.put("examTimer", chapter.get().getExam().getExamTimer());
-//			response.put("chapterId", chapterId);
-//			response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
-//			return new ResponseEntity<>(response, HttpStatus.OK);
-//		}
-//		response.put(AppConstants.MESSAGE, "Chapter not found");
-//		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//	}
+	// @Override
+	// public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
+	//
+	// Map<String, Object> response = new HashMap<>();
+	// Optional<Chapter> chapter =
+	// chapterRepo.findByChapterIdAndIsDeleted(chapterId, false);
+	// if (chapter.isPresent()) {
+	//
+	//
+	// response.put("testQuestions",
+	// chapter.get().getExam().getQuestions().parallelStream()
+	// .filter(obj ->
+	// !obj.getIsDeleted()).map(this::questionFilterWithoudCorrectOprionNew));
+	// response.put("examTimer", chapter.get().getExam().getExamTimer());
+	// response.put("chapterId", chapterId);
+	// response.put("subjectId", chapterRepo.findSubjectIdByChapterId(chapterId));
+	// return new ResponseEntity<>(response, HttpStatus.OK);
+	// }
+	// response.put(AppConstants.MESSAGE, "Chapter not found");
+	// return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	// }
 
 	@Override
 	public ResponseEntity<?> getChapterExamNew(Integer chapterId) {
@@ -1828,8 +1855,10 @@ public class ExamServiceImpl implements IExamService {
 		}
 		return questionResponse;
 	}
+	// ==================================== NEW METHOD ===========================\
 
-//........................................... New .........................................
+	// ........................................... New
+	// .........................................
 	@Override
 	public ResponseEntity<?> getOverallResultOfStudentByCourse(Integer studentId) {
 		Student student = studentRepository.findById(studentId)
@@ -2099,10 +2128,25 @@ public class ExamServiceImpl implements IExamService {
 			}
 
 			subjectPerformanceList.add(Map.of("subjectId", subject.getSubjectId(), "subjectName",
-					subject.getSubjectName(), "percentage", percentage));
+					subject.getSubjectName(), "percentage", percentage, "grade", calculateGrade(percentage)));
 		}
 
 		return ResponseEntity.ok(subjectPerformanceList);
+	}
+
+	private String calculateGrade(double percentage) {
+		if (percentage >= 90)
+			return "A+";
+		else if (percentage >= 80)
+			return "A";
+		else if (percentage >= 70)
+			return "B";
+		else if (percentage >= 60)
+			return "C";
+		else if (percentage >= 50)
+			return "D";
+		else
+			return "F";
 	}
 
 	@Override
@@ -2164,5 +2208,273 @@ public class ExamServiceImpl implements IExamService {
 		}
 
 		return ResponseEntity.ok(testPerformances);
+	}
+
+	@Override
+	public Integer getRemainingQuestionCountForSubject(Integer subjectId) {
+		Subject subject = subjectRepository.findById(subjectId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND));
+		int subjectTotalQuestionsCount = subject.getQuestions().size();
+		int totalSubjectExamQuetions = subject.getExams().stream().mapToInt(se -> se.getTotalQuestionForTest()).sum();
+		Integer remainingQuestionCount = subjectTotalQuestionsCount - totalSubjectExamQuetions;
+		return remainingQuestionCount;
+	}
+
+	@Override
+	public Integer getRemainingQuestionCountForCourse(Integer courseId) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND));
+
+		int subjectsTotalQuestionsCount = course.getSubjects().stream().mapToInt(s -> s.getQuestions().size()).sum();
+
+		Integer totalQuestionsCountByCourseId = courseExamRepo.getTotalQuestionsByCourseId(courseId);
+
+		return subjectsTotalQuestionsCount - totalQuestionsCountByCourseId;
+	}
+
+	// add check for questions available or not for this exam
+	@Override
+	public ResponseEntity<?> addCourseExamNew(AddExamRequest request) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		// 1. Validate course exists
+		Course course = courseRepository.findById(request.getCourseId())
+				.orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
+
+		int subjectsTotalQuestionsCount = course.getSubjects().stream().mapToInt(s -> s.getQuestions().size()).sum();
+
+		if (!(subjectsTotalQuestionsCount >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + subjectsTotalQuestionsCount);
+
+		}
+		// 2. Check for duplicate exam name in the same course
+		boolean examExists = courseExamRepo.existsByExamNameAndCourseId(request.getExamName().trim(),
+				request.getCourseId());
+
+		if (examExists) {
+			throw new ResourceAlreadyExistException("Exam with this name already exists in the course");
+		}
+
+		// 3. Create new exam
+		CourseExam exam = new CourseExam();
+		exam.setExamName(request.getExamName().trim());
+		exam.setPassingMarks(request.getPassingMarks());
+		exam.setTotalQuestionForTest(request.getTotalQuestionForTest());
+		exam.setExamTimer(request.getExamTimer());
+		exam.setCourse(course);
+
+		// Set technology stack image from course
+		if (course.getTechnologyStack() != null) {
+			exam.setExamImage(course.getTechnologyStack().getImageName());
+		}
+
+		// 4. Handle scheduled exam specific logic
+		if (request.getScheduleTestDate() != null) {
+			LocalDateTime scheduledDateTime = LocalDateTime.of(request.getScheduleTestDate(),
+					request.getExamStartTime());
+
+			// Validate future date
+			if (scheduledDateTime.isBefore(LocalDateTime.now())) {
+				response.put(AppConstants.MESSAGE, "Exam schedule must be in the future");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			// Check for scheduling conflicts
+			List<CourseExam> conflictingExams = courseExamRepo.findScheduledExamsByCourse(request.getCourseId(),
+					request.getScheduleTestDate(), request.getExamStartTime(), request.getExamTimer());
+
+			if (!conflictingExams.isEmpty()) {
+				CourseExam conflictingExam = conflictingExams.get(0);
+				LocalDateTime conflictEnd = LocalDateTime
+						.of(conflictingExam.getScheduleTestDate(), conflictingExam.getExamStartTime())
+						.plusMinutes(conflictingExam.getExamTimer());
+
+				Duration remaining = Duration.between(scheduledDateTime, conflictEnd);
+				String message = String.format(
+						"There's a scheduling conflict with '%s'. Please schedule after %d hours and %d minutes.",
+						conflictingExam.getExamName(), remaining.toHours(), remaining.toMinutesPart());
+
+				response.put(AppConstants.MESSAGE, message);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			exam.setScheduleTestDate(request.getScheduleTestDate());
+			exam.setExamStartTime(request.getExamStartTime());
+			exam.setExamType(ExamType.SCHEDULEEXAM);
+		} else {
+			exam.setExamType(ExamType.NORMALEXAM);
+		}
+
+		// 5. Set audit fields
+		exam.setCreatedDate(LocalDateTime.now());
+		exam.setUpdatedDate(LocalDateTime.now());
+		exam.setIsActive(true);
+		exam.setIsDeleted(false);
+
+		// 6. Save the exam
+		CourseExam savedExam = courseExamRepo.save(exam);
+
+		// 7. Prepare response
+		response.put("courseExam", mapCourseExamToResponse(savedExam));
+		response.put(AppConstants.MESSAGE, "Course exam created successfully");
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
+	@Override
+	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request) {
+
+		Map<String, Object> response = new HashMap<>();
+
+		Subject subject = subjectServiceImpl.checkSubjectIsPresent(request.getSubjectId());
+		SubjectExam exam = new SubjectExam();
+
+		int subjectTotalQuestionsCount = subject.getQuestions().size();
+		if (!(subjectTotalQuestionsCount >= request.getTotalQuestionForTest())) {
+			throw new ResourceNotFoundException(AppConstants.NOT_ENOUGH_QUETIONS + "Required: "
+					+ request.getTotalQuestionForTest() + ", Available: " + subjectTotalQuestionsCount);
+
+		}
+
+//		Optional<SubjectExam> isExamExist = subject.getExams().stream()
+//				.filter(obj -> obj.getExamName().equals(request.getExamName().trim())).findFirst();
+//
+//		// checking exam existance with the name;
+//		boolean contains = isExamExist.isPresent() && subject.getExams().contains(isExamExist.get());
+//
+//		if (contains)
+//			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+
+		// UPDATE
+		Optional<SubjectExam> existingExam = subjectExamRepo.findBySubjectIdAndExamName(subject.getSubjectId(),
+				request.getExamName().trim());
+
+		if (existingExam.isPresent()) {
+			throw new ResourceAlreadyExistException(AppConstants.EXAM_ALREADY_PRESENT_WITH_THIS_NAME);
+		}
+
+		// schedule exam case
+		if (request.getScheduleTestDate() != null) {
+			// checking the date must not be before or equals to current date time
+			LocalDateTime scheduledDateTime = changeIntoLocalDateTime(request.getScheduleTestDate(),
+					request.getExamStartTime());
+
+			LocalDateTime currentDateTime = LocalDateTime.now();
+			if (scheduledDateTime.isBefore(currentDateTime) || scheduledDateTime.isEqual(currentDateTime)) {
+				response.put(AppConstants.MESSAGE, "Exam date and time must be in the future");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+			// ensuring!. checking exam time not under previous exam duration time
+			SubjectExam latestExam = subjectExamRepo.findLatestExam();
+
+			if (latestExam != null && subject.getExams().contains(latestExam)) {
+
+				LocalDateTime actuallatestExamTime = changeIntoLocalDateTime(latestExam.getScheduleTestDate(),
+						latestExam.getExamStartTime());
+				LocalDateTime latestExamTimeWithDuration = changeIntoLocalDateTime(latestExam.getScheduleTestDate(),
+						latestExam.getExamStartTime().plusMinutes(latestExam.getExamTimer()));
+
+				LocalDateTime requestDateTime = changeIntoLocalDateTime(request.getScheduleTestDate(),
+						request.getExamStartTime());
+
+				if (requestDateTime.isAfter(actuallatestExamTime)
+						&& requestDateTime.isBefore(latestExamTimeWithDuration)) {
+					Duration duration = Duration.between(requestDateTime, latestExamTimeWithDuration);
+
+					long hours = duration.toHours();
+					long minutes = duration.toMinutes() % 60;
+
+					String message = "";
+					if (hours != 0)
+						message = String.format(
+								"Please add the exam after %d hours and %d minutes from request date and time. An another exam is already scheduled during this time. or Add after this time",
+								hours, minutes);
+					else
+						message = String.format(
+								"Please add the exam after  %d minutes  from request date and time. An another exam is already scheduled during this time. or Add after this time",
+								minutes);
+
+					response.put(AppConstants.MESSAGE, message);
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+
+			}
+
+			exam.setScheduleTestDate(request.getScheduleTestDate());
+			exam.setExamStartTime(request.getExamStartTime());
+			exam.setExamType(ExamType.SCHEDULEEXAM);
+
+		} else {
+			exam.setExamType(ExamType.NORMALEXAM);
+		}
+
+		exam.setPassingMarks(request.getPassingMarks());
+		exam.setExamImage(subject.getTechnologyStack().getImageName());
+		exam.setExamName(request.getExamName().trim());
+		exam.setTotalQuestionForTest(request.getTotalQuestionForTest());
+		exam.setExamTimer(request.getExamTimer());
+		exam.setCreatedDate(LocalDateTime.now());
+		exam.setUpdatedDate(LocalDateTime.now());
+		SubjectExam savedExam = subjectExamRepo.save(exam);
+		subject.getExams().add(savedExam);
+		subjectRepository.save(subject);
+
+		response.put(AppConstants.SUBJECT_EXAM, subjectExamResponseFilter(savedExam));
+		response.put(AppConstants.MESSAGE, AppConstants.EXAM_ADDED_SUCCESSFULLY);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search) {
+		// Early validation
+		Integer courseId = request.getCourseId();
+		Integer subjectId = request.getSubjectId();
+		Integer studentId = request.getStudentId();
+
+		if (courseId == null || studentId == null) {
+			throw new ResourceNotFoundException("Course or Student ID cannot be null");
+		}
+
+		// Validate entities
+		validateEntities(courseId, subjectId, studentId);
+
+		// Prepare response
+		Map<String, Object> response = new HashMap<>();
+		response.put(AppConstants.MESSAGE, AppConstants.SUCCESS);
+		// Create page request once
+		PageRequest pageRequest = PageRequest.of(request.getPaginationRequest().getPageNumber(),
+				request.getPaginationRequest().getPageSize());
+
+		if (subjectId != null) {
+			searchProcessSubjectExams(studentId, pageRequest, response, examType, request.getStatus(), search);
+		} else {
+			searchProcessCourseExams(studentId, courseId, pageRequest, response, examType, request.getStatus(), search);
+		}
+
+		return ResponseEntity.ok(response);
+	}
+
+	private void searchProcessSubjectExams(Integer studentId, PageRequest pageRequest, Map<String, Object> response,
+			ExamType examType, String status, String search) {
+		Page<SubjectExamResponse> exams = subjectRepository.searchAllSubjectExam(examType, studentId, status, search,
+				pageRequest);
+
+		if (examType.equals(ExamType.SCHEDULEEXAM)) {
+			exams = exams.map(this::processScheduleExam);
+		}
+		response.put(AppConstants.EXAM, exams);
+	}
+
+	private void searchProcessCourseExams(Integer studentId, Integer courseId, PageRequest pageRequest,
+			Map<String, Object> response, ExamType examType, String status, String search) {
+		Page<CourseExamResponse> exams = courseExamRepo.searchCourseExams(examType, courseId, studentId, status, search,
+				pageRequest);
+
+		if (examType.equals(ExamType.SCHEDULEEXAM)) {
+			exams = exams.map(this::processScheduleExam);
+		}
+		response.put(AppConstants.EXAM, exams);
 	}
 }

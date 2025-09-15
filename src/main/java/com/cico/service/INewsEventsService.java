@@ -1,13 +1,12 @@
 package com.cico.service;
 
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cico.model.NewsEvents;
+import com.cico.payload.NewsEventsResponse;
 import com.cico.payload.PageResponse;
-
-
 
 public interface INewsEventsService {
 
@@ -15,7 +14,7 @@ public interface INewsEventsService {
 
 	NewsEvents getNewsEvents(Integer id);
 
-	PageResponse<NewsEvents> getAllNewsEvents(Integer page,Integer size);
+	PageResponse<NewsEvents> getAllNewsEvents(Integer page, Integer size);
 
 	NewsEvents updateNewsEvents(Integer id, String shortDescription, String briefDescription, String title,
 			MultipartFile file);
@@ -26,5 +25,13 @@ public interface INewsEventsService {
 
 	Boolean activeAndInActiveNewsAndEvent(Integer id);
 
-	PageResponse<NewsEvents> searchNewsAndEvents(String search,String role,Integer page,Integer size);
+	PageResponse<NewsEvents> searchNewsAndEvents(String search, String role, Integer page, Integer size);
+
+	PageResponse<NewsEventsResponse> getAllNewsEventsIsActiveNew(Integer page, Integer size);
+
+	List<NewsEventsResponse> newsEventsToNewsEventsResponse(List<NewsEvents> newsEvents);
+
+	NewsEventsResponse newsEventsToNewsEventsResponse(NewsEvents newsEvent);
+
+	NewsEventsResponse getNewsEventsNew(Integer id);
 }

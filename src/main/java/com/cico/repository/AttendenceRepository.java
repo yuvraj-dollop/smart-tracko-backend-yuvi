@@ -1,4 +1,4 @@
-	package com.cico.repository;
+package com.cico.repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.cico.model.Attendance;
+import com.cico.payload.StatusCountDTO;
 
 @Repository
 public interface AttendenceRepository extends JpaRepository<Attendance, Integer> {
@@ -27,15 +28,17 @@ public interface AttendenceRepository extends JpaRepository<Attendance, Integer>
 			LocalDate checkOutDate);
 
 	@Query(nativeQuery = true, value = "SELECT * FROM attendance WHERE student_id = :studentId AND check_in_date BETWEEN :startDate AND :endDate AND check_in_time IS NOT NULL AND check_out_time IS NOT NULL ORDER BY check_in_date DESC LIMIT :offset, :limit")
-	public List<Attendance> findAttendanceHistory(@Param("studentId")Integer studentId,@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,@Param("offset") Integer offset,@Param("limit") Integer limit);
-	
+	public List<Attendance> findAttendanceHistory(@Param("studentId") Integer studentId,
+			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+			@Param("offset") Integer offset, @Param("limit") Integer limit);
+
 	@Query("SELECT a FROM Attendance a WHERE a.studentId=:studentId AND a.checkInDate between :startDate AND :endDate AND a.checkInTime IS NOT NULL AND a.checkOutTime IS NOT NULL")
 	public Page<Attendance> findAttendanceHistory(Integer studentId, LocalDate startDate, LocalDate endDate,
 			PageRequest of);
 
 	@Query("SELECT a FROM Attendance a WHERE a.studentId = :studentId AND FUNCTION('MONTH', a.checkInDate) = :monthNo AND FUNCTION('YEAR', a.checkInDate) = :year AND a.checkOutTime IS NOT NULL")
-	List<Attendance> findAttendanceByMonthAndYear(@Param("studentId") Integer studentId, @Param("monthNo") Integer monthNo, @Param("year") Integer year);
-
+	List<Attendance> findAttendanceByMonthAndYear(@Param("studentId") Integer studentId,
+			@Param("monthNo") Integer monthNo, @Param("year") Integer year);
 
 	@Query("SELECT a FROM Attendance a WHERE a.studentId=:id And a.checkInTime IS NOT NULL And a.checkOutTime IS NOT NULL")
 	public Page<Attendance> findAllByStudentId(@Param("id") Integer id, PageRequest pageRequest);
@@ -63,45 +66,36 @@ public interface AttendenceRepository extends JpaRepository<Attendance, Integer>
 	public void deleteAttendanceToday(@Param("id") Integer id, @Param("now") LocalDate now);
 
 	@Query("SELECT COUNT(a) FROM Attendance a WHERE  a.studentId=:studentId AND  MONTH(a.checkInDate) = MONTH(CURRENT_DATE) AND a.workingHour >= 32400 AND a.isMispunch = 0 AND YEAR(a.checkInDate) = YEAR(CURRENT_DATE) ")
-	public Long countPresentStudentsForCurrentMonth( @Param("studentId") Integer studentId);
+	public Long countPresentStudentsForCurrentMonth(@Param("studentId") Integer studentId);
 
-	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.studentId = :studentId " +
-		       "AND FUNCTION('MONTH', a.checkInDate) = FUNCTION('MONTH', CURRENT_DATE) " +
-		       "AND FUNCTION('YEAR', a.checkInDate) = FUNCTION('YEAR', CURRENT_DATE) " +
-		       "AND a.isMispunch = 1")
-		public Long countTotalMishpunchForCurrentMonth(@Param("studentId") Integer studentId);
+	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.studentId = :studentId "
+			+ "AND FUNCTION('MONTH', a.checkInDate) = FUNCTION('MONTH', CURRENT_DATE) "
+			+ "AND FUNCTION('YEAR', a.checkInDate) = FUNCTION('YEAR', CURRENT_DATE) " + "AND a.isMispunch = 1")
+	public Long countTotalMishpunchForCurrentMonth(@Param("studentId") Integer studentId);
 
+	@Query("SELECT COUNT(a) FROM Attendance a " + "WHERE a.studentId = :studentId "
+			+ "AND FUNCTION('MONTH', a.checkInDate) = FUNCTION('MONTH', CURRENT_DATE) "
+			+ "AND FUNCTION('YEAR', a.checkInDate) = FUNCTION('YEAR', CURRENT_DATE) " + "AND a.workingHour < 32400 "
+			+ "AND a.isMispunch = 0 " + "GROUP BY FUNCTION('MONTH', a.checkInDate)")
+	public Long countTotalEarlyCheckOutForCurrentMonth(@Param("studentId") Integer studentId);
 
-	@Query("SELECT COUNT(a) FROM Attendance a " +
-		       "WHERE a.studentId = :studentId " +
-		       "AND FUNCTION('MONTH', a.checkInDate) = FUNCTION('MONTH', CURRENT_DATE) " +
-		       "AND FUNCTION('YEAR', a.checkInDate) = FUNCTION('YEAR', CURRENT_DATE) " +
-		       "AND a.workingHour < 32400 " +
-		       "AND a.isMispunch = 0 " +
-		       "GROUP BY FUNCTION('MONTH', a.checkInDate)")
-		public Long countTotalEarlyCheckOutForCurrentMonth(@Param("studentId") Integer studentId);
-
-	
-	
 	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.studentId = :studentId AND YEAR(a.checkInDate) >= YEAR(:joinDate) AND a.checkInDate <=CURRENT_DATE() AND a.workingHour >= 32400 AND a.isMispunch = 0")
 	public Long countTotalPresentStudentsForCurrentYear(Integer studentId, LocalDate joinDate);
 
-	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.studentId = :studentId " +
-		       "AND  YEAR(a.checkInDate)>= YEAR(:joinDate) AND a.checkInDate <= CURRENT_DATE() " +
-		       "AND a.isMispunch = 1")
+	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.studentId = :studentId "
+			+ "AND  YEAR(a.checkInDate)>= YEAR(:joinDate) AND a.checkInDate <= CURRENT_DATE() "
+			+ "AND a.isMispunch = 1")
 	public Long countTotalMishpunchForCurrentYear(Integer studentId, LocalDate joinDate);
 
-	
-	@Query("SELECT COUNT(a) FROM Attendance a " +
-		       "WHERE a.studentId = :studentId " +
-		       "AND  YEAR(a.checkInDate)>= YEAR(:joinDate) AND a.checkInDate <= CURRENT_DATE() " +
-		       "AND a.workingHour < 32400 " +
-		       "AND a.isMispunch = 0 ")
+	@Query("SELECT COUNT(a) FROM Attendance a " + "WHERE a.studentId = :studentId "
+			+ "AND  YEAR(a.checkInDate)>= YEAR(:joinDate) AND a.checkInDate <= CURRENT_DATE() "
+			+ "AND a.workingHour < 32400 " + "AND a.isMispunch = 0 ")
 	public Long countTotalEarlyCheckOutForCurrentYear(Integer studentId, LocalDate joinDate);
 
 //	@Query("SELECT a FROM Attendance a WHERE a.studentId=:studentId AND MONTH(a.checkInDate)=:monthNo AND YEAR(a.checkInDate) =:year AND a.workingHour >= 32400 AND a.isMispunch =0")
 	@Query("SELECT a FROM Attendance a WHERE a.studentId=:studentId AND MONTH(a.checkInDate)=:monthNo AND YEAR(a.checkInDate) =:year AND a.workingHour >= 9 AND a.isMispunch =0")
-	public List<Attendance> findByStudentIdForCurrentMonth(@Param("studentId") Integer studentId,@Param("monthNo") Integer monthNo ,@Param("year") Integer year);
+	public List<Attendance> findByStudentIdForCurrentMonth(@Param("studentId") Integer studentId,
+			@Param("monthNo") Integer monthNo, @Param("year") Integer year);
 
 //	@Query("SELECT a FROM Attendance a " +
 //		       "WHERE a.studentId = :studentId " +
@@ -109,27 +103,49 @@ public interface AttendenceRepository extends JpaRepository<Attendance, Integer>
 //		       "AND YEAR(a.checkInDate)=:year "+
 //		       "AND a.workingHour < 32400 " +
 //		       "AND a.isMispunch = 0 ")
-	@Query("SELECT a FROM Attendance a " +
-		       "WHERE a.studentId = :studentId " +
-		       "AND MONTH(a.checkInDate)=:monthNo " +
-		       "AND YEAR(a.checkInDate)=:year "+
-		       "AND a.workingHour < 9 " +
-		       "AND a.isMispunch = 0 ")
-	public List<Attendance> countTotalEarlyCheckOutForCurrent1(Integer studentId, @Param("monthNo") Integer monthNo, @Param("year") Integer year);
-	
-	
-	@Query("SELECT a FROM Attendance a WHERE a.studentId = :studentId " +
-		       "AND MONTH(a.checkInDate)=:monthNo " +
-		       "AND YEAR(a.checkInDate)=:year "+
-		       "AND a.isMispunch = 1")
-	public List<Attendance> countTotalMishpunchForCurrentYear1(Integer studentId,@Param("monthNo") Integer monthNo, @Param("year") Integer year);
-	
+	@Query("SELECT a FROM Attendance a " + "WHERE a.studentId = :studentId " + "AND MONTH(a.checkInDate)=:monthNo "
+			+ "AND YEAR(a.checkInDate)=:year " + "AND a.workingHour < 9 " + "AND a.isMispunch = 0 ")
+	public List<Attendance> countTotalEarlyCheckOutForCurrent1(Integer studentId, @Param("monthNo") Integer monthNo,
+			@Param("year") Integer year);
+
+	@Query("SELECT a FROM Attendance a WHERE a.studentId = :studentId " + "AND MONTH(a.checkInDate)=:monthNo "
+			+ "AND YEAR(a.checkInDate)=:year " + "AND a.isMispunch = 1")
+	public List<Attendance> countTotalMishpunchForCurrentYear1(Integer studentId, @Param("monthNo") Integer monthNo,
+			@Param("year") Integer year);
+
 	@Query("SELECT COUNT(a) FROM Attendance a WHERE a.checkInDate = CURRENT_DATE() AND a.workingHour < 32400 AND a.isMispunch = 0")
 	public Long getTodayEarlyCheckOutsCount();
-	
+
 	@Query("SELECT COUNT(s) FROM Student s WHERE  s.isCompleted = 0 AND  s.studentId  NOT IN ("
 			+ "SELECT a.studentId FROM Attendance a WHERE DATE(a.checkInDate) = CURRENT_DATE())  ")
 	public Long getTodayAbsentCount();
-	
-	
+
+	// =============================== NEW ========================================
+
+	long countByStudentIdAndWorkingHourGreaterThanAndIsMispunchFalseAndCheckInDateBetween(Integer studentId,
+			Long workingHourInSeconds, LocalDate startDate, LocalDate endDate);
+
+	@Query("SELECT COALESCE(AVG(a.workingHour), 0) " + "FROM Attendance a " + "WHERE a.studentId = :studentId "
+			+ "AND FUNCTION('MONTH', a.checkInDate) = FUNCTION('MONTH', CURRENT_DATE) "
+			+ "AND FUNCTION('YEAR', a.checkInDate) = FUNCTION('YEAR', CURRENT_DATE)")
+	Double findAverageWorkingHoursForCurrentMonth(@Param("studentId") Integer studentId);
+
+	@Query("SELECT " + "CASE " + "  WHEN a.isMispunch = true THEN 'mispunch' "
+			+ "  WHEN a.workingHour >= 32400 THEN 'present' " + // 9 hours = 32400 seconds
+			"  ELSE 'earlyCheckOut' " + "END AS status, " + "COUNT(a) AS count " + "FROM Attendance a "
+			+ "WHERE a.studentId = :studentId " + "AND a.checkInDate BETWEEN :joinDate AND :yesterday " + "GROUP BY "
+			+ "CASE " + "  WHEN a.isMispunch = true THEN 'mispunch' " + "  WHEN a.workingHour >= 32400  THEN 'present' "
+			+ "  ELSE 'earlyCheckOut' " + "END")
+	List<StatusCountDTO> getAttendanceStatusCounts(@Param("studentId") Integer studentId,
+			@Param("joinDate") LocalDate joinDate, @Param("yesterday") LocalDate yesterday);
+
+	@Query("SELECT a FROM Attendance a WHERE a.studentId=:studentId AND MONTH(a.checkInDate)=:monthNo AND YEAR(a.checkInDate) =:year AND a.workingHour >= 32400 AND a.isMispunch =0")
+	public List<Attendance> findByStudentIdForCurrentMonthNew(@Param("studentId") Integer studentId,
+			@Param("monthNo") Integer monthNo, @Param("year") Integer year);
+
+	@Query("SELECT a FROM Attendance a " + "WHERE a.studentId = :studentId " + "AND MONTH(a.checkInDate)=:monthNo "
+			+ "AND YEAR(a.checkInDate)=:year " + "AND a.workingHour < 32400 " + "AND a.isMispunch = 0 ")
+	public List<Attendance> countTotalEarlyCheckOutForCurrent1New(Integer studentId, @Param("monthNo") Integer monthNo,
+			@Param("year") Integer year);
+
 }

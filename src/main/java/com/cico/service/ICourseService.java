@@ -8,7 +8,6 @@ import com.cico.payload.ApiResponse;
 import com.cico.payload.CourseRequest;
 import com.cico.payload.CourseResponse;
 
-
 public interface ICourseService {
 
 	public ResponseEntity<?> createCourse(CourseRequest request);
@@ -22,7 +21,7 @@ public interface ICourseService {
 	public Boolean deleteCourseById(Integer courseId);
 
 	public Map<String, Object> studentUpgradeCourse(Integer studnetId, Integer courseId);
-	
+
 	public ResponseEntity<?> getCourseProgress(Integer studentId);
 
 	public ResponseEntity<?> getCoureWithBatchesAndSubjects(Integer courseId);
@@ -36,5 +35,7 @@ public interface ICourseService {
 	public ResponseEntity<?> getAllCourseForStudentNew(Integer studentId);
 
 	ResponseEntity<?> getCourseProgressNew(Integer studentId);
+
+	ResponseEntity<?> createCourseNew(CourseRequest request);
 
 }

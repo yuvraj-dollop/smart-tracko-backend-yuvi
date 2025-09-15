@@ -1380,6 +1380,8 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 	@Override
 	public ResponseEntity<?> createDiscussionForm(CreateDiscussionFormRequest discussionFormRequest) {
+
+		System.err.println(discussionFormRequest);
 		if (Objects.isNull(discussionFormRequest.getContent())) {
 			return new ResponseEntity<>("Message can not be empty!! ", HttpStatus.BAD_REQUEST);
 		}
@@ -1588,7 +1590,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 			responseList.add(obj1);
 		});
 
-		PageResponse<DiscussionFormResponse> response = new PageResponse<>(responseList, pageResult.getNumber(),
+		PageResponse<DiscussionFormResponse> response = new PageResponse<DiscussionFormResponse>(responseList, pageResult.getNumber(),
 				pageResult.getSize(), pageResult.getTotalElements(), pageResult.getTotalPages(), pageResult.isLast());
 
 		return new ResponseEntity<>(response, HttpStatus.OK);

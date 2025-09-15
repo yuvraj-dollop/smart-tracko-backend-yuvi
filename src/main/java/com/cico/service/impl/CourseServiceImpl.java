@@ -465,4 +465,34 @@ public class CourseServiceImpl implements ICourseService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> createCourseNew(CourseRequest request) {
+
+		Course isPresent = courseRepository.findByCourseNameAndIsDeletedFalse(request.getCourseName().trim());
+		if (isPresent != null) {
+			throw new ResourceAlreadyExistException("Course already exist with this name.");
+		}
+
+		Map<String, Object> response = new HashMap<>();
+		Course course = new Course(request.getCourseName(), request.getCourseFees(), request.getDuration(),
+				request.getSortDescription(), null, request.getIsStarterCourse());
+		List<Subject> subjects = course.getSubjects();
+		for (Integer id : request.getSubjectIds()) {
+			subjects.add(subjectRepository.findBySubjectIdAndIsDeleted(id).get());
+		}
+		course.setSubjects(subjects);
+		course.setCreatedDate(LocalDate.now());
+		course.setUpdatedDate(LocalDate.now());
+		course.setTechnologyStack(repository.findById(request.getTechnologyStack()).get());
+		Course savedCourse = courseRepository.save(course);
+		if (Objects.nonNull(savedCourse)) {
+			response.put(AppConstants.MESSAGE, COURSE_ADD_SUCCESS);
+			response.put("course", courseToCourseResponse(savedCourse));
+			return new ResponseEntity<>(response, HttpStatus.CREATED);
+		}
+
+		response.put(AppConstants.MESSAGE, AppConstants.FAILED);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 }

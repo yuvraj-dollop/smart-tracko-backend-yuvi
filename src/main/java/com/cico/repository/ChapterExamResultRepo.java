@@ -18,8 +18,8 @@ public interface ChapterExamResultRepo extends JpaRepository<ChapterExamResult, 
 
 	@Query("SELECT c FROM ChapterExamResult c WHERE c.chapter.chapterId =:id")
 	public List<ChapterExamResult> findAllById(@Param("id") Integer id);
-	
+
 	@Query("SELECT  NEW com.cico.payload.ExamResultResponse( r.id, r.correcteQuestions , r.wrongQuestions ,  r.notSelectedQuestions , r.student.profilePic,r.student.studentId ,r.student.fullName,r.scoreGet , r.totalQuestion  )FROM  ChapterExamResult r WHERE r.chapter.chapterId =:chapterId ")
-	public List<ExamResultResponse> findAllStudentResultWithChapterId( @Param("chapterId") Integer chapterId);
+	public List<ExamResultResponse> findAllStudentResultWithChapterId(@Param("chapterId") Integer chapterId);
 
 }

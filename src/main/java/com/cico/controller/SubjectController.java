@@ -116,8 +116,22 @@ public class SubjectController {
 	@GetMapping("/v2/getAllChapterWithSubjectIdAndStudentId")
 	public ResponseEntity<?> getAllChapterWithSubjectIdAndStudentIdNew(
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId,
-		@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
+			@RequestParam(name = AppConstants.SUBJECT_ID) Integer subjectId) {
 		return subjectService.getAllChapterWithSubjectIdAndStudentId(subjectId, studentId);
 
 	}
+
+	@GetMapping("v2/getAllSubjectsByCourseId")
+	public ResponseEntity<?> getAllSubjectsByCourseIdNew(@RequestParam(AppConstants.COURSE_ID) Integer courseId) {
+		System.err.println("...." + subjectService.getAllSubjectsByCourseId(courseId));
+		return subjectService.getAllSubjectsByCourseId(courseId);
+
+	}
+
+	@GetMapping("v2/getAllSubjects")
+	public ResponseEntity<List<SubjectResponse>> getAllSubjectsNew() {
+		List<SubjectResponse> subjects = subjectService.getAllSubjects();
+		return ResponseEntity.ok(subjects);
+	}
+
 }

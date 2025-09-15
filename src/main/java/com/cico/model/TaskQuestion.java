@@ -17,6 +17,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -49,6 +51,7 @@ public class TaskQuestion {
 
 	@ManyToOne
 	@JoinColumn(name = "task_id")
+	@JsonBackReference
 	private Task task;
 
 	private Boolean isDeleted = Boolean.FALSE;

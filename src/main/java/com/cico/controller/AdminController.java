@@ -33,13 +33,13 @@ public class AdminController {
 
 	@Autowired
 	private IAdminService service;
-	
 
 	@PostMapping("/adminLoginApi")
-	public ResponseEntity<JwtResponse> adminLogin(@RequestParam(name=AppConstants.ADMIN_ID) String adminId,
+	public ResponseEntity<JwtResponse> adminLogin(@RequestParam(name = AppConstants.ADMIN_ID) String adminId,
 			@RequestParam("password") String password) {
 		return ResponseEntity.ok(service.adminLogin(adminId, password));
-	}    
+	}
+
 	@PostMapping("/createAdmin")
 	public ResponseEntity<ApiResponse> createAdmin(@Valid @RequestBody AdminRequest adminRequest) {
 		ApiResponse response = service.createAdmin(adminRequest);
@@ -47,7 +47,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/getAdmin")
-	public ResponseEntity<AdminResponse> getAdmin(@RequestParam(name=AppConstants.ADMIN_ID) String adminId) {
+	public ResponseEntity<AdminResponse> getAdmin(@RequestParam(name = AppConstants.ADMIN_ID) String adminId) {
 		AdminResponse admin = service.getAdmin(adminId);
 		return ResponseEntity.ok(admin);
 	}
@@ -59,22 +59,28 @@ public class AdminController {
 	}
 
 	@DeleteMapping("/{adminId}")
-	public ResponseEntity<ApiResponse> deleteAdmin(@RequestParam(name=AppConstants.ADMIN_ID) Integer adminId) {
+	public ResponseEntity<ApiResponse> deleteAdmin(@RequestParam(name = AppConstants.ADMIN_ID) Integer adminId) {
 		ApiResponse response = service.deleteAdmin(adminId);
 		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/getAll")
 	public ResponseEntity<List<AdminResponse>> getAll() {
-	 List<AdminResponse> admins = service.getAll();
+		List<AdminResponse> admins = service.getAll();
 		return ResponseEntity.ok(admins);
 	}
 
 	@PostMapping("/uploadImage")
-	public ResponseEntity<AdminResponse> uploadImage(@RequestParam(name=AppConstants.ADMIN_ID) Integer adminId,
-			@RequestParam("file") MultipartFile file){
+	public ResponseEntity<AdminResponse> uploadImage(@RequestParam(name = AppConstants.ADMIN_ID) Integer adminId,
+			@RequestParam("file") MultipartFile file) {
 		AdminResponse admin = service.profileUpload(file, adminId);
 		return ResponseEntity.ok(admin);
 	}
-   
+
+	@GetMapping("/v2/getAdmin")
+	public ResponseEntity<AdminResponse> getAdminNew(@RequestParam(name = AppConstants.ADMIN_ID) String adminId) {
+		AdminResponse admin = service.getAdmin(adminId);
+		return ResponseEntity.ok(admin);
+	}
+
 }

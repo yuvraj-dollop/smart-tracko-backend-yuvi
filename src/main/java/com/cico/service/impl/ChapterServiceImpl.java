@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -516,6 +515,28 @@ public class ChapterServiceImpl implements IChapterService {
 
 		return chapterExamResultRepo.findByChapterAndStudent(chapter, student).map(ChapterExamResult::getId)
 				.orElse(null);
+	}
+
+	@Override
+	public ChapterContentResponse updateChapterContentNew(String title, String subTitle, String content,
+			Integer contentId) {
+		Optional<ChapterContent> obj = this.chapterContentRepository.findById(contentId);
+		ChapterContent chapter = obj.get();
+		if (title != null)
+			chapter.setTitle(title);
+		else
+			chapter.setTitle(chapter.getTitle());
+		if (subTitle != null)
+			chapter.setSubTitle(subTitle);
+		else
+			chapter.setSubTitle(chapter.getSubTitle());
+		if (content != null)
+			chapter.setContent(content);
+		else
+			chapter.setContent(chapter.getContent());
+
+		return mapToChapterContentResponse(this.chapterContentRepository.save(chapter),
+				chapterContentRepository.findByContentId(contentId).getChapterName());
 	}
 
 }

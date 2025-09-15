@@ -102,4 +102,16 @@ public interface IExamService {
 	ResponseEntity<?> getAllSubjectPerformanceData(Integer studentId);
 
 	ResponseEntity<?> getAllTestperformanceDataOfStudent(Integer studentId);
+
+	public Integer getRemainingQuestionCountForSubject(Integer subjectId);
+
+	public Integer getRemainingQuestionCountForCourse(Integer courseId);
+
+//	===================== NEW ============================
+
+	public ResponseEntity<?> addCourseExamNew(AddExamRequest request);
+
+	public ResponseEntity<?> addSubjectExamNew(AddExamRequest request);
+
+	public ResponseEntity<?> searchCourseSubjectTest(ExamType examType, TestFilterRequest request, String search);
 }
