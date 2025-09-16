@@ -1,6 +1,5 @@
 package com.cico.payload;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.cico.util.AppConstants;

@@ -6,8 +6,6 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.cico.exception.OtpVerificationLimitExceededException;
-import com.cico.exception.TooManyOtpRequestsException;
 import com.cico.model.Otp;
 import com.cico.repository.OtpRepository;
 import com.cico.service.IOtpService;

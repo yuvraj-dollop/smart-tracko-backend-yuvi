@@ -85,4 +85,9 @@ public class QRController {
 		return qrService.removeDeviceFromWebNew();
 	}
 
+	@GetMapping("/v2/qrGenerator")
+	public ResponseEntity<QRResponse> generateQrCodeAsBase64New() throws Exception {
+		QRResponse generateQRCode = qrService.generateQRCode();
+		return ResponseEntity.ok(generateQRCode);
+	}
 }

@@ -3,8 +3,6 @@ package com.cico.payload;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

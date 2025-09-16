@@ -315,4 +315,27 @@ public class TaskController {
 	public ResponseEntity<?> deleteTaskQuestionsNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
 		return taskService.deleteTaskQuestion(questionId);
 	}
+
+	@PutMapping("/v2/activateTask")
+	public ResponseEntity<?> activateTaskNew(@RequestParam(name = AppConstants.ID) Long id) {
+		return taskService.activateTask(id);
+	}
+
+	@GetMapping("/v2/getTaskById")
+	public ResponseEntity<?> getTaskByIdNew(@RequestParam(name = AppConstants.TASK_ID) Long taskId) {
+		return this.taskService.getTaskById(taskId);
+
+	}
+
+	// update task question status
+	@PutMapping("/v2/updateTaskQuestionStatus")
+	public ResponseEntity<?> updateTaskQuestionStatusNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId,
+			@RequestParam(name = AppConstants.TASK_ID) Long taskId) {
+		return taskService.updateTaskQuestionStatus(taskId, questionId);
+	}
+
+	@GetMapping("/v2/getAllTaskSubmissionByTaskId")
+	public ResponseEntity<?> getAllTaskSubmissionBYTaskIdNew(@RequestParam(name = AppConstants.TASK_ID) Long taskId) {
+		return taskService.getAllTaskSubmissionBYTaskId(taskId);
+	}
 }

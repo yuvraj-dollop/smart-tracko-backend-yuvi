@@ -36,6 +36,10 @@ public class CourseExamResponse {
 	private Integer extraTime;
 	private Boolean isStart;
 	private String status;
+	private Integer attempted;
+	private Integer right;
+	private Integer wrong;
+	private Integer notAttempted;
 
 	public CourseExamResponse(String examName, Integer examId, String examImage, Integer examTimer,
 			Integer passingMarks, Integer scoreGet, LocalDate scheduleTestDate, Integer totalQuestionForTest,

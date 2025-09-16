@@ -116,4 +116,44 @@ public class NewsEventsController {
 		NewsEventsResponse newsEventsResponse = newsEventsService.getNewsEventsNew(id);
 		return new ResponseEntity<NewsEventsResponse>(newsEventsResponse, HttpStatus.OK);
 	}
+
+	// get all
+	@GetMapping("/v2/getAllNewsEvents")
+	public ResponseEntity<PageResponse<NewsEventsResponse>> getAllNewsEventNew(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
+		PageResponse<NewsEventsResponse> newsEvents = newsEventsService.getAllNewsEventsNew(page, size);
+		return new ResponseEntity<>(newsEvents, HttpStatus.OK);
+
+	}
+
+	// create
+	@PostMapping("/v2/createNewsEvents")
+	public ResponseEntity<ApiResponse> createNewsEventsNew(@RequestParam("shortDescriptoin") String shortDescription,
+			@RequestParam("briefDescription") String briefDescription, @RequestParam("title") String title,
+			@RequestParam(value = "fileName", required = false) MultipartFile file) {
+
+		newsEventsService.createNewsEvents(shortDescription, briefDescription, title, file);
+
+		return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.CREATE_SUCCESS, HttpStatus.CREATED),
+				HttpStatus.CREATED);
+	}
+
+	// update
+	@PutMapping("/v2/updateNewsEvents")
+	public ResponseEntity<NewsEventsResponse> updateNewsEventNew(@RequestParam("id") Integer id,
+			@RequestParam(name = "shortDescriptoin", required = false) String shortDescription,
+			@RequestParam("briefDescription") String briefDescription, @RequestParam("title") String title,
+			@RequestParam(name = "fileName", required = false) MultipartFile file) {
+
+		NewsEventsResponse newsEvents = newsEventsService.updateNewsEventsNew(id, shortDescription, briefDescription,
+				title, file);
+		return new ResponseEntity<>(newsEvents, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/v2/deleteNewsEvents")
+	public ResponseEntity<ApiResponse> deleteNewsEventNew(@RequestParam("id") Integer id) {
+		newsEventsService.deleteNewsEvents(id);
+		return ResponseEntity.ok(new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK));
+	}
 }

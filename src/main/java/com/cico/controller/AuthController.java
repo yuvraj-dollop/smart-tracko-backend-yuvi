@@ -1,13 +1,22 @@
 package com.cico.controller;
 
-import com.cico.payload.*;
-import com.cico.service.IAuthService;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import com.cico.payload.AdminLoginRequest;
+import com.cico.payload.ApiResponse;
+import com.cico.payload.ForgetPasswordRequest;
+import com.cico.payload.OtpRequest;
+import com.cico.payload.ResetPasswordRequest;
+import com.cico.payload.StudentLoginRequest;
+import com.cico.service.IAuthService;
 
 @RestController
 @RequestMapping("/api/auth")

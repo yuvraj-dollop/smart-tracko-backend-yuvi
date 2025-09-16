@@ -34,4 +34,9 @@ public interface INewsEventsService {
 	NewsEventsResponse newsEventsToNewsEventsResponse(NewsEvents newsEvent);
 
 	NewsEventsResponse getNewsEventsNew(Integer id);
+
+	PageResponse<NewsEventsResponse> getAllNewsEventsNew(Integer page, Integer size);
+
+	NewsEventsResponse updateNewsEventsNew(Integer id, String shortDescription, String briefDescription, String title,
+			MultipartFile file);
 }

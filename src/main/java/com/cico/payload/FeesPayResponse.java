@@ -3,8 +3,6 @@ package com.cico.payload;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.cico.model.Fees;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
