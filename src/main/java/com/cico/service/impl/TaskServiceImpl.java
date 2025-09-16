@@ -640,10 +640,10 @@ public class TaskServiceImpl implements ITaskService {
 
 	@Override
 	public ResponseEntity<?> isTaskQuestionSubmittedByStudentId(Long questionId, Integer studentId) {
-		if (studentRepository.existsById(studentId)) {
+		if (!studentRepository.existsById(studentId)) {
 			throw new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND);
 		}
-		if (taskQuestionRepository.existsById(questionId)) {
+		if (!taskQuestionRepository.existsById(questionId)) {
 			throw new ResourceNotFoundException(AppConstants.QUESTION_NOT_FOUND);
 		}
 		Map<String, Object> res = new HashMap<>();

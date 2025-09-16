@@ -1582,7 +1582,18 @@ public class ExamServiceImpl implements IExamService {
 	private void processSubjectExams(Integer studentId, PageRequest pageRequest, Map<String, Object> response,
 			ExamType examType, String status) {
 		Page<SubjectExamResponse> exams = subjectRepository.getAllSubjectExam(examType, studentId, status, pageRequest);
-
+		List<SubjectExamResponse> content = exams.getContent();
+		for (SubjectExamResponse subjectExamResponse : content) {
+			if (subjectExamResponse.getStatus().equals("COMPLETED") && subjectExamResponse.getResultId() != null) {
+				SubjectExamResult subjectExamResult = subjectExamResultRepo.findById(subjectExamResponse.getResultId())
+						.get();
+				subjectExamResponse
+						.setAttempted(subjectExamResult.getCorrecteQuestions() + subjectExamResult.getWrongQuestions());
+				subjectExamResponse.setRight(subjectExamResult.getCorrecteQuestions());
+				subjectExamResponse.setWrong(subjectExamResult.getWrongQuestions());
+				subjectExamResponse.setNotAttempted(subjectExamResult.getNotSelectedQuestions());
+			}
+		}
 		if (examType.equals(ExamType.SCHEDULEEXAM)) {
 			exams = exams.map(this::processScheduleExam);
 		}
@@ -1593,7 +1604,17 @@ public class ExamServiceImpl implements IExamService {
 			Map<String, Object> response, ExamType examType, String status) {
 		Page<CourseExamResponse> exams = courseExamRepo.findCourseExams(examType, courseId, studentId, status,
 				pageRequest);
-
+		for (CourseExamResponse courseExamResponse : exams.getContent()) {
+			if (courseExamResponse.getStatus().equals("COMPLETED") && courseExamResponse.getResultId() != null) {
+				CourseExamResult courseExamResult = courseExamResultRepo.findById(courseExamResponse.getResultId())
+						.get();
+				courseExamResponse
+						.setAttempted(courseExamResult.getCorrecteQuestions() + courseExamResult.getWrongQuestions());
+				courseExamResponse.setRight(courseExamResult.getCorrecteQuestions());
+				courseExamResponse.setWrong(courseExamResult.getWrongQuestions());
+				courseExamResponse.setNotAttempted(courseExamResult.getNotSelectedQuestions());
+			}
+		}
 		if (examType.equals(ExamType.SCHEDULEEXAM)) {
 			exams = exams.map(this::processScheduleExam);
 		}

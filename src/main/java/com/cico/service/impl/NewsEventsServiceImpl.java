@@ -163,4 +163,39 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 				.isDeleted(newsEvent.getIsDeleted()).build();
 	}
 
+	@Override
+	public PageResponse<NewsEventsResponse> getAllNewsEventsNew(Integer page, Integer size) {
+		Page<NewsEvents> pageData = newsEventsRepository.findAllByIsDeleted(false,
+				PageRequest.of(page, size, Sort.by(Direction.DESC, "id")));
+
+		return new PageResponse<>(newsEventsToNewsEventsResponse(pageData.getContent()), pageData.getNumber(),
+				pageData.getSize(), pageData.getTotalElements(), pageData.getTotalPages(), pageData.isLast());
+	}
+
+	@Override
+	public NewsEventsResponse updateNewsEventsNew(Integer id, String shortDescription, String briefDescription,
+			String title, MultipartFile file) {
+
+		NewsEvents newsEvents = newsEventsRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.NO_DATA_FOUND));
+
+		if (shortDescription != null)
+			newsEvents.setShortDescription(shortDescription);
+
+		if (briefDescription != null)
+			newsEvents.setBriefDescription(briefDescription);
+
+		if (title != null)
+			newsEvents.setTitle(title);
+
+		if (file != null && !file.isEmpty()) {
+			newsEvents.setImage(fileService.uploadFileInFolder(file, AppConstants.NEWS_AND_EVENT_IMAGES));
+		} else {
+			newsEvents.setImage("");
+		}
+
+		newsEvents.setUpdatedDate(LocalDateTime.now());
+		return newsEventsToNewsEventsResponse(newsEventsRepository.save(newsEvents));
+	}
+
 }

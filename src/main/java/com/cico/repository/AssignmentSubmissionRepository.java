@@ -52,7 +52,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.cico.model.AssignmentSubmission;
-import com.cico.model.AssignmentTaskQuestion;
 import com.cico.payload.AssignmentSubmissionResponse;
 import com.cico.util.SubmissionStatus;
 

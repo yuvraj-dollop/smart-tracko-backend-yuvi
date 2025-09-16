@@ -132,5 +132,8 @@ public class DiscussionFormController {
 			@RequestParam(name = AppConstants.SEARCH) String search) {
 		return this.discussionFormService.searchingDiscussionFormByAllFields(search);
 	}
-
+	@GetMapping("v2/searchingDiscussionForm")
+	public ResponseEntity<?> searchingDiscussionFormNew(@RequestParam(name = AppConstants.SEARCH) String search) {
+		return this.discussionFormService.searchingDiscussionForm(search);
+	}
 }

@@ -2,8 +2,6 @@ package com.cico.payload;
 
 import java.time.LocalDate;
 
-import org.springframework.data.jpa.repository.Query;
-
 import lombok.Data;
 
 @Data

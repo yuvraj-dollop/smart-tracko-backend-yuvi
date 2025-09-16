@@ -375,5 +375,85 @@ public class StudentController {
 			@RequestParam("studentId") Integer studentId) {
 		return studentService.getStudentPresentsAbsentsAndLeavesYearWiseNew(year, studentId);
 	}
+	
+	@GetMapping("/v2/allFeesRemainingStudent")
+	public ResponseEntity<?> allFeesRemainingStudentNew() {
+		return studentService.allFeesRemainingStudent();
+	}
+	
+	@GetMapping("/v2/searchStudentByName")
+	public ResponseEntity<PageResponse<StudentReponseForWeb>> searchStudentByNameNew(
+			@RequestParam(name = "fullName") String fullName, @RequestParam("pageSize") Integer pageSize,
+			@RequestParam("pageNumber") Integer pageNumber) {
+		PageResponse<StudentReponseForWeb> res = studentService.searchStudentByName(fullName, pageNumber, pageSize);
+		return new ResponseEntity<PageResponse<StudentReponseForWeb>>(res, HttpStatus.OK);
+
+	}
+	
+	@PostMapping("/v2/registerStudent")
+	public ResponseEntity<?> registerStudentNew(@RequestBody StudentRequest student) {
+		return studentService.registerStudent(student);
+
+	}
+
+
+	@GetMapping("/v2/getTotalTodayAbsentStudentAndPresent")
+	public ResponseEntity<?> getTotalTodayAbsentStudentNew(@RequestParam("pageSize") Integer pageSise,
+			@RequestParam("pageNumber") Integer pageNumber) {
+		return studentService.getTotalTodayAbsentStudent(pageSise, pageNumber);
+
+	}
+
+	@GetMapping("/v2/getTotalStudentInLeaves")
+	public ResponseEntity<?> getTotalStudentInLeavesNew(@RequestParam("pageSize") Integer pageSise,
+			@RequestParam("pageNumber") Integer pageNumber) {
+		return studentService.getTotalStudentInLeaves(pageSise, pageNumber);
+
+	}
+
+	@GetMapping("/v2/getMonthwiseAttendence")
+	public ResponseEntity<?> getMonthwiseAttendenceNew(@RequestParam("month") Integer month) {
+		return studentService.getMonthwiseAttendence(month);
+	}
+
+	// getting all leaves request
+	@GetMapping("/v2/getTotalStudentTodaysInLeaves")
+	public ResponseEntity<?> getTotalStudentTodaysInLeavesNew(@RequestParam("pageSize") Integer pageSise,
+			@RequestParam("pageNumber") Integer pageNumber) {
+		return studentService.getTotalTodaysLeavesRequest(pageSise, pageNumber);
+
+	}
+
+	// approve leave Request
+	@PutMapping("/v2/approveStudentLeaveReqeust")
+	public ResponseEntity<Boolean> approveStudentLeaveReqeustNew(@RequestParam("studentId") Integer studentId,
+			@RequestParam("leaveId") Integer leaveId, @RequestParam("status") String Leavestatus) {
+		Boolean status = studentService.approveStudentLeaveReqeust(studentId, leaveId, Leavestatus);
+		return new ResponseEntity<Boolean>(status, HttpStatus.OK);
+	}
+
+	@GetMapping("/v2/getTodaysPresentsAndEarlyCheckouts")
+	public ResponseEntity<?> getTodaysPresentsAndEarlyCheckoutsNew(@RequestParam("key") String key) {
+		return studentService.getTodaysPresentsAndEarlyCheckouts(key);
+	}
+
+	// get student data for web profile
+	@GetMapping("/v2/getStudentForWebStudentProfile")
+	public ResponseEntity<?> getStudentProfileForWebNew(@RequestParam("studentId") Integer studentId) {
+		return studentService.getStudentProfileForWeb(studentId);
+	}
+
+	@GetMapping("/v2/getStudentOverAllAttendanceAndLeavesAndAbsents")
+	public ResponseEntity<?> getStudentOverAllAttendanceDataNew(@RequestParam("studentId") Integer studentId,
+			@RequestParam("pageSize") Integer pageSise, @RequestParam("pageNumber") Integer pageNumber) {
+		return studentService.getStudentOverAllAttendanceData(studentId, pageSise, pageNumber);
+	}
+
+	@PutMapping("/v2/updateStudentApi")
+	public ResponseEntity<?> updateStudentNew(@RequestBody Student student) {
+
+		return studentService.updateStudent(student);
+
+	}
 
 }

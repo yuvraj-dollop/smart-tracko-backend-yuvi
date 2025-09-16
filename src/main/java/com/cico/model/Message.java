@@ -1,9 +1,9 @@
 package com.cico.model;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.Date;
 
 @AllArgsConstructor
 @Data

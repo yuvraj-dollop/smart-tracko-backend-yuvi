@@ -3,7 +3,6 @@ package com.cico.payload;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import com.cico.model.TechnologyStack;
 import com.cico.util.JobType;
 
 import lombok.AllArgsConstructor;
