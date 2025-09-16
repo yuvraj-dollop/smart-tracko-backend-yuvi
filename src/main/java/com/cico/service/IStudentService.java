@@ -134,4 +134,6 @@ public interface IStudentService {
 	public Map<String, Object> studentAttendanceMonthFilterNew(Integer monthNo, Integer year);
 
 	ResponseEntity<?> getStudentPresentsAbsentsAndLeavesYearWiseNew(Integer year, Integer studentId);
+
+	ResponseEntity<?> allFeesRemainingStudentNew();
 }

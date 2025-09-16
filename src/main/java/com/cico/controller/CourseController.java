@@ -132,4 +132,21 @@ public class CourseController {
 		CourseResponse courseResponse = courseService.findCourseById(courseId);
 		return ResponseEntity.ok(courseResponse);
 	}
+	
+	@GetMapping("/v2/getAllNonStarterCourses")
+	public ResponseEntity<?> getAllNonStarterCoursesNew() {
+		return courseService.getAllNonStarterCourses();
+	}
+	
+	@GetMapping("/v2/getAllCourseApi")
+	public ResponseEntity<?> getAllStarterCoursesNew() {
+		return courseService.getAllStarterCourses();
+	}
+	
+	@PutMapping("/v2/studentUpgradeCourse")
+	public ResponseEntity<?> studentUpgradeCourseNew(@RequestParam(name = AppConstants.STUDENT_ID) Integer studnetId,
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
+		Map<String, Object> response = courseService.studentUpgradeCourse(studnetId, courseId);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
 }

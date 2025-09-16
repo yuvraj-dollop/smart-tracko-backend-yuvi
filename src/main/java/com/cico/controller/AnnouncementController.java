@@ -83,5 +83,16 @@ public class AnnouncementController {
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return announcementService.countUnseenNotificationForStudent(studentId);
 	}
+	
+	@GetMapping("/v2/getAllAnnouncement")
+	public ResponseEntity<?> getAllPublishedAnnouncementNew(@RequestParam(value = "page", required = false) Integer page,
+			@RequestParam(value = "size", required = false) Integer size) {
+		return announcementService.getAllPublishedAnnouncement(page, size);
+	}
+	
+	@PostMapping("/v2/publishAnnouncement")
+	public ResponseEntity<?> publishAnnouncementNew(@RequestBody @Valid AnnouncementRequest announcementRequest) {
+		return announcementService.publishAnnouncement(announcementRequest);
+	}
 
 }
