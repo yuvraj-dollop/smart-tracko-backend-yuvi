@@ -1,5 +1,6 @@
 package com.cico.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -183,5 +184,21 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 	int countCompletedAssignmentsByStudentAndMonth(@Param("courseId") Integer courseId,
 			@Param("studentId") Integer studentId, @Param("status") SubmissionStatus status,
 			@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+	@Query("""
+			    SELECT
+			        NEW com.cico.payload.TaskStatusSummary(
+			            COUNT(ts) as totalCount,
+			            COUNT(CASE WHEN ts.status IN ('Rejected', 'Accepted', 'Reviewing') THEN ts END) as reviewedCount,
+			            COUNT(CASE WHEN ts.status = 'Unreviewed' THEN ts END) as unreviewedCount
+			        )
+			    FROM Assignment a
+			    JOIN a.AssignmentQuestion t ON t.isDeleted = false
+			    JOIN t.assignmentSubmissions ts
+			    WHERE a.isDeleted = false
+			      AND DATE(ts.submissionDate) BETWEEN DATE(:startDate) AND DATE(:endDate)
+			""")
+	TaskStatusSummary getOverAllAssignmentTaskStatusBetweenDates(@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 
 }

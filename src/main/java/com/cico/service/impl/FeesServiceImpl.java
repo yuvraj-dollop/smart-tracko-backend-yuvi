@@ -195,4 +195,14 @@ public class FeesServiceImpl implements IFeesService {
 		throw new ResourceNotFoundException(AppConstants.DATA_ALREADY_EXIST);
 	}
 
+	@Override
+	public ResponseEntity<?> getTotalfeesCollectionNew(LocalDate startDate, LocalDate endDate) {
+		Map<String, Object> feeResponse = new HashMap<>();
+		List<Object[]> row = feesRepository.getTotalFeeCollectionBetween(startDate, endDate);
+		feeResponse.put("Total", row.get(0)[0]);
+		feeResponse.put("Pending", row.get(0)[1]);
+		feeResponse.put("Collected", row.get(0)[2]);
+		return new ResponseEntity<>(feeResponse, HttpStatus.OK);
+	}
+
 }

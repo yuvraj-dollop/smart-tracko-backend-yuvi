@@ -62,4 +62,16 @@ public interface FeesRepository extends JpaRepository<Fees, Integer> {
 	@Query("SELECT f FROM Fees f WHERE f.student = :student")
 	List<Fees> findByStudents(@Param("student") Student student);
 
+//	=========================================== New ======================================================================
+	@Query("""
+			    SELECT
+			        SUM(f.finalFees) AS totalfees,
+			        SUM(f.remainingFees) AS pending,
+			        SUM(f.feesPaid) AS collected
+			    FROM Fees f
+			    WHERE DATE(f.createdDate) BETWEEN DATE(:startDate) AND DATE(:endDate)
+			""")
+	List<Object[]> getTotalFeeCollectionBetween(@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
+
 }

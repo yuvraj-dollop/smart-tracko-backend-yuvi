@@ -119,7 +119,8 @@ public class QRServiceImpl implements IQRService {
 	public ResponseEntity<?> getLinkedDeviceData(HttpHeaders headers) {
 		String username = util.getUsername(headers.getFirst(AppConstants.AUTHORIZATION));
 		Integer studentId = Integer.parseInt(
-				util.getHeader(headers.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID).toString());
+				util.getHeader(headers.getFirst(AppConstants.AUTHORIZATION), AppConstants.STUDENT_ID_KEY_FOR_TOKEN)
+						.toString());
 		Attendance attendance = attendenceRepository.findByStudentIdAndCheckInDate(studentId, LocalDate.now());
 		QrManage findByUserId = qrManageRepository.findByUserId(username);
 		Map<String, Object> response = new HashMap<>();
