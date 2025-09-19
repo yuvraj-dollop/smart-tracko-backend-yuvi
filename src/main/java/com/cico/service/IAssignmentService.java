@@ -1,5 +1,6 @@
 package com.cico.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -88,4 +89,6 @@ public interface IAssignmentService {
 	public Long countAssignmentOfStudent(Integer studentId);
 
 	public ResponseEntity<?> getAssignmentQuestionDetails(Long questionId, Integer studentId);
+
+	ResponseEntity<?> getOverAllAssignmentTaskStatusNew(LocalDate startDate, LocalDate endDate);
 }

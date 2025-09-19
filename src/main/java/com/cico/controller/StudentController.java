@@ -1,5 +1,6 @@
 package com.cico.controller;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.InvalidException;
 import com.cico.exception.UnauthorizeException;
 import com.cico.model.Student;
 import com.cico.payload.PageResponse;
@@ -361,8 +363,23 @@ public class StudentController {
 	}
 
 	@GetMapping("/v2/todayAttendanceCountsForAdmin")
-	public ResponseEntity<?> todayAttendanceCountsForAdminDashNew() {
-		return studentService.getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeaves();
+	public ResponseEntity<?> todayAttendanceCountsForAdminDashNew(@RequestParam("startDate") String startDate,
+			@RequestParam("endDate") String endDate) {
+
+		LocalDate startLocalDate = LocalDate.parse(startDate);
+		LocalDate endLocalDate = LocalDate.parse(endDate); // <-- fixed (was parsing startDate earlier)
+
+		if (endLocalDate.isBefore(startLocalDate)) {
+			throw new InvalidException("End date cannot be before start date");
+		}
+
+		if (startLocalDate.isAfter(endLocalDate)) {
+			throw new InvalidException("Start date cannot be after end date");
+		}
+		if (startLocalDate.isAfter(LocalDate.now()) || endLocalDate.isAfter(LocalDate.now())) {
+			throw new InvalidException("Start date or end date cannot be in the future");
+		}
+		return studentService.getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeavesNew(startLocalDate, endLocalDate);
 	}
 
 	@GetMapping("/v2/getMonthwiseAdmissionCountForYear")
@@ -375,12 +392,12 @@ public class StudentController {
 			@RequestParam("studentId") Integer studentId) {
 		return studentService.getStudentPresentsAbsentsAndLeavesYearWiseNew(year, studentId);
 	}
-	
+
 	@GetMapping("/v2/allFeesRemainingStudent")
 	public ResponseEntity<?> allFeesRemainingStudentNew() {
 		return studentService.allFeesRemainingStudent();
 	}
-	
+
 	@GetMapping("/v2/searchStudentByName")
 	public ResponseEntity<PageResponse<StudentReponseForWeb>> searchStudentByNameNew(
 			@RequestParam(name = "fullName") String fullName, @RequestParam("pageSize") Integer pageSize,
@@ -389,13 +406,12 @@ public class StudentController {
 		return new ResponseEntity<PageResponse<StudentReponseForWeb>>(res, HttpStatus.OK);
 
 	}
-	
+
 	@PostMapping("/v2/registerStudent")
 	public ResponseEntity<?> registerStudentNew(@RequestBody StudentRequest student) {
 		return studentService.registerStudent(student);
 
 	}
-
 
 	@GetMapping("/v2/getTotalTodayAbsentStudentAndPresent")
 	public ResponseEntity<?> getTotalTodayAbsentStudentNew(@RequestParam("pageSize") Integer pageSise,

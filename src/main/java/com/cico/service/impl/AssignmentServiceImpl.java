@@ -1,5 +1,6 @@
 package com.cico.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1294,4 +1295,10 @@ public class AssignmentServiceImpl implements IAssignmentService {
 		return "SubmittedFile";
 	}
 
+	@Override
+	public ResponseEntity<?> getOverAllAssignmentTaskStatusNew(LocalDate startDate, LocalDate endDate) {
+		TaskStatusSummary overAllAssignmentTaskStatus = assignmentRepository
+				.getOverAllAssignmentTaskStatusBetweenDates(startDate, endDate);
+		return ResponseEntity.ok(overAllAssignmentTaskStatus);
+	}
 }

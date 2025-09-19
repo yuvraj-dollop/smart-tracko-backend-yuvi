@@ -1566,34 +1566,44 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 		Page<DiscusssionForm> pageResult;
 
-		if (Objects.nonNull(studentId)) {
-			// Fetch discussion forms created by this student
-			pageResult = discussionFormRepo.findByStudent_StudentId(studentId, pageable);
+		pageResult = discussionFormRepo.findAll(pageable);
+		Map<String, Object> response = new HashMap<>();
+		List<DiscusssionForm> list = pageResult.getContent();
+		if (list.isEmpty()) {
+			response.put("response", list);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
-			// Fetch all discussion forms
-			pageResult = discussionFormRepo.findAll(pageable);
-		}
-
-		List<DiscussionFormResponse> responseList = new ArrayList<>();
-
-		pageResult.forEach(obj -> {
-			DiscussionFormResponse obj1 = discussionFormFilter(obj);
-
+			List<DiscussionFormResponse> response1 = new ArrayList<>();
 			if (Objects.nonNull(studentId)) {
-				obj1.setIsLike(obj1.getLikes().stream().anyMatch(e -> Objects.equals(e.getStudentId(), studentId)));
-				obj1.setIsCommented(
-						obj1.getComments().stream().anyMatch(c -> Objects.equals(c.getStudentId(), studentId)));
+				list.forEach(obj -> {
+					DiscussionFormResponse obj1 = discussionFormFilter(obj);
+					obj1.setIsLike(obj1.getLikes().stream().anyMatch(e -> Objects.equals(e.getStudentId(), studentId)));
+					obj1.setIsCommented(obj1.getComments().stream()
+							.anyMatch(obj2 -> Objects.equals(obj2.getStudentId(), studentId)));
+					response1.add(obj1);
+				});
+
+			} else {
+				list.forEach(obj -> {
+					DiscussionFormResponse obj1 = discussionFormFilter(obj);
+					response1.add(obj1);
+				});
 			}
+			Collections.reverse(response1);
+			List<DiscussionFormResponse> collect = response1.stream().filter(obj -> {
+				Collections.reverse(obj.getComments());
 
-			// reverse comments for each discussion
-			Collections.reverse(obj1.getComments());
-			responseList.add(obj1);
-		});
+				return obj != null;
+			}).collect(Collectors.toList());
 
-		PageResponse<DiscussionFormResponse> response = new PageResponse<DiscussionFormResponse>(responseList, pageResult.getNumber(),
-				pageResult.getSize(), pageResult.getTotalElements(), pageResult.getTotalPages(), pageResult.isLast());
-
-		return new ResponseEntity<>(response, HttpStatus.OK);
+			PageResponse<DiscussionFormResponse> data = new PageResponse<DiscussionFormResponse>(collect,
+					pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements(),
+					pageResult.getTotalPages(), pageResult.isLast());
+			List<DiscussionFormResponse> list2 = data.getResponse();
+			Collections.reverse(list2);
+			data.setResponse(list2);
+			return new ResponseEntity<>(data, HttpStatus.OK);
+		}
 	}
 
 	@Override

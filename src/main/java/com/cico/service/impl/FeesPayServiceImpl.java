@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.cico.exception.InvalidException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Fees;
 import com.cico.model.FeesPay;
@@ -222,6 +223,9 @@ public class FeesPayServiceImpl implements IFeesPayService {
 
 		if (request.getPayDate() != null) {
 			LocalDate parsedDate = LocalDate.parse(request.getPayDate(), FORMATER);
+			if (parsedDate.isAfter(LocalDate.now())) {
+				throw new InvalidException("Pay date cannot be in the future");
+			}
 			feesPayData.setPayDate(parsedDate);
 		}
 

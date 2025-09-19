@@ -44,9 +44,6 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 	Page<StudentReponseForWeb> getTotalTodayAbsentStudent(@Param("todaysdate") LocalDate todaysdate,
 			PageRequest pageRequest);
 
-	@Query("SELECT COUNT(A.studentId) FROM Attendance A WHERE A.checkInDate = :todaysdate")
-	Long getTotalPresentToday(@Param("todaysdate") LocalDate todaysdate);
-
 	@Query("SELECT NEW com.cico.payload.OnLeavesResponse(l.leaveDate, l.leaveEndDate, s.profilePic, s.applyForCourse, s.studentId, s.fullName) FROM Leaves l JOIN Student s ON s.studentId = l.studentId WHERE l.leaveStatus = 1 AND CURRENT_DATE() BETWEEN DATE(l.leaveDate) AND DATE(l.leaveEndDate)")
 	Page<OnLeavesResponse> getTotalStudentInLeaves(PageRequest pageRequest);
 
@@ -149,4 +146,23 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 	Long countByCourse_CourseId(Integer courseId);
 
 	List<Student> findByCourse_CourseId(Integer id);
+
+	@Query("SELECT COUNT(A.studentId) FROM Attendance A WHERE DATE(A.checkInDate) = DATE(:todaysdate)")
+	Long getTotalPresentToday(@Param("todaysdate") LocalDate todaysdate);
+
+	@Query("""
+			    SELECT COUNT(l)
+			    FROM Leaves l
+			    WHERE l.leaveStatus = 1
+			      AND FUNCTION('DATE', l.leaveDate) <= DATE(:endDate)
+			      AND FUNCTION('DATE', l.leaveEndDate) >= DATE(:startDate)
+			""")
+	Long getTotalOnLeavesCountNew(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+	@Query("""
+			    SELECT COUNT(A.studentId)
+			    FROM Attendance A
+			    WHERE DATE(A.checkInDate) BETWEEN DATE(:startDate) AND DATE(:endDate)
+			""")
+	Long getTotalPresentTodayNew(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

@@ -1,5 +1,6 @@
 package com.cico.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cico.exception.InvalidException;
 import com.cico.model.Fees;
 import com.cico.model.FeesPay;
 import com.cico.payload.FeesPayRequest;
@@ -197,8 +199,23 @@ public class FeesController {
 	}
 
 	@GetMapping("/v2/getTotalFeesCollection")
-	public ResponseEntity<?> getTotalfeesCollectionNew() {
-		ResponseEntity<?> feesCollectionMonthAndYearWise = feesService.getTotalfeesCollection();
+	public ResponseEntity<?> getTotalfeesCollectionNew(@RequestParam("startDate") String startDate,
+			@RequestParam("endDate") String endDate) {
+		LocalDate startLocalDate = LocalDate.parse(startDate);
+		LocalDate endLocalDate = LocalDate.parse(endDate); // <-- fixed (was parsing startDate earlier)
+
+		if (endLocalDate.isBefore(startLocalDate)) {
+			throw new InvalidException("End date cannot be before start date");
+		}
+
+		if (startLocalDate.isAfter(endLocalDate)) {
+			throw new InvalidException("Start date cannot be after end date");
+		}
+		if (startLocalDate.isAfter(LocalDate.now()) || endLocalDate.isAfter(LocalDate.now())) {
+			throw new InvalidException("Start date or end date cannot be in the future");
+		}
+		ResponseEntity<?> feesCollectionMonthAndYearWise = feesService.getTotalfeesCollectionNew(startLocalDate,
+				endLocalDate);
 		return new ResponseEntity<>(feesCollectionMonthAndYearWise, HttpStatus.OK);
 	}
 
@@ -208,7 +225,7 @@ public class FeesController {
 			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
 		return feesPayService.feesPendingList(page, size);
 	}
-	
+
 	@GetMapping("/v2/feesListApi")
 	public PageResponse<FeesResponse> feesListApiNew(
 			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
@@ -216,21 +233,22 @@ public class FeesController {
 		return feesService.feesList(page, size);
 
 	}
-	
+
 	@GetMapping("/v2/searchByName")
-	public ResponseEntity<List<FeesResponse>> searchByNameNew(@RequestParam(name = AppConstants.FULL_NAME) String fullName,
+	public ResponseEntity<List<FeesResponse>> searchByNameNew(
+			@RequestParam(name = AppConstants.FULL_NAME) String fullName,
 			@RequestParam(name = AppConstants.STATUS) String status) {
 		List<FeesResponse> searchByName = feesService.searchByName(fullName, status);
 		return new ResponseEntity<List<FeesResponse>>(searchByName, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/v2/feesPayList")
 	public PageResponse<FeesPayResponse> feesPayListNew(
 			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
 			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size) {
 		return feesPayService.feesPayList(page, size);
 	}
-	
+
 	@GetMapping("/v2/feesCompletedList")
 	public PageResponse<FeesResponse> feesCompleteListNew(
 			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
@@ -238,18 +256,17 @@ public class FeesController {
 
 		return feesService.feesCompleteList(page, size);
 	}
-	
+
 	@GetMapping("/v2/findByFeesId")
 	public ResponseEntity<FeesResponse> findByFeesIdNew(@RequestParam(name = AppConstants.FEES_ID) Integer feesId) {
 		FeesResponse findByFeesId = feesService.findByFeesId(feesId);
 		return new ResponseEntity<FeesResponse>(findByFeesId, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/v2/findByPayId")
 	public ResponseEntity<FeesPayResponse> findByPayIdNew(@RequestParam(name = AppConstants.PAY_ID) Integer payId) {
 		FeesPayResponse findByPayId = feesPayService.findByPayId(payId);
 		return new ResponseEntity<FeesPayResponse>(findByPayId, HttpStatus.OK);
 	}
-
 
 }

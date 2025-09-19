@@ -747,7 +747,7 @@ public class StudentServiceImpl implements IStudentService {
 				dashboardResponseDto.setCounselling(counselling.getIsCounselling());
 				dashboardResponseDto.setCounsellingDate(counselling.getCounsellingDate());
 				dashboardResponseDto.setCounsellingPerson(counselling.getCounsellingPerson());
-
+				System.err.println(dashboardResponseDto);
 				response.put("dashboardResponseDto", dashboardResponseDto);
 				return new ResponseEntity<>(response, headers, HttpStatus.OK);
 
@@ -775,7 +775,6 @@ public class StudentServiceImpl implements IStudentService {
 	}
 
 	private Attendance checkStudentMispunch(Integer studentId) {
-
 		return attendenceRepository.findByStudentIdAndCheckInDateLessThanCurrentDate(studentId, LocalDate.now());
 	}
 
@@ -2553,6 +2552,37 @@ public class StudentServiceImpl implements IStudentService {
 		}
 
 		return new ResponseEntity<>(responseList, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> allFeesRemainingStudentNew() {
+		List<StudentReponseForWeb> students = studRepo.allFeesRemainingStudent();
+		return new ResponseEntity<>(students, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeavesNew(LocalDate startDate,
+			LocalDate endDate) {
+
+		long totalPresent = 0;
+		long totalAbsent = 0;
+		long totalLeaves = 0;
+		long totalEarlyCheckOut = 0;
+
+		for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+			totalPresent += studRepo.getTotalPresentTodayNew(date, date);
+			totalAbsent += attendenceRepository.getTodayAbsentCountNew(date, date);
+			totalLeaves += studRepo.getTotalOnLeavesCountNew(date, date);
+			totalEarlyCheckOut += attendenceRepository.getTodayEarlyCheckOutsCountNew(date, date);
+		}
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("present", totalPresent);
+		response.put("absent", totalAbsent);
+		response.put("leaves", totalLeaves);
+		response.put("earlyCheckOut", totalEarlyCheckOut);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

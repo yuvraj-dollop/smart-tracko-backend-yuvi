@@ -1,5 +1,6 @@
 package com.cico.service;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
@@ -136,4 +137,7 @@ public interface IStudentService {
 	ResponseEntity<?> getStudentPresentsAbsentsAndLeavesYearWiseNew(Integer year, Integer studentId);
 
 	ResponseEntity<?> allFeesRemainingStudentNew();
+
+	public ResponseEntity<?> getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeavesNew(LocalDate startLocalDate,
+			LocalDate endLocalDate);
 }

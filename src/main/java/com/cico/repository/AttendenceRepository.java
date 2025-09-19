@@ -148,4 +148,25 @@ public interface AttendenceRepository extends JpaRepository<Attendance, Integer>
 	public List<Attendance> countTotalEarlyCheckOutForCurrent1New(Integer studentId, @Param("monthNo") Integer monthNo,
 			@Param("year") Integer year);
 
+	@Query("""
+			    SELECT COUNT(a)
+			    FROM Attendance a
+			    WHERE DATE(a.checkInDate) BETWEEN DATE(:startDate) AND DATE(:endDate)
+			      AND a.workingHour < 32400
+			      AND a.isMispunch = false
+			""")
+	Long getTodayEarlyCheckOutsCountNew(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+	@Query("""
+			    SELECT COUNT(s)
+			    FROM Student s
+			    WHERE s.isCompleted = false
+			      AND s.studentId NOT IN (
+			          SELECT a.studentId
+			          FROM Attendance a
+			          WHERE DATE(a.checkInDate) BETWEEN DATE(:startDate) AND DATE(:endDate)
+			      )
+			""")
+	Long getTodayAbsentCountNew(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
 }

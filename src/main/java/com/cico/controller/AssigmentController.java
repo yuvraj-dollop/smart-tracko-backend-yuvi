@@ -1,5 +1,6 @@
 package com.cico.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.InvalidException;
 import com.cico.payload.AssignmentFilter;
 import com.cico.payload.AssignmentQuestionRequest;
 import com.cico.payload.AssignmentRequest;
@@ -271,8 +273,22 @@ public class AssigmentController {
 	}
 
 	@GetMapping("v2/getOverAllAssignmentTaskStatus")
-	public ResponseEntity<?> getOverAllAssignmentTaskStatusNew() {
-		return service.getOverAllAssignmentTaskStatus();
+	public ResponseEntity<?> getOverAllAssignmentTaskStatusNew(@RequestParam("startDate") String startDate,
+			@RequestParam("endDate") String endDate) {
+		LocalDate startLocalDate = LocalDate.parse(startDate);
+		LocalDate endLocalDate = LocalDate.parse(endDate); // <-- fixed (was parsing startDate earlier)
+
+		if (endLocalDate.isBefore(startLocalDate)) {
+			throw new InvalidException("End date cannot be before start date");
+		}
+
+		if (startLocalDate.isAfter(endLocalDate)) {
+			throw new InvalidException("Start date cannot be after end date");
+		}
+		if (startLocalDate.isAfter(LocalDate.now()) || endLocalDate.isAfter(LocalDate.now())) {
+			throw new InvalidException("Start date or end date cannot be in the future");
+		}
+		return service.getOverAllAssignmentTaskStatusNew(startLocalDate, endLocalDate);
 	}
 
 	// getAllAssignments_new
