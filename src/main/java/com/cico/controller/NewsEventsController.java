@@ -2,6 +2,7 @@ package com.cico.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -128,11 +129,11 @@ public class NewsEventsController {
 	}
 
 	// create
-	@PostMapping("/v2/createNewsEvents")
+	@PostMapping(value = "/v2/createNewsEvents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse> createNewsEventsNew(@RequestParam("shortDescriptoin") String shortDescription,
 			@RequestParam("briefDescription") String briefDescription, @RequestParam("title") String title,
 			@RequestParam(value = "fileName", required = false) MultipartFile file) {
-
+		System.err.println("=========================== file " + file);
 		newsEventsService.createNewsEvents(shortDescription, briefDescription, title, file);
 
 		return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.CREATE_SUCCESS, HttpStatus.CREATED),

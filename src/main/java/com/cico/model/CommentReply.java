@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
 import lombok.AllArgsConstructor;
@@ -25,6 +26,9 @@ public class CommentReply {
 	private LocalDateTime createdDate;
 	@OneToOne
 	private Student student;
+	@OneToOne
+	@JoinColumn
+	private Admin admin;
 	@Column(columnDefinition = "longtext")
 	private String content;
 	private String file;

@@ -25,7 +25,7 @@ public interface IdiscussionForm {
 
 	ResponseEntity<?> removeComment(Integer discussionFormId, Integer commentsId);
 
-	ResponseEntity<?> deletePost();
+	ResponseEntity<?> deleteAllPost();
 
 	ResponseEntity<?> addCommentReply(Integer studentId, Integer commentsId, String content, MultipartFile file);
 
@@ -46,4 +46,6 @@ public interface IdiscussionForm {
 	ResponseEntity<?> getAllDiscussionFormNew(Integer studentId, Integer pageSize, Integer pageNo);
 
 	ResponseEntity<?> searchingDiscussionFormByAllFields(String search);
+
+	ResponseEntity<?> deletePostById(Integer id);
 }

@@ -954,6 +954,7 @@ import com.cico.repository.DiscussionFormCommentRepo;
 import com.cico.repository.DiscussionFormRepo;
 import com.cico.repository.LikeRepo;
 import com.cico.repository.StudentRepository;
+import com.cico.security.JwtUtil;
 import com.cico.service.IFileService;
 import com.cico.service.IdiscussionForm;
 import com.cico.util.AppConstants;
@@ -980,6 +981,8 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 	@Autowired
 	private SimpMessageSendingOperations messageSendingOperations;
+	@Autowired
+	private JwtUtil jwtUtil;
 
 	@Override
 	public ResponseEntity<?> createDiscussionForm(Integer studentId, MultipartFile file, String content,
@@ -1141,7 +1144,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 	@Override
 	public ResponseEntity<?> getDiscussionFormById(Integer id, Integer studentId) {
-		Optional<DiscusssionForm> object = discussionFormRepo.findById(id);
+		Optional<DiscusssionForm> object = discussionFormRepo.findByIdAndIsDeletedFalse(id);
 		if (Objects.isNull(object)) {
 			return new ResponseEntity<>("DISCUSSION_FORM_NOT_FOUND", HttpStatus.OK);
 		} else {
@@ -1227,6 +1230,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 		object.setCourseName(obj.getStudent().getApplyForCourse());
 		object.setAudioFile(obj.getAudioFile());
 		object.setIsCommented(false);
+		object.setIsDeleted(obj.getIsDeleted());
 
 		if (Objects.nonNull(obj.getLikes())) {
 			obj.getLikes().forEach(obj1 -> {
@@ -1286,7 +1290,6 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 			return new ResponseEntity<>(discussionFormFilter(form2), HttpStatus.OK);
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
 	}
 
 	@Override
@@ -1321,7 +1324,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 	}
 
 	@Override
-	public ResponseEntity<?> deletePost() {
+	public ResponseEntity<?> deleteAllPost() {
 		List<DiscusssionForm> list = discussionFormRepo.findAll();
 		list.stream().filter(obj -> {
 			obj.setLikes(new ArrayList<>());
@@ -1391,7 +1394,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 			discusssionForm.setCreatedDate(LocalDateTime.now());
 			discusssionForm.setContent(discussionFormRequest.getContent());
 			discusssionForm.setStudent(student);
-
+			discusssionForm.setIsDeleted(false);
 			MultipartFile file = discussionFormRequest.getFile();
 			if (Objects.nonNull(file) && !file.isEmpty()) {
 				String savedFile = fileService.uploadFileInFolder(file, AppConstants.DISCUSSION_FORUM_IMAGES);
@@ -1566,7 +1569,7 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 
 		Page<DiscusssionForm> pageResult;
 
-		pageResult = discussionFormRepo.findAll(pageable);
+		pageResult = discussionFormRepo.findByIsDeletedFalse(pageable);
 		Map<String, Object> response = new HashMap<>();
 		List<DiscusssionForm> list = pageResult.getContent();
 		if (list.isEmpty()) {
@@ -1617,6 +1620,29 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 				.collect(Collectors.toList());
 
 		return ResponseEntity.ok(response);
+	}
+
+	@Override
+	public ResponseEntity<?> deletePostById(Integer id) {
+		String token = jwtUtil.getToken();
+		DiscusssionForm discusssionForm = null;
+		System.err.println("===============================>> " + jwtUtil.getRole(token));
+		if (jwtUtil.getRole(token).equals("ADMIN")) {
+			discusssionForm = discussionFormRepo.findById(id)
+					.orElseThrow(() -> new ResourceNotFoundException("Discusssion Form Not Found= " + id));
+		} else {
+			Integer studentId = Integer
+					.parseInt((String) jwtUtil.getHeader(jwtUtil.getToken(), AppConstants.STUDENT_ID_KEY_FOR_TOKEN));
+			Student student = studentRepository.findById(studentId)
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+			discusssionForm = discussionFormRepo.findByIdAndStudent_StudentId(id, student.getStudentId()).orElseThrow(
+					() -> new ResourceNotFoundException("Student Have Not DisccussionForm with id = " + id));
+		}
+		discusssionForm.setIsDeleted(true);
+		DiscussionFormResponse response = discussionFormFilter(discussionFormRepo.save(discusssionForm));
+		response.setType(DiscussionFormEnum.removeDiscussionForm);
+		sendMessageManually(response.toString());
+		return ResponseEntity.ok(Map.of("response", "Discussion Form Deleted SuccessFully!"));
 	}
 
 }
