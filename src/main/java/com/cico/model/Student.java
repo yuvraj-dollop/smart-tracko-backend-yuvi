@@ -85,5 +85,4 @@ public class Student {
 		if (isActive == null)
 			isActive = true;
 	}
-
 }

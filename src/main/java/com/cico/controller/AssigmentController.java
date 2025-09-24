@@ -357,4 +357,9 @@ public class AssigmentController {
 		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
 	}
 
+	// update assignment
+	@PutMapping("/v2/updateAssignment")
+	public ResponseEntity<?> updateAssignmentNew(@RequestBody @Valid AssignmentRequest assignmentRequest) {
+		return service.updateAssignment(assignmentRequest);
+	}
 }

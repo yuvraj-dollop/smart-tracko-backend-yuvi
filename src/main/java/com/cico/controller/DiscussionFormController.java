@@ -81,7 +81,7 @@ public class DiscussionFormController {
 
 	@DeleteMapping("deletepost")
 	public ResponseEntity<?> deleteAllPost() {
-		return discussionFormService.deletePost();
+		return discussionFormService.deleteAllPost();
 	}
 
 	@PostMapping("addCommentReply")
@@ -132,8 +132,39 @@ public class DiscussionFormController {
 			@RequestParam(name = AppConstants.SEARCH) String search) {
 		return this.discussionFormService.searchingDiscussionFormByAllFields(search);
 	}
+
 	@GetMapping("v2/searchingDiscussionForm")
 	public ResponseEntity<?> searchingDiscussionFormNew(@RequestParam(name = AppConstants.SEARCH) String search) {
 		return this.discussionFormService.searchingDiscussionForm(search);
+	}
+
+	@DeleteMapping("v2/removeComment")
+	public ResponseEntity<?> removeCommentNew(
+			@RequestParam(name = AppConstants.DISCUSSION_FORM_ID) Integer discussionFormId,
+			@RequestParam(name = AppConstants.COMMENTS_ID) Integer commentsId) {
+		return discussionFormService.removeComment(discussionFormId, commentsId);
+	}
+
+	@DeleteMapping("v2/removeCommentReply")
+	public ResponseEntity<?> removeCommentReplyNew(
+			@RequestParam(name = AppConstants.COMMENT_REPLY_ID) Integer commentReplyId,
+			@RequestParam(name = AppConstants.COMMENTS_ID) Integer commentsId) {
+		return discussionFormService.removeCommentReply(commentReplyId, commentsId);
+	}
+
+	@DeleteMapping("v2/deletepost")
+	public ResponseEntity<?> deleteAllPostNew() {
+		return discussionFormService.deleteAllPost();
+	}
+
+	@DeleteMapping("v2/deletepostById")
+	public ResponseEntity<?> deletePostById(@RequestParam(name = AppConstants.DISCUSSION_FORM_ID) Integer id) {
+		return discussionFormService.deletePostById(id);
+	}
+
+	@GetMapping("v2/getDiscussionFormById")
+	public ResponseEntity<?> getDiscussionFormByIdNew(@RequestParam(name = AppConstants.ID) Integer id,
+			@RequestParam(name = AppConstants.STUDENT_ID, required = false) Integer studentId) {
+		return this.discussionFormService.getDiscussionFormById(id, studentId);
 	}
 }

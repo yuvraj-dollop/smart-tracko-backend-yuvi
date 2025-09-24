@@ -34,6 +34,7 @@ public class DiscussionFormResponse {
 	private List<CommentResponse> comments;
 	private Boolean isLike;
 	private Boolean isCommented;
+	private Boolean isDeleted;
 	private String audioFile;
 
 	@Override
@@ -43,7 +44,7 @@ public class DiscussionFormResponse {
 				+ "\", \"studentProfilePic\":\"" + studentProfilePic + "\", \"file\":\"" + file
 				+ "\", \"courseName\":\"" + courseName + "\", \"likes\":" + likes + ", \"comments\":" + comments
 				+ ", \"isLike\":" + isLike + ", \"isCommented\":" + isCommented + ", \"audioFile\":\"" + audioFile
-				+ "\"}";
+				+ ", \"isDeleted\":" + isDeleted + "\"}";
 	}
 
 }

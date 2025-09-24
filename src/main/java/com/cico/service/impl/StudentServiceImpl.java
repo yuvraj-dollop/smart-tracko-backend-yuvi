@@ -36,6 +36,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cico.exception.InvalidException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.kafkaServices.KafkaProducerService;
@@ -2407,11 +2408,23 @@ public class StudentServiceImpl implements IStudentService {
 	@Override
 	public ResponseEntity<?> getStudentCheckInCheckOutHistoryNew(String startDate, String endDate, Integer offset,
 			Integer limit, String type) {
+		LocalDate localStartDate = LocalDate.parse(startDate);
+		LocalDate endLocalDate = LocalDate.parse(endDate); // <-- fixed (was parsing startDate earlier)
+
+		if (endLocalDate.isBefore(localStartDate)) {
+			throw new InvalidException("End date cannot be before start date");
+		}
+
+		if (localStartDate.isAfter(endLocalDate)) {
+			throw new InvalidException("Start date cannot be after end date");
+		}
+		if (localStartDate.isAfter(LocalDate.now()) || endLocalDate.isAfter(LocalDate.now())) {
+			throw new InvalidException("Start date or end date cannot be in the future");
+		}
 		String token = util.getToken();
 		String username = util.getUsername(token);
 		Integer studentId = Integer.parseInt(util.getHeader(token, AppConstants.STUDENT_ID_KEY_FOR_TOKEN).toString());
 
-		LocalDate localStartDate = LocalDate.parse(startDate);
 		Boolean validateToken = util.validateToken(token, username);
 		Map<String, Object> response = new HashMap<>();
 

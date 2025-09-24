@@ -25,5 +25,8 @@ public class Likes {
 	@OneToOne
 	@JoinColumn
 	private Student student;
+	@OneToOne
+	@JoinColumn
+	private Admin admin;
 
 }

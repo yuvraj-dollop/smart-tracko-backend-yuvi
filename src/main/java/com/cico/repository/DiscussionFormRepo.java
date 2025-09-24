@@ -1,6 +1,7 @@
 package com.cico.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,25 @@ public interface DiscussionFormRepo extends JpaRepository<DiscusssionForm, Integ
 
 	Page<DiscusssionForm> findByStudent_StudentId(Integer studentId, Pageable pageable);
 
-	@Query("SELECT d FROM DiscusssionForm d " + "WHERE LOWER(d.Content) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-			+ "   OR LOWER(d.audioFile) LIKE LOWER(CONCAT('%', :keyword, '%')) "
-			+ "   OR LOWER(d.file) LIKE LOWER(CONCAT('%', :keyword, '%'))"
-			+ "   OR LOWER(d.student.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+	@Query("""
+			    SELECT d
+			    FROM DiscusssionForm d
+			    WHERE d.isDeleted = false
+			      AND (
+			            LOWER(d.Content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			         OR LOWER(d.audioFile) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			         OR LOWER(d.file) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			         OR LOWER(d.student.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			      )
+			""")
 	List<DiscusssionForm> searchingByAllFields(@Param("keyword") String keyword);
+
+	Boolean existsByIdAndStudent_StudentId(Integer id, Integer studentId);
+
+	Optional<DiscusssionForm> findByIdAndStudent_StudentId(Integer id, Integer studentId);
+
+	Page<DiscusssionForm> findByIsDeletedFalse(Pageable pageable);
+
+	Optional<DiscusssionForm> findByIdAndIsDeletedFalse(Integer id);
 
 }

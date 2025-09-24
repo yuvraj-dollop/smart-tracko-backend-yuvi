@@ -34,10 +34,14 @@ public class DiscusssionForm {
 	@OneToOne
 	@JoinColumn
 	private Student student;
+	@OneToOne
+	@JoinColumn
+	private Admin admin;
 	@OneToMany
 	@JoinColumn
-	private List<DiscussionFormComment>comments = new ArrayList<>();
+	private List<DiscussionFormComment> comments = new ArrayList<>();
 	@OneToMany
 	@JoinColumn
-	private List<Likes>likes;
+	private List<Likes> likes;
+	private Boolean isDeleted = false;
 }

@@ -32,6 +32,9 @@ public class DiscussionFormComment {
 	@OneToOne
 	@JoinColumn
 	private Student student;
+	@OneToOne
+	@JoinColumn
+	private Admin admin;
 	@Column(columnDefinition = "longtext")
 	private String content;
 	private String file;
