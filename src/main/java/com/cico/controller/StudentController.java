@@ -400,8 +400,8 @@ public class StudentController {
 
 	@GetMapping("/v2/searchStudentByName")
 	public ResponseEntity<PageResponse<StudentReponseForWeb>> searchStudentByNameNew(
-			@RequestParam(name = "fullName") String fullName, @RequestParam("pageSize") Integer pageSize,
-			@RequestParam("pageNumber") Integer pageNumber) {
+			@RequestParam(name = "fullName", required = false, defaultValue = "") String fullName,
+			@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNumber") Integer pageNumber) {
 		PageResponse<StudentReponseForWeb> res = studentService.searchStudentByName(fullName, pageNumber, pageSize);
 		return new ResponseEntity<PageResponse<StudentReponseForWeb>>(res, HttpStatus.OK);
 

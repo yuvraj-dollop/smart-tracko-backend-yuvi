@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cico.payload.AddChapterToSubjectRequest;
+import com.cico.payload.AddSubjectRequest;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.SubjectResponse;
 import com.cico.service.ISubjectService;
@@ -132,6 +134,53 @@ public class SubjectController {
 	public ResponseEntity<List<SubjectResponse>> getAllSubjectsNew() {
 		List<SubjectResponse> subjects = subjectService.getAllSubjects();
 		return ResponseEntity.ok(subjects);
+	}
+
+	@PostMapping("/v2/addSubject")
+	public ResponseEntity<?> addSubjectNew(@RequestBody AddSubjectRequest request) {
+		return subjectService.addSubject(request.getSubjectName(), request.getImageId());
+	}
+
+	@PostMapping("/v2/addChapterToSubject")
+	public ResponseEntity<String> addChapterToSubjectNew(@RequestBody AddChapterToSubjectRequest request) {
+		subjectService.addChapterToSubject(request.getSubjectId(), request.getChapterName());
+		return ResponseEntity.ok("Chapter Added");
+	}
+
+	@PutMapping("/v2/updateSubject")
+	public ResponseEntity<?> updateSubjectNew(@RequestBody SubjectResponse subject) {
+		return subjectService.updateSubject(subject);
+
+	}
+
+	@GetMapping("/v2/getSubjectById")
+	public ResponseEntity<Map<String, Object>> getSubjectByIdNew(@RequestParam("subjectId") Integer subjectId) {
+		Map<String, Object> map = subjectService.getSubjectById(subjectId);
+		return ResponseEntity.ok(map);
+	}
+
+	@PutMapping("/v2/deleteSubject")
+	public ResponseEntity<String> deleteSubjectNew(@RequestParam("subjectId") Integer subjectId) {
+		subjectService.deleteSubject(subjectId);
+		return ResponseEntity.ok("Subject Deleted");
+	}
+
+	@PutMapping("/v2/updateSubjectStatus")
+	public ResponseEntity<String> updateSubjectStatusNew(@RequestParam("subjectId") Integer subjectId) {
+		subjectService.updateSubjectStatus(subjectId);
+		return ResponseEntity.ok("Subject Updated");
+	}
+
+	@PutMapping("/v2/deleteSubjectById")
+	public ResponseEntity<ApiResponse> deleteSubjectByIdNew(@RequestParam("subjectId") Integer subjectId) {
+		subjectService.deleteSubject(subjectId);
+		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Success", HttpStatus.OK), HttpStatus.OK);
+	}
+
+	@GetMapping("/v2/getAllChapterWithSubjectId")
+	public ResponseEntity<?> getAllChapterWithSubjectIdNew(@RequestParam("subjectId") Integer subjectId) {
+		return subjectService.getAllChapterWithSubjectId(subjectId);
+
 	}
 
 }

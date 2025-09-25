@@ -2,6 +2,7 @@ package com.cico.service;
 
 import java.util.List;
 
+import com.cico.model.JobAlert;
 import com.cico.payload.CreateJobRequest;
 import com.cico.payload.JobAlertResponse;
 import com.cico.payload.PageResponse;
@@ -10,7 +11,8 @@ import com.cico.util.JobType;
 
 public interface IJobAlertService {
 
-//	public JobAlert createJob(Integer technologyStackId,String jobTitle,String jobDescription,String companyName,String experienceRequired,String technicalSkills,JobType type,String jobPackage);
+	public JobAlert createJob(Integer technologyStackId, String jobTitle, String jobDescription, String companyName,
+			String experienceRequired, String technicalSkills, JobType type, String jobPackage);
 
 //	public JobAlert getJob(Integer jobId);	
 
@@ -19,35 +21,33 @@ public interface IJobAlertService {
 
 //	public void delete(Integer jobId);
 
-
 //	public List<JobAlert> searchJob(String field,String role);
 
 //	public JobAlert activeJob(Integer jobId);
 
 //	public PageResponse<JobAlertResponse> getAllJobsAndIntership(Integer page, Integer size);
-	
+
 //	public PageResponse<JobAlertResponse> getAllJobAlert(int page,int size,JobType type);
 
 //	public ApiResponse update(JobAlert jobAlert);
-	
-	
-	
-	//===================================new updated methods=====================================
+
+	// ===================================new updated
+	// methods=====================================
 
 	public JobAlertResponse createJob(CreateJobRequest request);
-	
-	public JobAlertResponse getJob(Integer jobId);	
-	
-	public JobAlertResponse activeJob(Integer jobId);
-	
-	public List<JobAlertResponse> searchJob(String field, String role);
-	
-	public JobAlertResponse update(UpdateJobRequest request);
-	
-	public PageResponse<JobAlertResponse> getAllJobAlert(int page, int size, JobType type);
-	
-	public PageResponse<JobAlertResponse> getAllJobsAndIntership(Integer page, Integer size);
-	
-	public void delete(Integer jobId);
-}
 
+	public JobAlertResponse getJob(Integer jobId);
+
+	public JobAlertResponse activeJob(Integer jobId);
+
+	public List<JobAlertResponse> searchJob(String field, String role);
+
+	public JobAlertResponse update(UpdateJobRequest request);
+
+	public PageResponse<JobAlertResponse> getAllJobAlert(int page, int size, JobType type);
+
+	public PageResponse<JobAlertResponse> getAllJobsAndIntership(Integer page, Integer size);
+
+	public void delete(Integer jobId);
+
+}
