@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class JobAlertResponse implements Serializable{
+public class JobAlertResponse implements Serializable {
 
 	/**
 	 * 
@@ -30,7 +30,7 @@ public class JobAlertResponse implements Serializable{
 //	private String technicalSkills;
 //	private TechnologyStack technologyStack;
 //	private String jobPackage;
-	
+
 	private Integer jobId;
 	private String jobTitle;
 	private String jobDescription;
@@ -39,6 +39,7 @@ public class JobAlertResponse implements Serializable{
 	private String technicalSkills;
 	private String jobPackage;
 	private Boolean isActive;
+	private Integer technologyStackId;
 	private String technologyStackName;
 	private JobType type;
 	private LocalDateTime createdDate;

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cico.model.JobAlert;
 import com.cico.payload.ApiResponse;
 import com.cico.payload.CreateJobRequest;
 import com.cico.payload.JobAlertResponse;
@@ -34,18 +35,18 @@ public class JobAlertController {
 	@Autowired
 	private IJobAlertService service;
 
-//	@PostMapping("/createJobApi")
-//	public ResponseEntity<ApiResponse> createJob(@RequestParam("jobTitle") String jobTitle,
-//			@RequestParam("technologyStackId") Integer technologyStackId,
-//			@RequestParam("jobDescription") String jobDescription, @RequestParam("companyName") String companyName,
-//			@RequestParam("experienceRequired") String experienceRequired, @RequestParam("type") JobType type,
-//			@RequestParam("jobPackage") String jobPackage, @RequestParam("technicalSkills") String technicalSkills) {
-//		JobAlert createJob = service.createJob(technologyStackId, jobTitle, jobDescription, companyName,
-//				experienceRequired, technicalSkills, type, jobPackage);
-//
-//		return ResponseEntity.status(HttpStatus.CREATED)
-//				.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));
-//	}
+	@PostMapping("/createJobApi")
+	public ResponseEntity<ApiResponse> createJob(@RequestParam("jobTitle") String jobTitle,
+			@RequestParam("technologyStackId") Integer technologyStackId,
+			@RequestParam("jobDescription") String jobDescription, @RequestParam("companyName") String companyName,
+			@RequestParam("experienceRequired") String experienceRequired, @RequestParam("type") JobType type,
+			@RequestParam("jobPackage") String jobPackage, @RequestParam("technicalSkills") String technicalSkills) {
+		JobAlert createJob = service.createJob(technologyStackId, jobTitle, jobDescription, companyName,
+				experienceRequired, technicalSkills, type, jobPackage);
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));
+	}
 
 //	@GetMapping("/getJobApi")
 //	public ResponseEntity<JobAlert> getJob(@RequestParam("jobId") Integer jobId) {
@@ -82,13 +83,13 @@ public class JobAlertController {
 //				new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK), HttpStatus.OK);
 //	}
 
-//	@GetMapping("/getAllJobsApi")
-//	public PageResponse<JobAlertResponse> getAllJobs(
-//			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
-//			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size,
-//			 @RequestParam(name="type",defaultValue="JOB") JobType type) {
-//		return service.getAllJobAlert(page, size, type);
-//	}
+	@GetMapping("/getAllJobsApi")
+	public PageResponse<JobAlertResponse> getAllJob(
+			@RequestParam(name = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) Integer page,
+			@RequestParam(name = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) Integer size,
+			@RequestParam(name = "type", defaultValue = "JOB") JobType type) {
+		return service.getAllJobAlert(page, size, type);
+	}
 
 //	@GetMapping("/getAllJobsAndIntershipApi")
 //	public PageResponse<JobAlertResponse> getAllJobsAndIntership(
@@ -102,6 +103,7 @@ public class JobAlertController {
 	// apis=====================================//
 	@PostMapping("/v2/createJobApi")
 	public ResponseEntity<ApiResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
+		System.err.println("createJob ------------>>  " + request);
 		service.createJob(request);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));

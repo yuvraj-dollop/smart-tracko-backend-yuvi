@@ -23,6 +23,7 @@ import com.cico.payload.AssignmentFilter;
 import com.cico.payload.AssignmentQuestionRequest;
 import com.cico.payload.AssignmentRequest;
 import com.cico.payload.AssignmentSubmissionRequest;
+import com.cico.payload.PaginationRequest;
 import com.cico.payload.UpdateAssignmentQuestionRequest;
 import com.cico.service.IAssignmentService;
 import com.cico.util.AppConstants;
@@ -292,9 +293,18 @@ public class AssigmentController {
 	}
 
 	// getAllAssignments_new
-	@PostMapping("/v2/getAllAssignments_new")
-	public ResponseEntity<?> getAllAssignments_newV2(@Valid @RequestBody AssignmentFilter assignmentFilter) {
-		return service.getAllAssignments_new(assignmentFilter);
+	@GetMapping("/v2/getAllAssignments_new")
+	public ResponseEntity<?> getAllAssignments_newV2(@RequestParam(required = false) Integer courseId,
+			@RequestParam(required = false) Integer subjectId, @RequestParam(required = false) Long assignmentId,
+			@RequestParam(value = AppConstants.PAGE_SIZE, required = false, defaultValue = "0") int page,
+			@RequestParam(value = AppConstants.PAGE_NUMBER, required = false, defaultValue = "10") int size) {
+		AssignmentFilter filter = new AssignmentFilter();
+		filter.setCourseId(courseId);
+		filter.setSubjectId(subjectId);
+		filter.setAssignmentId(assignmentId);
+		filter.setPageRequest(PaginationRequest.builder().pageNumber(page).pageSize(size).build());
+
+		return service.getAllAssignments_new(filter);
 	}
 
 	@GetMapping("/v2/getAllSubmitedAssginments")
@@ -361,5 +371,10 @@ public class AssigmentController {
 	@PutMapping("/v2/updateAssignment")
 	public ResponseEntity<?> updateAssignmentNew(@RequestBody @Valid AssignmentRequest assignmentRequest) {
 		return service.updateAssignment(assignmentRequest);
+	}
+
+	@GetMapping("/v2/getOverAllAssignmentTask")
+	public ResponseEntity<?> getOverAllAssignmentTask() {
+		return service.getOverAllAssignmentTaskStatus();
 	}
 }

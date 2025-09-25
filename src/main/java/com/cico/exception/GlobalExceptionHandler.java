@@ -100,4 +100,8 @@ public class GlobalExceptionHandler {
 				HttpStatus.BAD_REQUEST);
 	}
 
+//	@ExceptionHandler(RequestRejectedException.class)
+//	public ResponseEntity<String> handleRequestRejected(RequestRejectedException ex) {
+//		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + ex.getMessage());
+//	}
 }

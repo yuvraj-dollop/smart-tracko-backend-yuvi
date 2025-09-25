@@ -12,9 +12,11 @@ spring:
     type: redis
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: ${MYSQL_PASSWORD:Java@2023}
- url: jdbc:mysql://${MYSQL_HOST:108.181.203.244}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
-    #url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/fees_management-1?createDatabaseIfNotExist=true
+    password: ${MYSQL_PASSWORD:raj7828}
+#    password: ${MYSQL_PASSWORD:Java@2023}
+#    url: jdbc:mysql://${MYSQL_HOST:108.181.203.244}:${MYSQL_PORT:3306}/fees_management?createDatabaseIfNotExist=true
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/fees_management-1?createDatabaseIfNotExist=true
+
     username: ${MYSQL_USERNAME:root}
     hikari:
       maximum-pool-size: 20              # Increase if you're under heavy load
@@ -36,7 +38,9 @@ spring:
 
   credentials:
   username: root
-  password: Java@2023
+#  password: Java@2023
+  password: raj7828
+
   
   kafka:
     consumer:
