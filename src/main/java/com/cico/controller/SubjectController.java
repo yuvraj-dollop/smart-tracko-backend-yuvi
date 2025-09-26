@@ -82,7 +82,6 @@ public class SubjectController {
 
 	@GetMapping("/getAllSubjectsByCourseId")
 	public ResponseEntity<?> getAllSubjectsByCourseId(@RequestParam("courseId") Integer courseId) {
-		System.err.println("...." + subjectService.getAllSubjectsByCourseId(courseId));
 		return subjectService.getAllSubjectsByCourseId(courseId);
 
 	}
@@ -125,7 +124,6 @@ public class SubjectController {
 
 	@GetMapping("v2/getAllSubjectsByCourseId")
 	public ResponseEntity<?> getAllSubjectsByCourseIdNew(@RequestParam(AppConstants.COURSE_ID) Integer courseId) {
-		System.err.println("...." + subjectService.getAllSubjectsByCourseId(courseId));
 		return subjectService.getAllSubjectsByCourseId(courseId);
 
 	}

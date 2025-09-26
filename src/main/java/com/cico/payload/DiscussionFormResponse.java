@@ -39,12 +39,12 @@ public class DiscussionFormResponse {
 
 	@Override
 	public String toString() {
-		return "{\"id\":" + id + ", \"type\":\"" + type + "\", \"createdDate\":\"" + createdDate + "\", \"content\":\""
-				+ content + "\", \"studentId\":\"" + studentId + "\", \"studentName\":\"" + studentName
-				+ "\", \"studentProfilePic\":\"" + studentProfilePic + "\", \"file\":\"" + file
-				+ "\", \"courseName\":\"" + courseName + "\", \"likes\":" + likes + ", \"comments\":" + comments
-				+ ", \"isLike\":" + isLike + ", \"isCommented\":" + isCommented + ", \"audioFile\":\"" + audioFile
-				+ ", \"isDeleted\":" + isDeleted + "\"}";
+		return "{" + "\"id\":" + id + ", \"type\":\"" + type + "\"" + ", \"createdDate\":\"" + createdDate + "\""
+				+ ", \"content\":\"" + content + "\"" + ", \"studentId\":" + studentId + ", \"studentName\":\""
+				+ studentName + "\"" + ", \"studentProfilePic\":\"" + studentProfilePic + "\"" + ", \"file\":\"" + file
+				+ "\"" + ", \"courseName\":\"" + courseName + "\"" + ", \"likes\":" + likes + ", \"comments\":"
+				+ comments + ", \"isLike\":" + isLike + ", \"isCommented\":" + isCommented + ", \"audioFile\":\""
+				+ audioFile + "\"" + ", \"isDeleted\":" + isDeleted + "}";
 	}
 
 }

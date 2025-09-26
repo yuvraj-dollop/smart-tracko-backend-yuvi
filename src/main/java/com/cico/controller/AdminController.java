@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cico.payload.AdminRequest;
 import com.cico.payload.AdminResponse;
 import com.cico.payload.ApiResponse;
+import com.cico.payload.ChangeStudentPasswordRequest;
 import com.cico.payload.JwtResponse;
 import com.cico.payload.UpdateAdminRequest;
 import com.cico.service.IAdminService;
@@ -83,4 +84,8 @@ public class AdminController {
 		return ResponseEntity.ok(admin);
 	}
 
+	@PutMapping("/v2/changeStudentPasswword")
+	public ResponseEntity<?> changeStudentPasswword(@RequestBody @Valid ChangeStudentPasswordRequest request) {
+		return service.changeStudentPasswword(request);
+	}
 }

@@ -16,12 +16,15 @@ public interface IAnnouncementService {
 	ResponseEntity<?> getAnnouncementForStudent(Integer studentId);
 
 	ResponseEntity<?> countUnseenNotificationForStudent(Integer studentId);
-	
-	
-	//................. NEW METHODS ................................
-	
+
+	// ................. NEW METHODS ................................
+
 	ResponseEntity<?> getAnnouncementForStudentNew(Integer studentId);
+
 	ResponseEntity<?> markAnnouncementsAsSeen(AnnouncementActionRequest request);
+
 	ResponseEntity<?> clearNotificationForStudent(AnnouncementActionRequest request);
+
+	ResponseEntity<?> deleteAnnouncement(Long announcementId);
 
 }

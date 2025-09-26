@@ -23,27 +23,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Announcement {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long announcementId;
-	
+
 	@Column(columnDefinition = "mediumtext")
 	private String title;
-	
+
 	@Column(columnDefinition = "longtext")
 	private String message;
-	
+
 	private LocalDateTime date;
-	
-	@ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<Course> course;
-	
+
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn
 	private MessageSeenBy seenBy;
-	
+	private Boolean isDeleted = false;
+
 	@ManyToMany
 	private List<Student> students;
-	
+
 }

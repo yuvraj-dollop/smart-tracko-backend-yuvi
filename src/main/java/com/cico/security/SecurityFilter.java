@@ -42,15 +42,12 @@ public class SecurityFilter extends OncePerRequestFilter {
 		System.out.println("TOKEN :: " + token);
 
 //		String clientSource = request.getHeader("X-Client-Source");
-//		System.err.println("==========client or device type " + clientSource);
 //		
 //		request.getHeaderNames().asIterator().forEachRemaining(
 //			    header -> System.out.println("Header: " + header + " => " + request.getHeader(header))
 //			);
-//		System.out.println("Request URL :: " + request.getRequestURL());
 
 		if (token != null) {
-			System.err.println(",,,,,,,,,,,,,,,,");
 
 //			if (token.startsWith("Bearer ")) {
 //				token = token.substring(7);

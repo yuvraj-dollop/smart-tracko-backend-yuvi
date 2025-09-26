@@ -12,6 +12,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -65,6 +68,14 @@ public class AppConfig {
 		}
 
 		return FirebaseMessaging.getInstance(app);
+	}
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
+		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // use ISO instead of epoch
+		return mapper;
 	}
 
 }

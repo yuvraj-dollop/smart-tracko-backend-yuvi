@@ -246,6 +246,7 @@ public class AppConstants {
 	public static final String USER_NOT_FOUND = "Student not found with given userId or email.";
 
 	public static final String PASSWORD_RESET_SUCCESSFULLY = "Password reset successful. Please login again.";
+	public static final String PASSWORD_CHANGED_SUCCESSFULLY = "Password changed successful.";
 
 	public static final String PASSWORD_NOT_MATCHED = "Passwords do not match.";
 
@@ -499,6 +500,7 @@ public class AppConstants {
 
 	public static final String ANNOUNCEMENT_IDS_REQUIRED = "At least one announcement ID is required";
 	public static final String ANNOUNCEMENT_ID_NOT_NULL = "Announcement ID cannot be null";
+	public static final String ANNOUNCEMENT_NOT_FOUND = "Announcement Not Found.";
 
 	public static final String LIMIT = "limit";
 
@@ -528,4 +530,7 @@ public class AppConstants {
 
 	public static final String NOT_ENOUGH_QUETIONS = "Not enough questions available in this course. ";
 
+	public static final String PASSWORD_REGEX = "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[@$!%?&])[A-Za-z\\d@$!%?&]{8,}$";
+	public static final String INVALID_PASSWORD_FROMAT = "Password must be at least 8 characters long and include at least one uppercase letter, "
+			+ "one lowercase letter, one digit, and one special character (@$!%?&).";
 }

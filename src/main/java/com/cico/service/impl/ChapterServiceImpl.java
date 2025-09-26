@@ -337,7 +337,6 @@ public class ChapterServiceImpl implements IChapterService {
 	public ResponseEntity<?> getChapterExamQuestionsWithPagination(Integer chapterId, Integer pageNumber,
 			Integer pageSize) {
 		Page<Question> qestionsPage = questionRepo.findAllByChapterId(chapterId, PageRequest.of(pageNumber, pageSize));
-//		System.err.println("*************** getChapterExamQuestionsWithPagination => " + qestionsPage.getContent());
 		return new ResponseEntity<>(qestionsPage, HttpStatus.OK);
 	}
 

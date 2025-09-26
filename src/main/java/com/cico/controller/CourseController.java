@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -132,21 +133,39 @@ public class CourseController {
 		CourseResponse courseResponse = courseService.findCourseById(courseId);
 		return ResponseEntity.ok(courseResponse);
 	}
-	
+
 	@GetMapping("/v2/getAllNonStarterCourses")
 	public ResponseEntity<?> getAllNonStarterCoursesNew() {
 		return courseService.getAllNonStarterCourses();
 	}
-	
+
 	@GetMapping("/v2/getAllCourseApi")
 	public ResponseEntity<?> getAllStarterCoursesNew() {
 		return courseService.getAllStarterCourses();
 	}
-	
+
 	@PutMapping("/v2/studentUpgradeCourse")
 	public ResponseEntity<?> studentUpgradeCourseNew(@RequestParam(name = AppConstants.STUDENT_ID) Integer studnetId,
 			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
 		Map<String, Object> response = courseService.studentUpgradeCourse(studnetId, courseId);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
+
+	@PutMapping("/v2/updateCourseApi")
+	public ResponseEntity<?> updateCourseNew(@Valid @RequestBody CourseRequest course) {
+		ApiResponse updateCourse = courseService.updateCourse(course);
+		return ResponseEntity.status(HttpStatus.CREATED).body(updateCourse);
+	}
+
+	@DeleteMapping("/v2/deleteCourseByIdApi")
+	public ResponseEntity<ApiResponse> deleteCourseByIdNew(
+			@RequestParam(name = AppConstants.COURSE_ID) Integer courseId) {
+		Boolean deleteCourseById = courseService.deleteCourseById(courseId);
+		if (deleteCourseById != null) {
+			return ResponseEntity.ok(new ApiResponse(Boolean.TRUE, AppConstants.DELETE_SUCCESS, HttpStatus.OK));
+		}
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+				new ApiResponse(Boolean.FALSE, AppConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR));
+	}
+
 }

@@ -130,10 +130,10 @@ public class NewsEventsController {
 
 	// create
 	@PostMapping(value = "/v2/createNewsEvents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ApiResponse> createNewsEventsNew(@RequestParam("shortDescriptoin") String shortDescription,
+	public ResponseEntity<ApiResponse> createNewsEventsNew(
+			@RequestParam(value = "shortDescriptoin", required = true) String shortDescription,
 			@RequestParam("briefDescription") String briefDescription, @RequestParam("title") String title,
 			@RequestParam(value = "fileName", required = false) MultipartFile file) {
-		System.err.println("=========================== file " + file + "     \n----- >>" + shortDescription);
 		newsEventsService.createNewsEvents(shortDescription, briefDescription, title, file);
 
 		return new ResponseEntity<>(new ApiResponse(Boolean.TRUE, AppConstants.CREATE_SUCCESS, HttpStatus.CREATED),
@@ -144,7 +144,8 @@ public class NewsEventsController {
 	@PutMapping("/v2/updateNewsEvents")
 	public ResponseEntity<NewsEventsResponse> updateNewsEventNew(@RequestParam("id") Integer id,
 			@RequestParam(name = "shortDescriptoin", required = false) String shortDescription,
-			@RequestParam("briefDescription") String briefDescription, @RequestParam("title") String title,
+			@RequestParam("briefDescription") String briefDescription,
+			@RequestParam(value = "title", required = true) String title,
 			@RequestParam(name = "fileName", required = false) MultipartFile file) {
 
 		NewsEventsResponse newsEvents = newsEventsService.updateNewsEventsNew(id, shortDescription, briefDescription,

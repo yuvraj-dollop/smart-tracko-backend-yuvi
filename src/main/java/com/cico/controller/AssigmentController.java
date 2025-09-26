@@ -117,7 +117,6 @@ public class AssigmentController {
 			@Valid UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest,
 			@RequestParam(value = "newImages", required = false) List<String> questionImages,
 			@RequestParam(value = "newImages", required = false) List<MultipartFile> newImages) {
-		System.err.println("updateAssignmentQuestion =>>> " + updateAssignmentQuestionRequest);
 		updateAssignmentQuestionRequest.setQuestionImages(questionImages);
 		updateAssignmentQuestionRequest.setNewImages(newImages);
 		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
@@ -361,7 +360,6 @@ public class AssigmentController {
 			@Valid UpdateAssignmentQuestionRequest updateAssignmentQuestionRequest,
 			@RequestParam(value = "newImages", required = false) List<String> questionImages,
 			@RequestParam(value = "newImages", required = false) List<MultipartFile> newImages) {
-		System.err.println("updateAssignmentQuestion =>>> " + updateAssignmentQuestionRequest);
 		updateAssignmentQuestionRequest.setQuestionImages(questionImages);
 		updateAssignmentQuestionRequest.setNewImages(newImages);
 		return service.updateAssignmentQuestion(updateAssignmentQuestionRequest);
@@ -377,4 +375,15 @@ public class AssigmentController {
 	public ResponseEntity<?> getOverAllAssignmentTask() {
 		return service.getOverAllAssignmentTaskStatus();
 	}
+
+	@DeleteMapping("/v2/deleteTaskQuestion")
+	public ResponseEntity<?> deleteTaskQuestionsNew(@RequestParam(name = AppConstants.QUESTION_ID) Long questionId) {
+		return service.deleteTaskQuestion(questionId);
+	}
+
+	@DeleteMapping("/v2/deleteAttachment")
+	public ResponseEntity<?> deleteAttachmentNew(@RequestParam(name = AppConstants.ASSIGNMENT_ID) Long assignmentId) {
+		return service.deleteAttachment(assignmentId);
+	}
+
 }

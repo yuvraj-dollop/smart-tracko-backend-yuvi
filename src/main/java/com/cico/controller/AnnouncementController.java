@@ -5,6 +5,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -83,16 +84,22 @@ public class AnnouncementController {
 			@RequestParam(name = AppConstants.STUDENT_ID) Integer studentId) {
 		return announcementService.countUnseenNotificationForStudent(studentId);
 	}
-	
+
 	@GetMapping("/v2/getAllAnnouncement")
-	public ResponseEntity<?> getAllPublishedAnnouncementNew(@RequestParam(value = "page", required = false) Integer page,
+	public ResponseEntity<?> getAllPublishedAnnouncementNew(
+			@RequestParam(value = "page", required = false) Integer page,
 			@RequestParam(value = "size", required = false) Integer size) {
 		return announcementService.getAllPublishedAnnouncement(page, size);
 	}
-	
+
 	@PostMapping("/v2/publishAnnouncement")
 	public ResponseEntity<?> publishAnnouncementNew(@RequestBody @Valid AnnouncementRequest announcementRequest) {
 		return announcementService.publishAnnouncement(announcementRequest);
+	}
+
+	@DeleteMapping("/v2/deleteAnnouncement")
+	public ResponseEntity<?> deleteAnnouncement(@RequestParam Long announcementId) {
+		return announcementService.deleteAnnouncement(announcementId);
 	}
 
 }
