@@ -42,6 +42,7 @@ import com.cico.payload.TaskFilterRequest;
 import com.cico.payload.TaskQuestionResponse;
 import com.cico.payload.TaskQuestionSubmissionResponse;
 import com.cico.payload.TaskRequest;
+import com.cico.payload.TaskRequestNew;
 import com.cico.payload.TaskResponse;
 import com.cico.payload.TaskStatusSummary;
 import com.cico.payload.TaskSubmissionRequest;
@@ -96,7 +97,7 @@ public class TaskServiceImpl implements ITaskService {
 
 		Map<String, Object> response = new HashMap<>();
 		Task task = new Task();
-		task.setCourse(taskRequest.getCourse());
+		task.setCourse(taskRequest.getCourseId());
 		task.setSubject(taskRequest.getSubject());
 		task.setTaskName(taskRequest.getTaskName().trim());
 		task.setCreatedDate(LocalDateTime.now());
@@ -1027,6 +1028,26 @@ public class TaskServiceImpl implements ITaskService {
 	@Override
 	public Long countSubmittedTasksByStudentId(Integer studentId) {
 		return taskSubmissionRepository.countSubmittedTasksByStudentId(studentId);
+	}
+
+	@Override
+	public ResponseEntity<?> createTaskNew(TaskRequestNew taskRequest) {
+		if (taskRepo.findByTaskName(taskRequest.getTaskName().trim()) != null)
+			throw new ResourceAlreadyExistException("Task already exist");
+
+		Map<String, Object> response = new HashMap<>();
+		Task task = new Task();
+		task.setCourse(courseRepository.findByCourseIdAndIsDeleted(taskRequest.getCourseId(), false));
+		task.setSubject(subjectRepo.findById(taskRequest.getSubjectId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND)));
+		task.setTaskName(taskRequest.getTaskName().trim());
+		task.setCreatedDate(LocalDateTime.now());
+		task.setUpdatedDate(LocalDateTime.now());
+		Task newTask = taskRepo.save(task);
+		response.put(AppConstants.MESSAGE, AppConstants.CREATE_SUCCESS);
+		response.put("taskId", newTask.getTaskId());
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

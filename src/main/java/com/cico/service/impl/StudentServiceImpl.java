@@ -2600,4 +2600,18 @@ public class StudentServiceImpl implements IStudentService {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> deleteStudent(Long studentId) {
+		Student student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+
+		// Soft delete
+		student.setDeleted(true);
+		student.setActive(false);
+
+		studentRepository.save(student);
+
+		return ResponseEntity.ok("Student soft deleted successfully");
+	}
+
 }

@@ -1,6 +1,9 @@
 package com.cico.exception;
 
+import java.sql.Timestamp;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -100,6 +103,11 @@ public class GlobalExceptionHandler {
 				HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(DateTimeParseException.class)
+	public ResponseEntity<?> handleDateTimeParseException(DateTimeParseException ex) {
+		return ResponseEntity.badRequest().body(Map.of("message", "Invalid date format. Please use yyyy-MM-dd",
+				"status", HttpStatus.BAD_REQUEST, "date", new Timestamp(System.currentTimeMillis())));
+	}
 //	@ExceptionHandler(RequestRejectedException.class)
 //	public ResponseEntity<String> handleRequestRejected(RequestRejectedException ex) {
 //		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + ex.getMessage());

@@ -25,7 +25,6 @@ public class SubjectResponse {
 
 	public SubjectResponse(Integer subjectId, String subjectName, Integer technologyId, String technologyName,
 			String imageName) {
-		System.err.println("tecnology id -----> " + technologyStack + " ---- " + technologyId);
 		this.subjectId = subjectId;
 		this.subjectName = subjectName;
 		this.technologyStack = new TechnologyStackResponse(technologyId, technologyName, imageName);

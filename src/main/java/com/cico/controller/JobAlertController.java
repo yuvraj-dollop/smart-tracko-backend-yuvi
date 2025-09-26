@@ -103,7 +103,6 @@ public class JobAlertController {
 	// apis=====================================//
 	@PostMapping("/v2/createJobApi")
 	public ResponseEntity<ApiResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
-		System.err.println("createJob ------------>>  " + request);
 		service.createJob(request);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new ApiResponse(Boolean.TRUE, "Job Created Successfully", HttpStatus.CREATED));

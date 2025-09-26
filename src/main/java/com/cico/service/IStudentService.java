@@ -140,4 +140,6 @@ public interface IStudentService {
 
 	public ResponseEntity<?> getTodaysPresentAbsentEarlyCheckOutsMispunchAndLeavesNew(LocalDate startLocalDate,
 			LocalDate endLocalDate);
+
+	public ResponseEntity<?> deleteStudent(Long id);
 }

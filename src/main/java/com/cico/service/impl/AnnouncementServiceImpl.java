@@ -255,4 +255,15 @@ public class AnnouncementServiceImpl implements IAnnouncementService {
 		return new ResponseEntity<>(AppConstants.ANNOUNCEMENTS_CLEARED_SUCCESSFULLY, HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> deleteAnnouncement(Long announcementId) {
+		Announcement announcement = announcementRepository.findById(announcementId)
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.ANNOUNCEMENT_NOT_FOUND));
+		announcement.setIsDeleted(true);
+
+		announcementRepository.save(announcement);
+
+		return ResponseEntity.ok("Announcement deleted successfully.");
+	}
+
 }

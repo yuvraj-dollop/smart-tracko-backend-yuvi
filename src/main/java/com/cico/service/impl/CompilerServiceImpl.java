@@ -246,7 +246,6 @@ public class CompilerServiceImpl implements ICompilerService {
 	@Override
 	public CompilerResponse execute(CompilerRequest request) {
 		String url = pistonApiUrl + "/execute";
-		System.err.println(request + "\n url==> " + url);
 		// ✅ Build request payload
 		Map<String, Object> payload = Map.of("language", request.getLanguage(), "version", " ", "files",
 				List.of(Map.of("content", request.getCode())), "stdin", request.getInput());
@@ -262,7 +261,6 @@ public class CompilerServiceImpl implements ICompilerService {
 			ResponseEntity<Map<String, Object>> response = restTemplate.exchange(url, HttpMethod.POST, entity,
 					new ParameterizedTypeReference<>() {
 					});
-			System.err.println(response);
 			long duration = System.currentTimeMillis() - start;
 
 			if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {

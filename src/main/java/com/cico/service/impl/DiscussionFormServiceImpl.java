@@ -959,6 +959,8 @@ import com.cico.service.IFileService;
 import com.cico.service.IdiscussionForm;
 import com.cico.util.AppConstants;
 import com.cico.util.DiscussionFormEnum;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class DiscussionFormServiceImpl implements IdiscussionForm {
@@ -983,6 +985,8 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 	private SimpMessageSendingOperations messageSendingOperations;
 	@Autowired
 	private JwtUtil jwtUtil;
+	@Autowired
+	private ObjectMapper mapper;
 
 	@Override
 	public ResponseEntity<?> createDiscussionForm(Integer studentId, MultipartFile file, String content,
@@ -1641,7 +1645,13 @@ public class DiscussionFormServiceImpl implements IdiscussionForm {
 		discusssionForm.setIsDeleted(true);
 		DiscussionFormResponse response = discussionFormFilter(discussionFormRepo.save(discusssionForm));
 		response.setType(DiscussionFormEnum.removeDiscussionForm);
-		sendMessageManually(response.toString());
+		String asString;
+		try {
+			asString = mapper.writeValueAsString(response);
+			sendMessageManually(asString);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 		return ResponseEntity.ok(Map.of("response", "Discussion Form Deleted SuccessFully!"));
 	}
 

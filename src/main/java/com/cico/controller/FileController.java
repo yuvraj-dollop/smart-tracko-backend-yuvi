@@ -14,7 +14,6 @@ public class FileController {
 //
 ////	@RequestMapping(value = "/getImageApi/{destination}/{fileName}", method = RequestMethod.GET, produces = MediaType.ALL_VALUE)
 ////	public void getImage(@PathVariable("fileName") String fileName,@PathVariable("destination") String destination ,HttpServletResponse response) throws IOException {
-////         System.err.println(destination+"   "+fileName);
 ////		InputStream data = fileService.getImages(fileName,destination);
 ////		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 ////		StreamUtils.copy(data, response.getOutputStream());

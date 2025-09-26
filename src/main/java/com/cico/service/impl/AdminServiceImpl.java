@@ -2,12 +2,14 @@ package com.cico.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,12 +18,15 @@ import com.cico.exception.InvalidCredentialsException;
 import com.cico.exception.ResourceAlreadyExistException;
 import com.cico.exception.ResourceNotFoundException;
 import com.cico.model.Admin;
+import com.cico.model.Student;
 import com.cico.payload.AdminRequest;
 import com.cico.payload.AdminResponse;
 import com.cico.payload.ApiResponse;
+import com.cico.payload.ChangeStudentPasswordRequest;
 import com.cico.payload.JwtResponse;
 import com.cico.payload.UpdateAdminRequest;
 import com.cico.repository.AdminRepository;
+import com.cico.repository.StudentRepository;
 import com.cico.security.JwtUtil;
 import com.cico.service.IAdminService;
 import com.cico.util.AppConstants;
@@ -43,6 +48,12 @@ public class AdminServiceImpl implements IAdminService {
 
 	@Autowired
 	private JwtUtil jwtUtil;
+
+	@Autowired
+	private StudentRepository studentRepository;
+
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
 
 	@Override
 	public JwtResponse adminLogin(String adminId, String password) {
@@ -149,6 +160,15 @@ public class AdminServiceImpl implements IAdminService {
 
 		AdminResponse map = modelMapper.map(admin, AdminResponse.class);
 		return map;
+	}
+
+	@Override
+	public ResponseEntity<?> changeStudentPasswword(ChangeStudentPasswordRequest request) {
+		Student student = studentRepository.findById(request.getStudentId())
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstants.STUDENT_NOT_FOUND));
+		student.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		studentRepository.save(student);
+		return ResponseEntity.ok(Map.of("message", AppConstants.PASSWORD_CHANGED_SUCCESSFULLY));
 	}
 
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +35,6 @@ public class BatchController {
 
 	@PostMapping("/createBatch")
 	public ResponseEntity<?> createBatch(@RequestBody @Valid BatchRequest request) {
-		System.out.println(request);
 		ApiResponse createBatch = batchService.createBatch(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createBatch);
 
@@ -99,7 +99,6 @@ public class BatchController {
 
 	@PostMapping("/v2/createBatch")
 	public ResponseEntity<?> createBatchNew(@RequestBody @Valid BatchRequest request) {
-		System.out.println(request);
 		ApiResponse createBatch = batchService.createBatch(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createBatch);
 
@@ -120,7 +119,7 @@ public class BatchController {
 
 	}
 
-	@PutMapping("/v2/deleteBatch")
+	@DeleteMapping("/v2/deleteBatch")
 	public ResponseEntity<ApiResponse> deleteBatchNew(@PathVariable(name = AppConstants.BATCH_ID) Integer batchId) {
 		ApiResponse response = batchService.deleteBatch(batchId);
 		return ResponseEntity.ok(response);

@@ -23,6 +23,7 @@ import com.cico.payload.AddTaskQuestionAttachmentRequest;
 import com.cico.payload.PaginationRequest;
 import com.cico.payload.StudentTaskFilterRequest;
 import com.cico.payload.TaskRequest;
+import com.cico.payload.TaskRequestNew;
 import com.cico.payload.TaskSubmissionRequest;
 import com.cico.payload.UpdateTaskQuestionRequest;
 import com.cico.payload.UpdateTaskSubmissionStatusRequest;
@@ -281,7 +282,7 @@ public class TaskController {
 		return taskService.getOverAllTaskStatusforBarChart();
 	}
 
-	@PostMapping("/v2/getAllTasks")
+	@GetMapping("/v2/getAllTasks")
 	public ResponseEntity<?> getAllTasksNew(
 			@RequestParam(name = AppConstants.COURSE_ID, required = false) Integer courseId,
 			@RequestParam(name = AppConstants.SUBJECT_ID, required = false) Integer subjectId,
@@ -301,8 +302,8 @@ public class TaskController {
 	}
 
 	@PostMapping("/v2/createTask")
-	private ResponseEntity<?> createTaskNew(@RequestBody @Valid TaskRequest taskRequest) {
-		return taskService.createTask(taskRequest);
+	private ResponseEntity<?> createTaskNew(@RequestBody @Valid TaskRequestNew taskRequest) {
+		return taskService.createTaskNew(taskRequest);
 	}
 
 	@GetMapping("/v2/getTaskQuestion")

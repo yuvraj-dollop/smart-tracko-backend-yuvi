@@ -77,7 +77,6 @@ public class FeesController {
 			@RequestParam(name = AppConstants.START_DATE) String startDate,
 			@RequestParam(name = AppConstants.END_DATE) String endDate,
 			@RequestParam(name = AppConstants.STATUS) String status) {
-		System.out.println(status);
 		List<FeesResponse> findFeesByDates = feesService.findFeesByDates(startDate, endDate, status);
 		return new ResponseEntity<List<FeesResponse>>(findFeesByDates, HttpStatus.OK);
 	}

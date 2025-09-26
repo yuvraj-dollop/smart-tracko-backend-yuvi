@@ -191,7 +191,7 @@ public class NewsEventsServiceImpl implements INewsEventsService {
 		if (file != null && !file.isEmpty()) {
 			newsEvents.setImage(fileService.uploadFileInFolder(file, AppConstants.NEWS_AND_EVENT_IMAGES));
 		} else {
-			newsEvents.setImage("");
+			newsEvents.setImage(newsEvents.getImage());
 		}
 
 		newsEvents.setUpdatedDate(LocalDateTime.now());

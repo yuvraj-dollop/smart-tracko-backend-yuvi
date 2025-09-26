@@ -66,7 +66,6 @@ public class BatchServiceImpl implements IBatchService {
 		List<Batch> batches = course.getBatches();
 		batches.add(batch);
 		course.setBatches(batches);
-		System.err.println(request);
 		Course course2 = courseRepository.save(course);
 		if (Objects.nonNull(course2))
 			return new ApiResponse(Boolean.TRUE, BATCH_ADD_SUCCESS, HttpStatus.CREATED);
@@ -86,7 +85,6 @@ public class BatchServiceImpl implements IBatchService {
 	@Override
 	public BatchResponse getBatchById(Integer batchId) {
 		Batch obj = batchRepository.findByBatchIdAndIsDeleted(batchId, false);
-		System.out.println(obj.getSubject());
 
 		if (Objects.isNull(obj)) {
 			throw new ResourceNotFoundException(BATCH_NOT_FOUND);
@@ -218,40 +216,33 @@ public class BatchServiceImpl implements IBatchService {
 
 		return batchRepository.findByCourseId(course.getCourseId()).orElse(null);
 	}
-	 // Convert List<Batch> → List<BatchResponse>
+
+	// Convert List<Batch> → List<BatchResponse>
 	@Override
-    public List<BatchResponse> batchToBatchResponse(List<Batch> batches) {
-        return batches.stream()
-                .map(this::batchToBatchResponse) // reuse single converter
-                .collect(Collectors.toList());
-    }
+	public List<BatchResponse> batchToBatchResponse(List<Batch> batches) {
+		return batches.stream().map(this::batchToBatchResponse) // reuse single converter
+				.collect(Collectors.toList());
+	}
 
-    // Convert Batch → BatchResponse
-    @Override
-    public BatchResponse batchToBatchResponse(Batch batch) {
-        if (batch == null) {
-            return null;
-        }
+	// Convert Batch → BatchResponse
+	@Override
+	public BatchResponse batchToBatchResponse(Batch batch) {
+		if (batch == null) {
+			return null;
+		}
 
-        return BatchResponse.builder()
-                .batchId(batch.getBatchId())
-                .batchName(batch.getBatchName())
-                .batchStartDate(batch.getBatchStartDate())
-                .batchTiming(batch.getBatchTiming())
-                .batchDetails(batch.getBatchDetails())
-                .isDeleted(batch.isDeleted())
-                .isActive(batch.isActive())
-                .subject(batch.getSubject() != null ? subjectService.toResponse(batch.getSubject()):null)
-                .build();
-    }
+		return BatchResponse.builder().batchId(batch.getBatchId()).batchName(batch.getBatchName())
+				.batchStartDate(batch.getBatchStartDate()).batchTiming(batch.getBatchTiming())
+				.batchDetails(batch.getBatchDetails()).isDeleted(batch.isDeleted()).isActive(batch.isActive())
+				.subject(batch.getSubject() != null ? subjectService.toResponse(batch.getSubject()) : null).build();
+	}
 
 	// =====================================New Methods
 	// ===================================
 	@Override
 	public List<BatchResponse> getUpcomingBatchesNew() {
 		List<Batch> batches = batchRepository.findAllByBatchStartDate(LocalDate.now());
-		
-		
+
 		return batchToBatchResponse(batches);
 	}
 

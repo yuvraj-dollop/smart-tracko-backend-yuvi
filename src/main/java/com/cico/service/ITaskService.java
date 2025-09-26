@@ -12,6 +12,7 @@ import com.cico.payload.AddTaskQuestionAttachmentRequest;
 import com.cico.payload.StudentTaskFilterRequest;
 import com.cico.payload.TaskFilterRequest;
 import com.cico.payload.TaskRequest;
+import com.cico.payload.TaskRequestNew;
 import com.cico.payload.TaskSubmissionRequest;
 import com.cico.payload.UpdateTaskQuestionRequest;
 import com.cico.payload.UpdateTaskSubmissionStatusRequest;
@@ -100,4 +101,6 @@ public interface ITaskService {
 	public Long countSubmittedTasksByStudentId(Integer studentId);
 
 	public Long countTaskOfStudent(Integer studentId);
+
+	ResponseEntity<?> createTaskNew(TaskRequestNew taskRequest);
 }

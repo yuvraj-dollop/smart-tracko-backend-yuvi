@@ -111,6 +111,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 
 	@Override
 	public ResponseEntity<?> createAssignment(AssignmentRequest assignmentRequest) {
+		System.err.println("assignmentRequest ==============>> " + assignmentRequest);
 
 		Optional<Assignment> obj = assignmentRepository.findByName(assignmentRequest.getTitle().trim());
 		Map<String, Object> response = new HashMap<>();
@@ -118,10 +119,12 @@ public class AssignmentServiceImpl implements IAssignmentService {
 			Assignment assignment = new Assignment();
 			assignment.setTitle(assignmentRequest.getTitle().trim());
 
-			assignment.setCourse(courseRepo.findById(assignmentRequest.getCourseId()).get());
+			assignment.setCourse(courseRepo.findById(assignmentRequest.getCourseId())
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstants.COURSE_NOT_FOUND)));
 
 			if (assignmentRequest.getSubjectId() != null)
-				assignment.setSubject(subjectRepo.findById(assignmentRequest.getSubjectId()).get());
+				assignment.setSubject(subjectRepo.findById(assignmentRequest.getSubjectId())
+						.orElseThrow(() -> new ResourceNotFoundException(AppConstants.SUBJECT_NOT_FOUND)));
 
 			assignment.setCreatedDate(LocalDateTime.now());
 			Assignment savedAssignment = assignmentRepository.save(assignment);
@@ -915,6 +918,7 @@ public class AssignmentServiceImpl implements IAssignmentService {
 	@Override
 	public ResponseEntity<?> updateAssignment(AssignmentRequest assignmentRequest) {
 		Map<String, Object> response = new HashMap<>();
+		System.err.println("assignmentRequest =======[>>>.. " + assignmentRequest);
 		Assignment assignment = assignmentRepository.findById(assignmentRequest.getAssignmentId())
 				.orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
 

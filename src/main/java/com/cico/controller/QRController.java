@@ -69,7 +69,6 @@ public class QRController {
 
 	@DeleteMapping("/webLogout")
 	public ResponseEntity<?> logoutUserFromWeb(@RequestHeader HttpHeaders headers) {
-		System.out.println(headers.getFirst(AppConstants.AUTHORIZATION));
 		return qrService.removeDeviceFromWeb(headers);
 	}
 
